@@ -1,0 +1,30 @@
+<RCC>
+    <qresource prefix="/Bitmaps">
+        <file>Bitmaps/colorgradient.png</file>
+        <file>Bitmaps/dual.png</file>
+        <file>Bitmaps/elastic.png</file>
+        <file>Bitmaps/expo.png</file>
+        <file>Bitmaps/falling.png</file>
+        <file>Bitmaps/GT-logo.png</file>
+        <file>Bitmaps/led-off.png</file>
+        <file>Bitmaps/led-on.png</file>
+        <file>Bitmaps/longdecay.png</file>
+        <file>Bitmaps/lowintense.png</file>
+        <file>Bitmaps/negative.png</file>
+        <file>Bitmaps/noise.png</file>
+        <file>Bitmaps/positive.png</file>
+        <file>Bitmaps/rising.png</file>
+        <file>Bitmaps/roll.png</file>
+        <file>Bitmaps/shortdecay.png</file>
+        <file>Bitmaps/sine.png</file>
+        <file>Bitmaps/square.png</file>
+        <file>Bitmaps/triangle.png</file>
+        <file>Bitmaps/veryintense.png</file>
+        <file>Bitmaps/wave-big.png</file>
+        <file>Bitmaps/wave-small.png</file>
+        <file>Bitmaps/window.png</file>
+        <file>Bitmaps/xy.png</file>
+        <file>Bitmaps/zoom-in.png</file>
+        <file>Bitmaps/zoom-out.png</file>
+    </qresource>
+</RCC>
