@@ -13,7 +13,7 @@
   <property name="maximumSize">
    <size>
     <width>16777215</width>
-    <height>1677215</height>
+    <height>16777215</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -180,6 +180,9 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_4">
                   <item>
                    <widget class="QCheckBox" name="xyCheckBox">
+                    <property name="toolTip">
+                     <string>Changes the display from volts vs. time display to volts vs. volts</string>
+                    </property>
                     <property name="text">
                      <string>XY Mode</string>
                     </property>
@@ -191,6 +194,9 @@
                   </item>
                   <item>
                    <widget class="QCheckBox" name="rollCheckBox">
+                    <property name="toolTip">
+                     <string>The data on the display is scrolled to the left as new data comes in</string>
+                    </property>
                     <property name="text">
                      <string>Roll Mode</string>
                     </property>
@@ -202,6 +208,9 @@
                   </item>
                   <item>
                    <widget class="QCheckBox" name="elasticCheckBox">
+                    <property name="toolTip">
+                     <string>Average previous trace data with the new data. The result is a more stable waveform displayed on the screen. However, using this setting only makes sense when the scope is properly triggered on a periodic signal.</string>
+                    </property>
                     <property name="text">
                      <string>Elastic Trace</string>
                     </property>
@@ -234,8 +243,11 @@
                 </property>
                 <item>
                  <widget class="QTabWidget" name="tabWidget1">
+                  <property name="toolTip">
+                   <string>The channel will be inverted. The displayed waveform and channel math will be affected.</string>
+                  </property>
                   <property name="currentIndex">
-                   <number>0</number>
+                   <number>2</number>
                   </property>
                   <widget class="QWidget" name="ch1Tab">
                    <attribute name="title">
@@ -386,6 +398,9 @@
                              <layout class="QVBoxLayout" name="verticalLayout_7">
                               <item>
                                <widget class="QCheckBox" name="averageCheckBox">
+                                <property name="toolTip">
+                                 <string>The channel samples will be averaged to reduce aliasing</string>
+                                </property>
                                 <property name="text">
                                  <string>Average</string>
                                 </property>
@@ -393,6 +408,9 @@
                               </item>
                               <item>
                                <widget class="QCheckBox" name="traceCheckBox">
+                                <property name="toolTip">
+                                 <string>Display CH1 trace</string>
+                                </property>
                                 <property name="text">
                                  <string>Trace</string>
                                 </property>
@@ -404,6 +422,9 @@
                              <layout class="QVBoxLayout" name="verticalLayout_11">
                               <item>
                                <widget class="QCheckBox" name="invertCheckBox">
+                                <property name="toolTip">
+                                 <string>The channel will be inverted. The displayed waveform and channel math will be affected.</string>
+                                </property>
                                 <property name="text">
                                  <string>Invert</string>
                                 </property>
@@ -411,6 +432,9 @@
                               </item>
                               <item>
                                <widget class="QCheckBox" name="mathCheckBox">
+                                <property name="toolTip">
+                                 <string>The channel math will be enabled</string>
+                                </property>
                                 <property name="text">
                                  <string>Math</string>
                                 </property>
@@ -479,6 +503,9 @@
                                 <layout class="QHBoxLayout" name="horizontalLayout_5">
                                  <item>
                                   <widget class="QRadioButton" name="subRadioButton">
+                                   <property name="toolTip">
+                                    <string>The channel trace will be replaced with CH1-CH2</string>
+                                   </property>
                                    <property name="text">
                                     <string>Sub</string>
                                    </property>
@@ -486,6 +513,9 @@
                                  </item>
                                  <item>
                                   <widget class="QRadioButton" name="mulRadioButton">
+                                   <property name="toolTip">
+                                    <string>The channel trace will be replaced with CH1xCH2</string>
+                                   </property>
                                    <property name="text">
                                     <string>Multiply</string>
                                    </property>
@@ -697,6 +727,9 @@
                              <layout class="QVBoxLayout" name="verticalLayout_14">
                               <item>
                                <widget class="QCheckBox" name="averageCheckBox_2">
+                                <property name="toolTip">
+                                 <string>The channel samples will be averaged to reduce aliasing</string>
+                                </property>
                                 <property name="text">
                                  <string>Average</string>
                                 </property>
@@ -704,6 +737,9 @@
                               </item>
                               <item>
                                <widget class="QCheckBox" name="traceCheckBox_2">
+                                <property name="toolTip">
+                                 <string>Display CH2 trace</string>
+                                </property>
                                 <property name="text">
                                  <string>Trace</string>
                                 </property>
@@ -722,6 +758,9 @@
                               </item>
                               <item>
                                <widget class="QCheckBox" name="mathCheckBox_2">
+                                <property name="toolTip">
+                                 <string>The channel math will be enabled</string>
+                                </property>
                                 <property name="text">
                                  <string>Math</string>
                                 </property>
@@ -790,6 +829,9 @@
                                 <layout class="QHBoxLayout" name="horizontalLayout_14">
                                  <item>
                                   <widget class="QRadioButton" name="subRadioButton_2">
+                                   <property name="toolTip">
+                                    <string>The channel trace will be replaced with CH1-CH2</string>
+                                   </property>
                                    <property name="text">
                                     <string>Sub</string>
                                    </property>
@@ -797,6 +839,9 @@
                                  </item>
                                  <item>
                                   <widget class="QRadioButton" name="mulRadioButton_2">
+                                   <property name="toolTip">
+                                    <string>The channel trace will be replaced with CH1xCH2</string>
+                                   </property>
                                    <property name="text">
                                     <string>Multiply</string>
                                    </property>
@@ -1017,6 +1062,9 @@
                          <layout class="QVBoxLayout" name="verticalLayout_23">
                           <item>
                            <widget class="QCheckBox" name="traceCheckBox_3">
+                            <property name="toolTip">
+                             <string>Display logic traces</string>
+                            </property>
                             <property name="text">
                              <string>Trace</string>
                             </property>
@@ -1024,6 +1072,9 @@
                           </item>
                           <item>
                            <widget class="QCheckBox" name="invertCheckBox_3">
+                            <property name="toolTip">
+                             <string>All digital channels are inverted</string>
+                            </property>
                             <property name="text">
                              <string>Invert</string>
                             </property>
@@ -1031,6 +1082,9 @@
                           </item>
                           <item>
                            <widget class="QCheckBox" name="averageCheckBox_3">
+                            <property name="toolTip">
+                             <string>A thick line is drawn when the signal is at logic '0'</string>
+                            </property>
                             <property name="text">
                              <string>Thick 0</string>
                             </property>
@@ -1038,6 +1092,9 @@
                           </item>
                           <item>
                            <widget class="QCheckBox" name="mathCheckBox_3">
+                            <property name="toolTip">
+                             <string>A thick line is drawn when the signal is at logic '1'</string>
+                            </property>
                             <property name="text">
                              <string>Thick 1</string>
                             </property>
@@ -1131,6 +1188,9 @@
                          <layout class="QVBoxLayout" name="verticalLayout_32">
                           <item>
                            <widget class="QCheckBox" name="checkBox">
+                            <property name="toolTip">
+                             <string>Shows the hexadecimal value of the 8 bit digital input lines</string>
+                            </property>
                             <property name="text">
                              <string>Parallel</string>
                             </property>
@@ -1138,6 +1198,9 @@
                           </item>
                           <item>
                            <widget class="QCheckBox" name="checkBox_2">
+                            <property name="toolTip">
+                             <string>Shows the hexadecimal value of the stream of bits on each channel</string>
+                            </property>
                             <property name="text">
                              <string>Serial</string>
                             </property>
@@ -1975,6 +2038,9 @@
                         <height>40</height>
                        </size>
                       </property>
+                      <property name="toolTip">
+                       <string>Forces the trigger</string>
+                      </property>
                       <property name="text">
                        <string>Force</string>
                       </property>
@@ -2001,6 +2067,9 @@
                       <layout class="QVBoxLayout" name="verticalLayout_50">
                        <item>
                         <widget class="QRadioButton" name="radioButton_12">
+                         <property name="toolTip">
+                          <string>The trigger occurs when the signal crosses the trigger level from below to above</string>
+                         </property>
                          <property name="text">
                           <string>Rising Edge</string>
                          </property>
@@ -2012,6 +2081,9 @@
                        </item>
                        <item>
                         <widget class="QRadioButton" name="radioButton_13">
+                         <property name="toolTip">
+                          <string>The trigger occurs when the signal crosses the trigger level from above to below</string>
+                         </property>
                          <property name="text">
                           <string>Falling Edge</string>
                          </property>
@@ -2023,6 +2095,9 @@
                        </item>
                        <item>
                         <widget class="QRadioButton" name="radioButton_14">
+                         <property name="toolTip">
+                          <string>The trigger occurs when the signal crosses the trigger level in any direction</string>
+                         </property>
                          <property name="text">
                           <string>Dual Edge</string>
                          </property>
@@ -2034,6 +2109,9 @@
                        </item>
                        <item>
                         <widget class="QRadioButton" name="radioButton_15">
+                         <property name="toolTip">
+                          <string>The trigger occurs when the difference between two consecutive samples is greater than the trigger value, positive slope</string>
+                         </property>
                          <property name="text">
                           <string>Positive Slope</string>
                          </property>
@@ -2045,6 +2123,9 @@
                        </item>
                        <item>
                         <widget class="QRadioButton" name="radioButton_16">
+                         <property name="toolTip">
+                          <string>The trigger occurs when the difference between two consecutive samples is greater than the trigger value, negative slope</string>
+                         </property>
                          <property name="text">
                           <string>Negative Slope</string>
                          </property>
@@ -2056,6 +2137,9 @@
                        </item>
                        <item>
                         <widget class="QRadioButton" name="radioButton_17">
+                         <property name="toolTip">
+                          <string>The trigger occurs when the signal leaves a voltage range</string>
+                         </property>
                          <property name="text">
                           <string>Window</string>
                          </property>
@@ -2091,6 +2175,9 @@
                         <layout class="QHBoxLayout" name="horizontalLayout_34">
                          <item>
                           <widget class="QRadioButton" name="radioButton_8">
+                           <property name="toolTip">
+                            <string>Trace continuously ignoring the trigger</string>
+                           </property>
                            <property name="text">
                             <string>Free</string>
                            </property>
@@ -2098,6 +2185,9 @@
                          </item>
                          <item>
                           <widget class="QRadioButton" name="radioButton_10">
+                           <property name="toolTip">
+                            <string>Trace only when the trigger event occurs</string>
+                           </property>
                            <property name="text">
                             <string>Normal</string>
                            </property>
@@ -2109,6 +2199,9 @@
                         <layout class="QHBoxLayout" name="horizontalLayout_35">
                          <item>
                           <widget class="QRadioButton" name="radioButton_9">
+                           <property name="toolTip">
+                            <string>Trace when the trigger event occurs, or after the Auto trigger timeout</string>
+                           </property>
                            <property name="text">
                             <string>Auto</string>
                            </property>
@@ -2116,6 +2209,9 @@
                          </item>
                          <item>
                           <widget class="QRadioButton" name="radioButton_11">
+                           <property name="toolTip">
+                            <string>Only one trace is displayed when the trigger event occurs</string>
+                           </property>
                            <property name="text">
                             <string>Single</string>
                            </property>
@@ -2149,6 +2245,9 @@
                         <layout class="QHBoxLayout" name="horizontalLayout_32">
                          <item>
                           <widget class="QLabel" name="label_37">
+                           <property name="toolTip">
+                            <string>Trigger Timeout: Delay before generating an automatic trigger, when the trigger Type is set to Auto</string>
+                           </property>
                            <property name="text">
                             <string>Auto</string>
                            </property>
@@ -2185,6 +2284,9 @@
                         <layout class="QHBoxLayout" name="horizontalLayout_33">
                          <item>
                           <widget class="QLabel" name="label_38">
+                           <property name="toolTip">
+                            <string>Time to wait before detecting the next trigger</string>
+                           </property>
                            <property name="text">
                             <string>Hold</string>
                            </property>
@@ -2257,7 +2359,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="pushButton_5">
+                <widget class="QPushButton" name="playButton">
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
@@ -2287,12 +2389,15 @@
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_38">
                <item>
-                <widget class="QPushButton" name="pushButton_6">
+                <widget class="QPushButton" name="autoButton">
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
                    <height>34</height>
                   </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>Scope will try to find the optimum gain and time base for the signals being applied on CH1 and CH2</string>
                  </property>
                  <property name="text">
                   <string>AUTO</string>
@@ -2980,6 +3085,9 @@ Frequency</string>
                  <layout class="QHBoxLayout" name="horizontalLayout_59">
                   <item>
                    <widget class="QRadioButton" name="radioButton_29">
+                    <property name="toolTip">
+                     <string>Continuous operation</string>
+                    </property>
                     <property name="text">
                      <string>Normal</string>
                     </property>
@@ -2987,6 +3095,9 @@ Frequency</string>
                   </item>
                   <item>
                    <widget class="QRadioButton" name="radioButton_30">
+                    <property name="toolTip">
+                     <string>The sniffer will stop when the buffer is filled</string>
+                    </property>
                     <property name="text">
                      <string>Single</string>
                     </property>
@@ -3001,6 +3112,9 @@ Frequency</string>
               <layout class="QHBoxLayout" name="horizontalLayout_61">
                <item>
                 <widget class="QCheckBox" name="checkBox_19">
+                 <property name="toolTip">
+                  <string>New data will be placed at the end, older data will be shifted towards the beginning</string>
+                 </property>
                  <property name="text">
                   <string>Circular</string>
                  </property>
@@ -3897,6 +4011,7 @@ Frequency</string>
     </item>
    </layout>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
