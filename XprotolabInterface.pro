@@ -14,12 +14,25 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         xprotolabinterface.cpp \
-    qcustomplot.cpp
+    qcustomplot.cpp \
+    libusbdevice.cpp
 
 HEADERS  += xprotolabinterface.h \
-    qcustomplot.h
+    qcustomplot.h \
+    libusb.h \
+    libusbdevice.h \
+    libusbdeviceinfo.h
 
 FORMS    += xprotolabinterface.ui
 
 RESOURCES += \
     xprotolabinterface.qrc
+
+win32: LIBS += -L$$PWD/libs/ -llibusb-1.0
+
+INCLUDEPATH += $$PWD/libs
+DEPENDPATH += $$PWD/libs
+
+win32: PRE_TARGETDEPS += $$PWD/libs/libusb-1.0.lib
+
+unix:!macx:!symbian: LIBS += -lusb-1.0
