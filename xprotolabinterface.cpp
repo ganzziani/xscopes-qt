@@ -12,13 +12,23 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     rangeMax = 512;
     setupGrid(ui->plotterWidget);
     connect(ui->horizontalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(horzScrollBarChanged(int)));
-    //connect(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), this, SLOT(xAxisChanged(QCPRange)));
-//    ui->horizontalScrollBar->setRange(0,127);
-//    ui->horizontalScrollBar->setValue(127);
+    // Sampling rate
+    rateText << "8μs/div" << "16μs/div" << "32μs/div" << "64μs/div" << "128μs/div" << "256μs/div" << "500μs/div" << "1ms/div"
+             << "2ms/div" << "5ms/div" << "10ms/div" << "20ms/div" << "50ms/div" << "0.1s/div" << "0.2s/div" << "0.5s/div"
+             << "1s/div" << "2s/div" << "5s/div" << "10s/div" << "20s/div" << "50s/div";
+
+    // Gain Text with x1 probe
+    gainText << "5.12V/div" << "2.56V/div" << "1.28V/div" << "0.64V/div" << "0.32V/div" << "0.16V/div" << "80mV/div" << "----";
+
+//    freqValue << 10;
+//                // Kilo Hertz
+//                2000000,1000000,500000,250000,125000,62500,32000,
+//                // Hertz
+//                16000000,8000000,3200000,1600000,800000,320000,160000,80000,32000,16000,
+//                   8000,   3200,   1600,   800,   320 };
+    connect(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), this, SLOT(xAxisChanged(QCPRange)));
     usbDevice.initializeDevice();
-    usbDevice.openDevice();
-    readDeviceSettings();
-    usbDevice.asyncBulkReadTransfer();
+    on_connectButton_clicked();
 }
 
 XprotolabInterface::~XprotolabInterface()
@@ -109,7 +119,6 @@ void XprotolabInterface::plotData()
             key.push_back(xtime);
         ch1.push_back(rangeMax-((rangeMax/8+ui->ch1PositionSlider->minimum() - ui->ch1PositionSlider->value()) +(double)usbDevice.chData[i])*(2));
         ch2.push_back(rangeMax-((rangeMax/8+ui->ch2PositionSlider->minimum() - ui->ch2PositionSlider->value()) +(double)usbDevice.chData[i+256])*(2));
-
     }
     if(ui->rollMode->isChecked())               // major issue
     {
@@ -152,7 +161,7 @@ void XprotolabInterface::plotData()
             ui->plotterWidget->graph(0)->rescaleValueAxis(true);
             ui->plotterWidget->graph(1)->clearData();
             ui->plotterWidget->graph(1)->setData(key, ch2);
-            ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->setRange(0,rangeMax);
+            //ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->setRange(0,rangeMax);
            // ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->setTickStep(rangeMax/8);
            // ui->plotterWidget->graph(1)->rescaleValueAxis(true);
             xtime=0;
@@ -162,7 +171,7 @@ void XprotolabInterface::plotData()
     }
 
     ui->plotterWidget->replot();
-//    usbDevice.dataAvailable = false;
+    //usbDevice.dataAvailable = false;
     ++frameCount;
     if (lastFrame-firstFrame > 2) // average fps over 2 seconds
     {
@@ -213,6 +222,14 @@ void XprotolabInterface::on_connectButton_clicked()
     if(!usbDevice.isDeviceConnected)
     {
          usbDevice.openDevice();
+         if(usbDevice.isDeviceConnected)
+         {
+             ui->currentFirwareVersion->setText(usbDevice.requestFirmwareVersion());
+             if(ui->currentFirwareVersion->text().toDouble()<ui->latestFirmWareVersion->text().toDouble())
+                 QMessageBox::warning(this,tr("Upgrade Firmware"),tr("Please upgrade your device firmware"));
+             readDeviceSettings();
+             usbDevice.asyncBulkReadTransfer();
+         }
     }
 }
 
@@ -402,7 +419,10 @@ void XprotolabInterface::readDeviceSettings()
 
     // GPIOB MStatus
     data = usbDevice.inBuffer[11];
-   // checkBoxStop.Checked = ((data & (byte)(1 << 4)) != 0);                              ******* pending
+   if((data & (byte)(1 << 4)) != 0)
+       ui->stopButton->setText(tr("STOP"));
+   else
+       ui->stopButton->setText(tr("START"));
     // M 12 Gain CH1
     data = usbDevice.inBuffer[12];
     if((byte)data >= ui->ch1GainSlider->minimum() && (byte)data <= ui->ch1GainSlider->maximum())
@@ -574,15 +594,57 @@ void XprotolabInterface::readDeviceSettings()
 
 }
 
+void XprotolabInterface::updateSweepCursors()
+{
+    /*
+    byte sweepmin, sweepmax;
+    sweepmin = (byte)(trackBarSW1.Value);
+    sweepmax = (byte)(trackBarSW2.Value);
+    if(checkBoxSweepF.Checked) {
+        decimal freqv;
+        if(trackBarSampling.Value >= 11) freqv = freqval[trackBarSampling.Value] / 128;   // Slow sampling rate uses 2 samples per pixel
+        else freqv = freqval[trackBarSampling.Value] / 256;
+        if(trackBarSampling.Value <= 6) {
+            textBoxSW1.Text = (sweepmin * (freqv) / 2000).ToString("##.000");
+            textBoxSW2.Text = (sweepmax * (freqv) / 2000).ToString("##.000");
+            labelUnit1.Text = "kHz";
+            labelUnit2.Text = "kHz";
+        }
+        else {
+            textBoxSW1.Text = (sweepmin * (freqv) / 2000).ToString("##.000");
+            textBoxSW2.Text = (sweepmax * (freqv) / 2000).ToString("##.000");
+            labelUnit1.Text = "Hz";
+            labelUnit2.Text = "Hz";
+        }
+    }
+    else if(checkBoxSweepA.Checked) {
+        textBoxSW1.Text = ((decimal)sweepmin / 64).ToString("##.000");
+        textBoxSW2.Text = ((decimal)sweepmax / 64).ToString("##.000");
+        labelUnit1.Text = "V";
+        labelUnit2.Text = "V";
+    }
+    else if(checkBoxSweepO.Checked) {
+        textBoxSW1.Text = ((decimal)-((255 - sweepmin) * 0.50016 / 32) + 2).ToString("##.000");
+        textBoxSW2.Text = ((decimal)-((255 - sweepmax) * 0.50016 / 32) + 2).ToString("##.000");
+        labelUnit1.Text = "V";
+        labelUnit2.Text = "V";
+    }
+    else if(checkBoxSweepD.Checked) {
+        textBoxSW1.Text = ((decimal)(sweepmin * (50.00064 / 128))).ToString("##.000");
+        textBoxSW2.Text = ((decimal)(sweepmax * (50.00064 / 128))).ToString("##.000");
+        labelUnit1.Text = "%";
+        labelUnit2.Text = "%";
+    }
+    */
+
+}
+
 void XprotolabInterface::selectWaveForm(uint8_t value)
 {
     usbDevice.controlWriteTransfer(37, value);
 }
 
-void XprotolabInterface::on_stopButton_clicked()
-{
-    usbDevice.stopScope();
-}
+
 
 void XprotolabInterface::on_radioButtonCustom_clicked()
 {
@@ -645,3 +707,603 @@ void XprotolabInterface::on_ch2PositionSlider_valueChanged(int value)
 {
     usbDevice.controlWriteTransfer(30, (byte)(ui->ch2PositionSlider->minimum() - value));
 }
+
+void XprotolabInterface::on_openCSVButton_clicked()
+{
+    QString path;
+    path=QFileDialog::getOpenFileName(this, tr("Open File"),
+                                           QDir::homePath(),"CSV files (*.csv *.txt);;All files (*.*)");
+    if(path.isEmpty())
+        return;
+    QFile csvFile;
+    csvFile.setFileName(path);
+    csvFile.open(QIODevice::ReadOnly);
+    ui->textEditCSV->setPlainText(csvFile.readAll());
+    csvFile.close();
+}
+
+void XprotolabInterface::parseCSV(QString csvString, byte* buffer)
+{
+    int i = 0;
+    int max = csvString.length();
+    csvString = ui->textEditCSV->toPlainText();
+    while(i<max)
+    {
+        if(csvString[i] == '\n' || csvString[i] == '\r')
+            csvString[i] = ',';
+        i++;
+    }
+    QStringList values = csvString.split(',');
+    values.removeAll("");
+    i = 0;
+    max = values.length();
+    if(max>256)
+        max=256;
+    while(i<max)
+    {
+        buffer[i] = values[i].trimmed().toShort();
+        if(buffer[i]==128)
+            buffer[i]=129;
+        qDebug()<<buffer[i];
+        i++;
+    }
+}
+
+void XprotolabInterface::on_saveAWGButton_clicked()
+{
+    if(usbDevice.isDeviceConnected)
+    {
+        parseCSV(ui->textEditCSV->toPlainText(),usbDevice.awgBuffer);
+        usbDevice.awgBulkWriteTransfer();
+        usbDevice.saveAWG();
+        ui->radioButtonCustom->setChecked(true);
+        selectWaveForm(5);
+    }
+}
+
+void XprotolabInterface::sendCH1Controls()
+{
+     byte field = 0;
+     if(ui->checkBoxCH1Trace->isChecked())
+         field += (1 << 0);
+     if(ui->checkBoxCH1Invert->isChecked())
+         field += (1 << 4);
+     if(ui->checkBoxCH1Average->isChecked())
+         field += (1 << 5);
+     if(ui->checkBoxCH1Math->isChecked())
+         field += (1 << 6);
+     if(ui->radioButtonCH1Sub->isChecked())
+         field += (1 << 7);
+     usbDevice.controlWriteTransfer(1, field);
+}
+
+void XprotolabInterface::on_checkBoxCH1Invert_clicked()
+{
+    sendCH1Controls();
+}
+
+void XprotolabInterface::on_checkBoxCH1Trace_clicked()
+{
+    sendCH1Controls();
+}
+
+void XprotolabInterface::on_checkBoxCH1Average_clicked()
+{
+    sendCH1Controls();
+}
+
+void XprotolabInterface::on_checkBoxCH1Math_clicked()
+{
+    sendCH1Controls();
+}
+
+void XprotolabInterface::on_radioButtonCH1Sub_clicked()
+{
+   sendCH1Controls();
+}
+
+void XprotolabInterface::sendCH2Controls()
+{
+    byte field = 0;
+    if(ui->checkBoxCH2Trace->isChecked())
+        field += (1 << 0);
+    if(ui->checkBoxCH2Invert->isChecked())
+        field += (1 << 4);
+    if(ui->checkBoxCH2Average->isChecked())
+        field += (1 << 5);
+    if(ui->checkBoxCH2Math->isChecked())
+        field += (1 << 6);
+    if(ui->radioButtonCH2Sub->isChecked())
+        field += (1 << 7);
+    usbDevice.controlWriteTransfer(2, field);
+}
+
+void XprotolabInterface::on_checkBoxCH2Invert_clicked()
+{
+    sendCH2Controls();
+}
+
+void XprotolabInterface::on_checkBoxCH2Trace_clicked()
+{
+    sendCH2Controls();
+}
+
+void XprotolabInterface::on_checkBoxCH2Average_clicked()
+{
+    sendCH2Controls();
+}
+
+void XprotolabInterface::on_checkBoxCH2Math_clicked()
+{
+    sendCH2Controls();
+}
+
+
+void XprotolabInterface::on_radioButtonCH2Sub_clicked()
+{
+    sendCH2Controls();
+}
+
+void XprotolabInterface::sendCHDControls()
+{
+    byte field = 0;
+    if(ui->checkBoxCHDTrace->isChecked())
+        field += (1 << 0);
+    if(ui->chdPullSlider->value() != 1)
+        field += (1 << 1);
+    if(ui->chdPullSlider->value() == 2)
+        field += (1 << 2);
+    if(ui->checkBoxCHDThick0->isChecked())
+        field += (1 << 3);
+    if(ui->checkBoxCHDInvert->isChecked())
+        field += (1 << 4);
+    if(ui->checkBoxASCII->isChecked())
+        field += (1 << 7);
+    usbDevice.controlWriteTransfer(3, field);
+}
+
+
+
+void XprotolabInterface::on_checkBoxCHDTrace_clicked()
+{
+    sendCHDControls();
+}
+
+void XprotolabInterface::on_checkBoxCHDInvert_clicked()
+{
+    sendCHDControls();
+}
+
+void XprotolabInterface::on_checkBoxCHDThick0_clicked()
+{
+    sendCHDControls();
+}
+
+void XprotolabInterface::on_checkBoxCHDThick1_clicked()
+{
+    //sendCHDControls();
+}
+
+void XprotolabInterface::on_chdPullSlider_valueChanged(int)
+{
+    sendCHDControls();
+}
+
+void XprotolabInterface::on_checkBoxASCII_clicked()
+{
+    sendCHDControls();
+}
+
+/*********CHD Mask***************************/
+
+void XprotolabInterface::sendCHDBitControls()
+{
+    byte field = 0;
+    if(ui->checkBoxCHD0->isChecked())
+        field += (1 << 0);
+    if(ui->checkBoxCHD1->isChecked())
+        field += (1 << 1);
+    if(ui->checkBoxCHD2->isChecked())
+        field += (1 << 2);
+    if(ui->checkBoxCHD3->isChecked())
+        field += (1 << 3);
+    if(ui->checkBoxCHD4->isChecked())
+        field += (1 << 4);
+    if(ui->checkBoxCHD5->isChecked())
+        field += (1 << 5);
+    if(ui->checkBoxCHD6->isChecked())
+        field += (1 << 6);
+    if(ui->checkBoxCHD7->isChecked())
+        field += (1 << 7);
+    usbDevice.controlWriteTransfer(4, field);
+}
+
+void XprotolabInterface::on_checkBoxCHD0_clicked()
+{
+    sendCHDBitControls();
+}
+
+void XprotolabInterface::on_checkBoxCHD1_clicked()
+{
+    sendCHDBitControls();
+}
+
+void XprotolabInterface::on_checkBoxCHD2_clicked()
+{
+    sendCHDBitControls();
+}
+
+void XprotolabInterface::on_checkBoxCHD3_clicked()
+{
+    sendCHDBitControls();
+}
+
+void XprotolabInterface::on_checkBoxCHD4_clicked()
+{
+    sendCHDBitControls();
+}
+
+void XprotolabInterface::on_checkBoxCHD5_clicked()
+{
+    sendCHDBitControls();
+}
+
+void XprotolabInterface::on_checkBoxCHD6_clicked()
+{
+    sendCHDBitControls();
+}
+
+void XprotolabInterface::on_checkBoxCHD7_clicked()
+{
+    sendCHDBitControls();
+}
+
+// GPIO5 Trigger bits
+
+void XprotolabInterface::sendTriggerControls()
+{
+    byte field = 0;
+    if(ui->radioButtonNormal->isChecked())
+        field += (1 << 0);   // Trigger
+    else if(ui->radioButtonSingle->isChecked())
+        field += (1 << 1);
+    else if(ui->radioButtonAuto->isChecked())
+        field += (1 << 2);
+    if(ui->radioButtonFalling->isChecked() || ui->radioButtonNegative->isChecked())
+        field += (1 << 3);   // Trigger direction
+    if(ui->checkBoxCircular->isChecked())
+        field += (1 << 4);   // Sniffer circular buffer
+    if(ui->radioButtonPositive->isChecked() || ui->radioButtonNegative->isChecked())
+        field += (1 << 5);   // Slope
+    if(ui->radioButtonWindow->isChecked())
+        field += (1 << 6);   // Window
+    if(ui->radioButtonRising->isChecked() || ui->radioButtonFalling->isChecked())
+        field += (1 << 7);   // Edge
+    usbDevice.controlWriteTransfer(5, field);
+}
+
+
+
+void XprotolabInterface::on_radioButtonRising_clicked()
+{
+    sendTriggerControls();
+}
+
+void XprotolabInterface::on_radioButtonFalling_clicked()
+{
+    sendTriggerControls();
+}
+
+void XprotolabInterface::on_radioButtonDual_clicked()
+{
+    sendTriggerControls();
+}
+
+void XprotolabInterface::on_radioButtonPositive_clicked()
+{
+    sendTriggerControls();
+}
+
+void XprotolabInterface::on_radioButtonNegative_clicked()
+{
+    sendTriggerControls();
+}
+
+void XprotolabInterface::on_radioButtonWindow_clicked()
+{
+    sendTriggerControls();
+}
+
+void XprotolabInterface::on_radioButtonFree_clicked()
+{
+    sendTriggerControls();
+}
+
+void XprotolabInterface::on_radioButtonNormal_clicked()
+{
+    sendTriggerControls();
+}
+
+void XprotolabInterface::on_radioButtonAuto_clicked()
+{
+    sendTriggerControls();
+}
+
+void XprotolabInterface::on_radioButtonSingle_clicked()
+{
+    sendTriggerControls();
+}
+
+void XprotolabInterface::on_checkBoxCircular_clicked()
+{
+    sendTriggerControls();
+}
+
+// GPIO6 Mcursors
+
+void XprotolabInterface::on_rollMode_clicked()
+{
+    byte field = 0;
+    if(ui->rollMode->isChecked())
+        field += (1 << 0);     // Roll Mode
+    if(ui->radioButtonSniffSingle->isChecked())
+        field+=(1 << 7);   // Single Sniffer
+    usbDevice.controlWriteTransfer(6, field);
+}
+
+// GPIO7 display
+
+// GPIO8 MFFT
+
+
+void XprotolabInterface::sendMFFTControls()
+{
+    byte field = 0;
+    if(ui->radioButtonHamming->isChecked())
+        field += (1 << 0);
+    if(ui->radioButtonHann->isChecked())
+        field += (1 << 1);
+    if(ui->radioButtonBlackman->isChecked())
+        field += (1 << 2);
+    if(ui->checkBoxLogY->isChecked())
+        field += (1 << 3);
+    if(ui->checkBoxIQFFT->isChecked())
+        field += (1 << 4);
+    if(ui->xyMode->isChecked())
+        field += (1 << 6);       // XY Mode
+    else
+        field += (1 << 5);       // Scope Mode
+    if(ui->checkBoxFFTTrace->isChecked())
+        field += (1 << 7);       // FFT Mode
+    usbDevice.controlWriteTransfer(8, field);
+}
+
+void XprotolabInterface::on_checkBoxLogY_clicked()
+{
+    sendMFFTControls();
+}
+
+void XprotolabInterface::on_checkBoxFFTTrace_clicked()
+{
+    sendMFFTControls();
+}
+
+void XprotolabInterface::on_checkBoxIQFFT_clicked()
+{
+    sendMFFTControls();
+}
+
+void XprotolabInterface::on_radioButtonRect_clicked()
+{
+    sendMFFTControls();
+}
+
+void XprotolabInterface::on_radioButtonHamming_clicked()
+{
+    sendMFFTControls();
+}
+
+void XprotolabInterface::on_radioButtonHann_clicked()
+{
+    sendMFFTControls();
+}
+
+void XprotolabInterface::on_radioButtonBlackman_clicked()
+{
+    sendMFFTControls();
+}
+
+void XprotolabInterface::on_xyMode_clicked()
+{
+    sendMFFTControls();
+}
+
+// GPIO9 Sweep
+
+void XprotolabInterface::sendSweepControls()
+{
+    byte field = 0;
+    updateSweepCursors();
+    if(ui->checkBoxAccelDirection->isChecked())
+        field += (1 << 0);
+    if(ui->checkBoxAccelerate->isChecked())
+        field += (1 << 1);
+    if(ui->checkBoxDirection->isChecked())
+        field += (1 << 2);
+    if(ui->checkBoxPingPong->isChecked())
+        field += (1 << 3);
+    if(ui->checkBoxSweepFrequency->isChecked())
+        field += (1 << 4);
+    if(ui->checkBoxSweepAmplitude->isChecked())
+        field += (1 << 5);
+    if(ui->checkBoxSweepOffset->isChecked())
+        field += (1 << 6);
+    if(ui->checkBoxSweepDutyCycle->isChecked())
+        field += (1 << 7);
+    usbDevice.controlWriteTransfer(9, field);
+}
+
+
+void XprotolabInterface::on_checkBoxSweepFrequency_clicked()
+{
+    sendSweepControls();
+}
+
+void XprotolabInterface::on_checkBoxSweepAmplitude_clicked()
+{
+    sendSweepControls();
+}
+
+void XprotolabInterface::on_checkBoxSweepDutyCycle_clicked()
+{
+    sendSweepControls();
+}
+
+void XprotolabInterface::on_checkBoxSweepOffset_clicked()
+{
+    sendSweepControls();
+}
+
+void XprotolabInterface::on_checkBoxDirection_clicked()
+{
+    sendSweepControls();
+}
+
+void XprotolabInterface::on_checkBoxPingPong_clicked()
+{
+    sendSweepControls();
+}
+
+void XprotolabInterface::on_checkBoxAccelerate_clicked()
+{
+    sendSweepControls();
+}
+
+void XprotolabInterface::on_checkBoxAccelDirection_clicked()
+{
+    sendSweepControls();
+}
+
+// GPIOA
+
+void XprotolabInterface::sendSnifferSettings()
+{
+    byte field;
+    field = (byte)ui->comboBoxBaud->currentIndex();
+    if(ui->comboBoxCPOL->currentIndex() == 1)
+        field += (1 << 3);
+    if(ui->comboBoxCPHA->currentIndex() == 1)
+        field += (1 << 4);
+    if(ui->comboBoxParity->currentIndex() == 1)
+        field += (1 << 5);
+    if(ui->comboBoxParity->currentIndex() == 2)
+    {
+        field += (1 << 5);
+        field += (1 << 6);
+    }
+    if(ui->comboBoxStopBits->currentIndex()== 1)
+        field += (1 << 7);
+    usbDevice.controlWriteTransfer(10, field);
+}
+
+
+
+void XprotolabInterface::on_radioButtonSniffNormal_clicked()
+{
+    sendSnifferSettings();
+}
+
+void XprotolabInterface::on_radioButtonSniffSingle_clicked()
+{
+    sendSnifferSettings();
+}
+
+void XprotolabInterface::on_comboBoxBaud_currentIndexChanged(int)
+{
+    sendSnifferSettings();
+}
+
+void XprotolabInterface::on_comboBoxParity_currentIndexChanged(int)
+{
+    sendSnifferSettings();
+}
+
+void XprotolabInterface::on_comboBoxStopBits_currentIndexChanged(int)
+{
+    sendSnifferSettings();
+}
+
+void XprotolabInterface::on_comboBoxCPOL_currentIndexChanged(int)
+{
+    sendSnifferSettings();
+}
+
+void XprotolabInterface::on_comboBoxCPHA_currentIndexChanged(int)
+{
+    sendSnifferSettings();
+}
+
+// GPIOB MStatus
+
+void XprotolabInterface::on_stopButton_clicked()
+{
+    if(!usbDevice.isDeviceConnected)
+        return;
+    if(ui->stopButton->text()==tr("START"))
+    {
+        usbDevice.startScope();
+        ui->stopButton->setText(tr("STOP"));
+    }
+    else
+    {
+        usbDevice.stopScope();
+        ui->stopButton->setText(tr("START"));
+    }
+}
+
+void XprotolabInterface::on_forceButton_clicked()
+{
+    usbDevice.forceTrigger();
+}
+
+// M 12 Channel 1 gain
+
+void XprotolabInterface::on_ch1GainSlider_valueChanged(int value)
+{
+    if(!usbDevice.isDeviceConnected)
+        return;
+    usbDevice.controlWriteTransfer(12, (byte)(value));
+    //labelCH1Gain.Text = gaintxt[trackBarCH1Gain.Value];
+}
+
+// M 13 Channel 2 gain
+
+void XprotolabInterface::on_ch2GainSlider_valueChanged(int value)
+{
+    if(!usbDevice.isDeviceConnected)
+        return;
+    usbDevice.controlWriteTransfer(13, (byte)(value));
+   // labelCH2Gain.Text = gaintxt[trackBarCH2Gain.Value];
+}
+
+// M 14 Horizontal Position
+
+void XprotolabInterface::on_horizontalScrollBar_sliderMoved(int position)
+{
+    if(!usbDevice.isDeviceConnected)
+        return;
+    usbDevice.controlWriteTransfer(14, (byte)(position));
+//    if(checkBoxStop.Checked) {
+//        Invalidate(new Rectangle(0, 0, 512, 512));
+//    }
+}
+
+// M 15 Vertical cursor A
+// M 16 Vertical cursor B
+// M 17 CH1 Horizontal cursor A
+// M 18 CH1 Horizontal cursor B
+// M 19 CH2 Horizontal cursor A
+// M 20 CH2 Horizontal cursor B
+// M 21 Trigger Hold
+
+

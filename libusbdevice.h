@@ -2,11 +2,15 @@
 #define LIBUSBDEVICE_H
 
 #include <QObject>
-#include <QtConcurrentRun>
 #include <QFuture>
-#include <libusb.h>
-#include <libusbdeviceinfo.h>
+#include "libusb.h"
+#include "libusbdeviceinfo.h"
 #include <QDebug>
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
+#include <QtConcurrent/QtConcurrent>
+#else
+#include <QtConcurrentRun>
+#endif
 
 
 
@@ -24,12 +28,15 @@ public:
    // static int LIBUSB_CALL hotplugCallbackDetach (libusb_context *, libusb_device *, libusb_hotplug_event, void *);
     bool controlReadTransfer(uint8_t command, uint16_t value = 0, uint16_t index = 0 );
     void asyncBulkReadTransfer();
+    void awgBulkWriteTransfer();
     void controlWriteTransfer(uint16_t index, uint8_t value);
     QString requestFirmwareVersion();
     void stopScope();
     void startScope();
     void forceTrigger();
     void autoSetup();
+    void saveAWG();
+    void saveDeviceSettings();
 
     QString getStringFromUnsignedChar( unsigned char *,int);
 
@@ -44,7 +51,8 @@ public:
     bool dataAvailable;
     int count;
     uint8_t chData[LEN_BULK_IN_BUFFER];
-    unsigned char inBuffer[LEN_CONTROL_BUFFER];
+    byte inBuffer[LEN_CONTROL_BUFFER];
+    byte awgBuffer[256];
     bool enableEventThread,hasHotPlugSupport;
     QFuture<void> future;
     

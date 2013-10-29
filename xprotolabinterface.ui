@@ -340,7 +340,7 @@
                    <string/>
                   </property>
                   <property name="currentIndex">
-                   <number>1</number>
+                   <number>0</number>
                   </property>
                   <widget class="QWidget" name="ch1Tab">
                    <attribute name="title">
@@ -1264,16 +1264,6 @@
                             </property>
                             <property name="text">
                              <string>Thick 0</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QCheckBox" name="checkBoxCHDThick1">
-                            <property name="toolTip">
-                             <string>A thick line is drawn when the signal is at logic '1'</string>
-                            </property>
-                            <property name="text">
-                             <string>Thick 1</string>
                             </property>
                            </widget>
                           </item>
@@ -2220,7 +2210,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="pushButton_2">
+                     <widget class="QPushButton" name="forceButton">
                       <property name="minimumSize">
                        <size>
                         <width>0</width>
@@ -2773,7 +2763,7 @@
                      </spacer>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="pushButton_8">
+                     <widget class="QPushButton" name="openCSVButton">
                       <property name="text">
                        <string>Open CSV</string>
                       </property>
@@ -2793,7 +2783,7 @@
                      </spacer>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="pushButton_9">
+                     <widget class="QPushButton" name="saveAWGButton">
                       <property name="text">
                        <string>Save as Custom</string>
                       </property>
@@ -2820,7 +2810,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QTextEdit" name="textEdit"/>
+              <widget class="QTextEdit" name="textEditCSV"/>
              </item>
             </layout>
            </item>
@@ -3505,7 +3495,7 @@ Frequency</string>
            <item>
             <widget class="QTabWidget" name="tabWidget">
              <property name="currentIndex">
-              <number>1</number>
+              <number>2</number>
              </property>
              <widget class="QWidget" name="i2cTab">
               <attribute name="title">
@@ -4351,7 +4341,7 @@ Frequency</string>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLineEdit" name="lineEdit_5"/>
+                     <widget class="QLineEdit" name="currentFirwareVersion"/>
                     </item>
                    </layout>
                   </item>
@@ -4365,7 +4355,11 @@ Frequency</string>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLineEdit" name="lineEdit_6"/>
+                     <widget class="QLineEdit" name="latestFirmWareVersion">
+                      <property name="text">
+                       <string>2.13</string>
+                      </property>
+                     </widget>
                     </item>
                    </layout>
                   </item>
@@ -4453,7 +4447,7 @@ Frequency</string>
   <customwidget>
    <class>QCustomPlot</class>
    <extends>QWidget</extends>
-   <header location="global">qcustomplot.h</header>
+   <header location="local">qcustomplot.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

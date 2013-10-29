@@ -143,6 +143,7 @@ void LibUsbDevice::closeDevice()
 //            libusb_hotplug_deregister_callback(context, hotplugHandle[1]);
         }
         future.waitForFinished();
+        saveDeviceSettings();
         libusb_release_interface(deviceHandle, INTERFACE_NUMBER);
         libusb_close(deviceHandle);
         libusb_exit(context);
@@ -227,6 +228,27 @@ void LibUsbDevice::controlWriteTransfer(uint16_t index, uint8_t value)
     libusb_control_transfer(deviceHandle,0xC0,'b',value,index,NULL,0,1000);
 }
 
+void LibUsbDevice::saveDeviceSettings()
+{
+    if(!isDeviceConnected)
+    {
+        qDebug()<<"Device not connected";
+        return;
+    }
+    libusb_control_transfer(deviceHandle,0xC0,'d',0,0,NULL,0,1000);
+}
+
+void LibUsbDevice::awgBulkWriteTransfer()
+{
+    if(!isDeviceConnected)
+    {
+        qDebug()<<"Device not connected";
+        return;
+    }
+    int actual;
+    libusb_bulk_transfer(deviceHandle,USB_ENDPOINT_OUT,awgBuffer,256,&actual,1000);
+}
+
 QString LibUsbDevice::requestFirmwareVersion()
 {
     if(!isDeviceConnected)
@@ -286,6 +308,16 @@ void LibUsbDevice::autoSetup()
         return;
     }
     libusb_control_transfer(deviceHandle,0xC0,'i',0,0,NULL,0,1000);
+}
+
+void LibUsbDevice::saveAWG()
+{
+    if(!isDeviceConnected)
+    {
+        qDebug()<<"Device not connected";
+        return;
+    }
+    libusb_control_transfer(deviceHandle,0xC0,'e',0,0,NULL,0,1000);
 }
 
 QString LibUsbDevice::getStringFromUnsignedChar( unsigned char *buffer,int length )

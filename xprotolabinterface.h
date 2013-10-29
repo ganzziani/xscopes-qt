@@ -29,8 +29,10 @@
 #include <QMainWindow>
 #include <QDesktopWidget>
 #include <QTimer>
-#include <qcustomplot.h>
-#include <libusbdevice.h>
+#include <QFileDialog>
+#include <QMessageBox>
+#include "qcustomplot.h"
+#include "libusbdevice.h"
 
 namespace Ui {
 class XprotolabInterface;
@@ -49,6 +51,16 @@ private:
     void closeEvent(QCloseEvent *);
     void selectWaveForm(uint8_t);
     void readDeviceSettings();
+    void updateSweepCursors();
+    void parseCSV(QString, byte*);
+    void sendCH1Controls();
+    void sendCH2Controls();
+    void sendCHDControls();
+    void sendCHDBitControls();
+    void sendTriggerControls();
+    void sendMFFTControls();
+    void sendSweepControls();
+    void sendSnifferSettings();
     
 private slots:
     void on_playButton_clicked();
@@ -77,13 +89,143 @@ private slots:
 
     void on_zoomSlider_valueChanged(int value);
 
-
-
     void on_samplingSlider_valueChanged(int value);
 
     void on_ch1PositionSlider_valueChanged(int value);
 
     void on_ch2PositionSlider_valueChanged(int value);
+
+    void on_openCSVButton_clicked();
+
+    void on_saveAWGButton_clicked();
+
+    void on_checkBoxCH1Math_clicked();
+
+    void on_checkBoxCH1Invert_clicked();
+
+    void on_checkBoxCH1Trace_clicked();
+
+    void on_checkBoxCH1Average_clicked();
+
+    void on_checkBoxCH2Math_clicked();
+
+    void on_checkBoxCH2Invert_clicked();
+
+    void on_checkBoxCH2Trace_clicked();
+
+    void on_checkBoxCH2Average_clicked();
+
+    void on_radioButtonCH2Sub_clicked();
+
+    void on_radioButtonCH1Sub_clicked();
+
+    void on_checkBoxCHDTrace_clicked();
+
+    void on_checkBoxCHDInvert_clicked();
+
+    void on_checkBoxCHDThick0_clicked();
+
+    void on_checkBoxCHDThick1_clicked();
+
+    void on_chdPullSlider_valueChanged(int value);
+
+    void on_checkBoxASCII_clicked();
+
+    void on_checkBoxCHD0_clicked();
+
+    void on_checkBoxCHD1_clicked();
+
+    void on_checkBoxCHD2_clicked();
+
+    void on_checkBoxCHD3_clicked();
+
+    void on_checkBoxCHD4_clicked();
+
+    void on_checkBoxCHD5_clicked();
+
+    void on_checkBoxCHD6_clicked();
+
+    void on_checkBoxCHD7_clicked();
+
+    void on_radioButtonRising_clicked();
+
+    void on_radioButtonFalling_clicked();
+
+    void on_radioButtonDual_clicked();
+
+    void on_radioButtonPositive_clicked();
+
+    void on_radioButtonNegative_clicked();
+
+    void on_radioButtonWindow_clicked();
+
+    void on_radioButtonFree_clicked();
+
+    void on_radioButtonNormal_clicked();
+
+    void on_radioButtonAuto_clicked();
+
+    void on_radioButtonSingle_clicked();
+
+    void on_checkBoxCircular_clicked();
+
+    void on_rollMode_clicked();
+
+    void on_checkBoxLogY_clicked();
+
+    void on_checkBoxFFTTrace_clicked();
+
+    void on_checkBoxIQFFT_clicked();
+
+    void on_radioButtonRect_clicked();
+
+    void on_radioButtonHamming_clicked();
+
+    void on_radioButtonHann_clicked();
+
+    void on_radioButtonBlackman_clicked();
+
+    void on_xyMode_clicked();
+
+    void on_checkBoxSweepFrequency_clicked();
+
+    void on_checkBoxSweepAmplitude_clicked();
+
+    void on_checkBoxSweepDutyCycle_clicked();
+
+    void on_checkBoxSweepOffset_clicked();
+
+    void on_checkBoxDirection_clicked();
+
+    void on_checkBoxPingPong_clicked();
+
+    void on_checkBoxAccelerate_clicked();
+
+    void on_checkBoxAccelDirection_clicked();
+
+    void on_radioButtonSniffNormal_clicked();
+
+    void on_radioButtonSniffSingle_clicked();
+
+    void on_comboBoxBaud_currentIndexChanged(int index);
+
+    void on_comboBoxParity_currentIndexChanged(int index);
+
+    void on_comboBoxStopBits_currentIndexChanged(int index);
+
+    void on_comboBoxCPOL_currentIndexChanged(int index);
+
+    void on_comboBoxCPHA_currentIndexChanged(int index);
+
+
+
+    void on_forceButton_clicked();
+
+    void on_ch1GainSlider_valueChanged(int value);
+
+    void on_ch2GainSlider_valueChanged(int value);
+
+    void on_horizontalScrollBar_sliderMoved(int position);
 
 private:
     Ui::XprotolabInterface *ui;
@@ -91,6 +233,8 @@ private:
     LibUsbDevice usbDevice;
     bool isScrolling;
     double rangeMax;
+    QStringList rateText,gainText;
+    //List<int> freqValue;
    // double xtime;
 };
 
