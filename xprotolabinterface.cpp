@@ -11,22 +11,8 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     this->move( screen.center() - this->rect().center() );
     rangeMax = 512;
     setupGrid(ui->plotterWidget);
-    connect(ui->horizontalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(horzScrollBarChanged(int)));
-    // Sampling rate
-    rateText << "8μs/div" << "16μs/div" << "32μs/div" << "64μs/div" << "128μs/div" << "256μs/div" << "500μs/div" << "1ms/div"
-             << "2ms/div" << "5ms/div" << "10ms/div" << "20ms/div" << "50ms/div" << "0.1s/div" << "0.2s/div" << "0.5s/div"
-             << "1s/div" << "2s/div" << "5s/div" << "10s/div" << "20s/div" << "50s/div";
-
-    // Gain Text with x1 probe
-    gainText << "5.12V/div" << "2.56V/div" << "1.28V/div" << "0.64V/div" << "0.32V/div" << "0.16V/div" << "80mV/div" << "----";
-
-//    freqValue << 10;
-//                // Kilo Hertz
-//                2000000,1000000,500000,250000,125000,62500,32000,
-//                // Hertz
-//                16000000,8000000,3200000,1600000,800000,320000,160000,80000,32000,16000,
-//                   8000,   3200,   1600,   800,   320 };
-    connect(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), this, SLOT(xAxisChanged(QCPRange)));
+    setupValues();
+    //connect(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), this, SLOT(xAxisChanged(QCPRange)));
     usbDevice.initializeDevice();
     on_connectButton_clicked();
 }
@@ -182,15 +168,7 @@ void XprotolabInterface::plotData()
     }
 }
 
-void XprotolabInterface::horzScrollBarChanged(int value)
-{
-    usbDevice.controlWriteTransfer(14, (uint16_t)(value));
-//  if (qAbs(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->range().center()-value/1000.0) > 0.001) // if user is dragging plot, we don't want to replot twice
-//  {
-//     ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(value/1000.0, ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->range().size(), Qt::AlignCenter);
-//     ui->plotterWidget->replot();
-//  }
-}
+
 
 void XprotolabInterface::xAxisChanged(QCPRange range)
 {
@@ -294,7 +272,7 @@ void XprotolabInterface::readDeviceSettings()
     }
     ui->checkBoxCHDThick0->setChecked((data & (byte)(1 << 3)) != 0);
     ui->checkBoxCHDInvert->setChecked((data & (byte)(1 << 4)) != 0);
-    ui->checkBoxASCII->setChecked((data & (byte)(1 << 7)) != 0);    // thick 1               ******** pending ************
+    ui->checkBoxASCII->setChecked((data & (byte)(1 << 7)) != 0);
 
     // GPIO4 Mask
     data = usbDevice.inBuffer[4]; // mask
@@ -557,7 +535,7 @@ void XprotolabInterface::readDeviceSettings()
 ////        checkBoxStop.Enabled = false;
 //        return;
 //    }
-    //UpdateSWCursors();
+    updateSweepCursors();
 //    labelSRate.Text = ratetxt[trackBarSampling.Value];
 //    labelCH1Gain.Text = gaintxt[trackBarCH1Gain.Value];
 //    labelCH2Gain.Text = gaintxt[trackBarCH2Gain.Value];
@@ -594,87 +572,7 @@ void XprotolabInterface::readDeviceSettings()
 
 }
 
-void XprotolabInterface::updateSweepCursors()
-{
-    /*
-    byte sweepmin, sweepmax;
-    sweepmin = (byte)(trackBarSW1.Value);
-    sweepmax = (byte)(trackBarSW2.Value);
-    if(checkBoxSweepF.Checked) {
-        decimal freqv;
-        if(trackBarSampling.Value >= 11) freqv = freqval[trackBarSampling.Value] / 128;   // Slow sampling rate uses 2 samples per pixel
-        else freqv = freqval[trackBarSampling.Value] / 256;
-        if(trackBarSampling.Value <= 6) {
-            textBoxSW1.Text = (sweepmin * (freqv) / 2000).ToString("##.000");
-            textBoxSW2.Text = (sweepmax * (freqv) / 2000).ToString("##.000");
-            labelUnit1.Text = "kHz";
-            labelUnit2.Text = "kHz";
-        }
-        else {
-            textBoxSW1.Text = (sweepmin * (freqv) / 2000).ToString("##.000");
-            textBoxSW2.Text = (sweepmax * (freqv) / 2000).ToString("##.000");
-            labelUnit1.Text = "Hz";
-            labelUnit2.Text = "Hz";
-        }
-    }
-    else if(checkBoxSweepA.Checked) {
-        textBoxSW1.Text = ((decimal)sweepmin / 64).ToString("##.000");
-        textBoxSW2.Text = ((decimal)sweepmax / 64).ToString("##.000");
-        labelUnit1.Text = "V";
-        labelUnit2.Text = "V";
-    }
-    else if(checkBoxSweepO.Checked) {
-        textBoxSW1.Text = ((decimal)-((255 - sweepmin) * 0.50016 / 32) + 2).ToString("##.000");
-        textBoxSW2.Text = ((decimal)-((255 - sweepmax) * 0.50016 / 32) + 2).ToString("##.000");
-        labelUnit1.Text = "V";
-        labelUnit2.Text = "V";
-    }
-    else if(checkBoxSweepD.Checked) {
-        textBoxSW1.Text = ((decimal)(sweepmin * (50.00064 / 128))).ToString("##.000");
-        textBoxSW2.Text = ((decimal)(sweepmax * (50.00064 / 128))).ToString("##.000");
-        labelUnit1.Text = "%";
-        labelUnit2.Text = "%";
-    }
-    */
 
-}
-
-void XprotolabInterface::selectWaveForm(uint8_t value)
-{
-    usbDevice.controlWriteTransfer(37, value);
-}
-
-
-
-void XprotolabInterface::on_radioButtonCustom_clicked()
-{
-    selectWaveForm(5);
-}
-
-void XprotolabInterface::on_radioButtonExpo_clicked()
-{
-    selectWaveForm(4);
-}
-
-void XprotolabInterface::on_radioButtonTriangle_clicked()
-{
-    selectWaveForm(3);
-}
-
-void XprotolabInterface::on_radioButtonSquare_clicked()
-{
-    selectWaveForm(2);
-}
-
-void XprotolabInterface::on_radioButtonSine_clicked()
-{
-    selectWaveForm(1);
-}
-
-void XprotolabInterface::on_radioButtonNoise_clicked()
-{
-    selectWaveForm(0);
-}
 
 void XprotolabInterface::closeEvent(QCloseEvent *event)
 {
@@ -682,8 +580,6 @@ void XprotolabInterface::closeEvent(QCloseEvent *event)
     usbDevice.closeDevice();
     event->accept();
 }
-
-
 
 void XprotolabInterface::on_zoomSlider_valueChanged(int value)
 {
@@ -696,16 +592,6 @@ void XprotolabInterface::on_zoomSlider_valueChanged(int value)
 void XprotolabInterface::on_samplingSlider_valueChanged(int value)
 {
     usbDevice.controlWriteTransfer(0,(byte)value);
-}
-
-void XprotolabInterface::on_ch1PositionSlider_valueChanged(int value)
-{
-    usbDevice.controlWriteTransfer(29, (byte)(ui->ch1PositionSlider->minimum() - value));
-}
-
-void XprotolabInterface::on_ch2PositionSlider_valueChanged(int value)
-{
-    usbDevice.controlWriteTransfer(30, (byte)(ui->ch2PositionSlider->minimum() - value));
 }
 
 void XprotolabInterface::on_openCSVButton_clicked()
@@ -838,7 +724,6 @@ void XprotolabInterface::on_checkBoxCH2Math_clicked()
     sendCH2Controls();
 }
 
-
 void XprotolabInterface::on_radioButtonCH2Sub_clicked()
 {
     sendCH2Controls();
@@ -862,8 +747,6 @@ void XprotolabInterface::sendCHDControls()
     usbDevice.controlWriteTransfer(3, field);
 }
 
-
-
 void XprotolabInterface::on_checkBoxCHDTrace_clicked()
 {
     sendCHDControls();
@@ -877,11 +760,6 @@ void XprotolabInterface::on_checkBoxCHDInvert_clicked()
 void XprotolabInterface::on_checkBoxCHDThick0_clicked()
 {
     sendCHDControls();
-}
-
-void XprotolabInterface::on_checkBoxCHDThick1_clicked()
-{
-    //sendCHDControls();
 }
 
 void XprotolabInterface::on_chdPullSlider_valueChanged(int)
@@ -982,8 +860,6 @@ void XprotolabInterface::sendTriggerControls()
     usbDevice.controlWriteTransfer(5, field);
 }
 
-
-
 void XprotolabInterface::on_radioButtonRising_clicked()
 {
     sendTriggerControls();
@@ -1054,7 +930,6 @@ void XprotolabInterface::on_rollMode_clicked()
 // GPIO7 display
 
 // GPIO8 MFFT
-
 
 void XprotolabInterface::sendMFFTControls()
 {
@@ -1206,8 +1081,6 @@ void XprotolabInterface::sendSnifferSettings()
     usbDevice.controlWriteTransfer(10, field);
 }
 
-
-
 void XprotolabInterface::on_radioButtonSniffNormal_clicked()
 {
     sendSnifferSettings();
@@ -1298,6 +1171,16 @@ void XprotolabInterface::on_horizontalScrollBar_sliderMoved(int position)
 //    }
 }
 
+//void XprotolabInterface::horzScrollBarChanged(int value)
+//{
+//    usbDevice.controlWriteTransfer(14, (uint16_t)(value));
+////  if (qAbs(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->range().center()-value/1000.0) > 0.001) // if user is dragging plot, we don't want to replot twice
+////  {
+////     ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(value/1000.0, ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->range().size(), Qt::AlignCenter);
+////     ui->plotterWidget->replot();
+////  }
+//}
+
 
 // M 15 Vertical cursor A
 // M 16 Vertical cursor B
@@ -1308,3 +1191,377 @@ void XprotolabInterface::on_horizontalScrollBar_sliderMoved(int position)
 // M 21 Trigger Hold
 
 
+
+void XprotolabInterface::on_doubleSpinBoxTrigHold_valueChanged(double value)
+{
+    usbDevice.controlWriteTransfer(21, (byte)(value));
+}
+
+// M 22 23 Post Trigger
+// M 24 Trigger source
+
+void XprotolabInterface::on_comboBoxTrigSource_currentIndexChanged(int index)
+{
+    usbDevice.controlWriteTransfer(24, (byte)(index));
+}
+
+// M 25 Trigger Level
+// M 26 Window Trigger level 1
+// M 27 Window Trigger level 2
+// M 28 Trigger Timeout
+
+void XprotolabInterface::on_doubleSpinBoxTrigAuto_valueChanged(double value)
+{
+    byte data;
+    data = (byte)(value / 40.96 - 1);
+    ui->doubleSpinBoxTrigHold->setValue(((double)data + 1) * 40.96);
+    usbDevice.controlWriteTransfer(28, data);
+}
+
+// M 29 Channel 1 position
+
+void XprotolabInterface::on_ch1PositionSlider_valueChanged(int value)
+{
+    usbDevice.controlWriteTransfer(29, (byte)(ui->ch1PositionSlider->minimum() - value));
+//    if(checkBoxStop.Checked) {
+//        Invalidate(new Rectangle(0, 0, 512, 512));
+//    }
+}
+
+// M 30 Channel 2 position
+
+void XprotolabInterface::on_ch2PositionSlider_valueChanged(int value)
+{
+    usbDevice.controlWriteTransfer(30, (byte)(ui->ch2PositionSlider->minimum() - value));
+    //    if(checkBoxStop.Checked) {
+    //        Invalidate(new Rectangle(0, 0, 512, 512));
+    //    }
+}
+
+// M 31 Channel position
+
+void XprotolabInterface::on_chdPositionSlider_valueChanged(int value)
+{
+    byte count, temp, chPos;
+    count = 0;
+    if(ui->checkBoxCHD0->isChecked())  // CHD Mask
+        count++;
+    if(ui->checkBoxCHD1->isChecked())
+        count++;
+    if(ui->checkBoxCHD2->isChecked())
+        count++;
+    if(ui->checkBoxCHD3->isChecked())
+        count++;
+    if(ui->checkBoxCHD4->isChecked())
+        count++;
+    if(ui->checkBoxCHD5->isChecked())
+        count++;
+    if(ui->checkBoxCHD6->isChecked())
+        count++;
+    if(ui->checkBoxCHD7->isChecked())
+        count++;
+    // Count CHD enabled pins
+    chPos = (byte)((ui->chdPositionSlider->maximum() - value) * 8);
+    temp = (byte)((8 - count) * 8);    // Max position
+    if(chPos > temp)
+        chPos = temp;
+    usbDevice.controlWriteTransfer(31, chPos);
+}
+
+void XprotolabInterface::updateSweepCursors()
+{
+    byte sweepmin, sweepmax;
+    sweepmin = (byte)(ui->sweepStartFreqSlider->value());
+    sweepmax = (byte)(ui->sweepEndFreqSlider->value());
+    if(ui->checkBoxSweepFrequency->isChecked())
+    {
+        double freqv;
+        if(ui->samplingSlider->value() >= 11)
+            freqv = freqValue[ui->samplingSlider->value()] / 128;   // Slow sampling rate uses 2 samples per pixel
+        else
+            freqv = freqValue[ui->samplingSlider->value()] / 256;
+        if(ui->samplingSlider->value() <= 6)
+        {
+            ui->startFreqText->setText(QString::number(sweepmin * freqv / 2000));//.ToString("##.000");
+            ui->endFreqText->setText(QString::number(sweepmax * freqv / 2000));//.ToString("##.000");
+            ui->labelUnitStart->setText("kHz");
+            ui->labelUnitEnd->setText("kHz");
+        }
+        else
+        {
+            ui->startFreqText->setText(QString::number(sweepmin * freqv / 2000));//.ToString("##.000");
+            ui->endFreqText->setText(QString::number(sweepmax * freqv / 2000));//.ToString("##.000");
+            ui->labelUnitStart->setText("Hz");
+            ui->labelUnitEnd->setText("Hz");
+        }
+    }
+    else if(ui->checkBoxSweepAmplitude->isChecked())
+    {
+        ui->startFreqText->setText(QString::number(((double)sweepmin / 64)));//.ToString("##.000");
+        ui->endFreqText->setText(QString::number(((double)sweepmax / 64)));//.ToString("##.000");
+        ui->labelUnitStart->setText("V");
+        ui->labelUnitEnd->setText("V");
+    }
+    else if(ui->checkBoxSweepOffset->isChecked())
+    {
+        ui->startFreqText->setText(QString::number((double)-((255 - sweepmin) * 0.50016 / 32) + 2));//.ToString("##.000");
+        ui->endFreqText->setText(QString::number((double)-((255 - sweepmax) * 0.50016 / 32) + 2));//.ToString("##.000");
+        ui->labelUnitStart->setText("V");
+        ui->labelUnitEnd->setText("V");
+    }
+    else if(ui->checkBoxSweepDutyCycle->isChecked())
+    {
+        ui->startFreqText->setText(QString::number((double)(sweepmin * (50.00064 / 128))));//.ToString("##.000");
+        ui->endFreqText->setText(QString::number((double)(sweepmax * (50.00064 / 128))));//.ToString("##.000");
+        ui->labelUnitStart->setText("%");
+        ui->labelUnitEnd->setText("%");
+    }
+
+}
+
+// M 32 Decode Protocol
+// M 33 Sweep Start Frequency
+
+void XprotolabInterface::on_sweepStartFreqSlider_valueChanged(int)
+{
+    if(ui->sweepStartFreqSlider->value() > ui->sweepEndFreqSlider->value())
+    {
+        ui->sweepStartFreqSlider->setValue(ui->sweepEndFreqSlider->value());
+        ui->sweepStartFreqSlider->setSliderPosition(ui->sweepEndFreqSlider->value());
+    }
+    updateSweepCursors();
+    usbDevice.controlWriteTransfer(33, (byte)(ui->sweepStartFreqSlider->value()));
+}
+
+// M 34 Sweep End Frequency
+
+void XprotolabInterface::on_sweepEndFreqSlider_valueChanged(int)
+{
+    if(ui->sweepEndFreqSlider->value() < ui->sweepStartFreqSlider->value())
+    {
+        ui->sweepEndFreqSlider->setValue(ui->sweepStartFreqSlider->value());
+        ui->sweepEndFreqSlider->setSliderPosition(ui->sweepStartFreqSlider->value());
+    }
+    updateSweepCursors();
+    usbDevice.controlWriteTransfer(34, (byte)(ui->sweepEndFreqSlider->value()));
+}
+
+// M 35 Sweep Speed
+
+void XprotolabInterface::on_sweepSpeedSlider_valueChanged(int value)
+{
+    ui->sweepSpeedText->setText(QString::number(value));
+    usbDevice.controlWriteTransfer(35, (byte)(value));
+}
+
+// M 36 Amplitude range: [-128,0]
+
+void XprotolabInterface::on_doubleSpinBoxAmp_valueChanged(double value)
+{
+    byte data;
+    data = (byte)(value * 32);       // Amplitude
+    ui->amplitudeSlider->setValue(data);
+    ui->amplitudeSlider->setSliderPosition(data);
+    ui->doubleSpinBoxAmp->setValue((double)(ui->amplitudeSlider->value()) / 32);
+    data = (byte)(-data);
+    usbDevice.controlWriteTransfer(36, data);
+}
+
+void XprotolabInterface::on_amplitudeSlider_valueChanged(int value)
+{
+    ui->doubleSpinBoxAmp->setValue((double)(value) / 32);
+}
+
+// M 37 Waveform type
+
+void XprotolabInterface::selectWaveForm(byte value)
+{
+    usbDevice.controlWriteTransfer(37, value);
+}
+
+void XprotolabInterface::on_radioButtonCustom_clicked()
+{
+    selectWaveForm(5);
+}
+
+void XprotolabInterface::on_radioButtonExpo_clicked()
+{
+    selectWaveForm(4);
+}
+
+void XprotolabInterface::on_radioButtonTriangle_clicked()
+{
+    selectWaveForm(3);
+}
+
+void XprotolabInterface::on_radioButtonSquare_clicked()
+{
+    selectWaveForm(2);
+}
+
+void XprotolabInterface::on_radioButtonSine_clicked()
+{
+    selectWaveForm(1);
+}
+
+void XprotolabInterface::on_radioButtonNoise_clicked()
+{
+    selectWaveForm(0);
+}
+
+// M 38 Duty cycle range: [1,255]
+
+void XprotolabInterface::on_doubleSpinBoxDuty_valueChanged(double value)
+{
+    byte data;
+    data = (byte)(value * 100000 * 128 / 5000064);       // Duty
+    if(data == 0)
+        data = 1;
+    ui->dutyCycleSlider->setValue(data);
+    ui->dutyCycleSlider->setSliderPosition(data);
+    ui->doubleSpinBoxDuty->setValue((double)((ui->dutyCycleSlider->value()) * (50.00064 / 128)));
+    usbDevice.controlWriteTransfer(38, data);
+}
+
+void XprotolabInterface::on_dutyCycleSlider_valueChanged(int value)
+{
+    ui->doubleSpinBoxDuty->setValue((double)((value) * (50.00064 / 128)));
+}
+
+// M 39 Offset
+
+void XprotolabInterface::on_doubleSpinBoxOffset_valueChanged(double value)
+{
+    char data;
+    data = (char)(-value * 100000 * 32 / 50016);       // Offset
+    ui->offsetSlider->setValue(-data);
+    ui->doubleSpinBoxOffset->setValue((double)(ui->offsetSlider->value() * 0.50016 / 32));
+    usbDevice.controlWriteTransfer(39, (byte)data);
+}
+
+void XprotolabInterface::on_offsetSlider_valueChanged(int value)
+{
+    ui->doubleSpinBoxOffset->setValue((double)(value * 0.50016 / 32));
+}
+
+// M 40 Desired frequency
+
+void XprotolabInterface::on_doubleSpinBoxDesiredFreq_valueChanged(double value)
+{
+    byte i, cycles;
+    qint64 fLevel = 1600000;
+    qint64 period;
+    qint64 desiredFreq;
+    double actualFreq;
+    desiredFreq = (int)(value * 100);
+
+    // Find Period and number of cycles depending on the desired frequency
+    for(i = 0, cycles = 64; i < 6; i++)
+    {
+        if(desiredFreq > fLevel)
+            break;
+        fLevel = (int)(fLevel >> 1);
+        cycles = (byte)(cycles >> 1);
+    }
+    period = (int)(((6250000 * cycles) / desiredFreq) - 1);
+    if(period < 31)
+        period = 31;
+    actualFreq = (double)(cycles * 50 * (125000000L / (period + 1))) / 100000;
+    if(desiredFreq < 100000)
+        ui->labelHertz->setText("Hz");
+    else
+    {
+        actualFreq = actualFreq / 1000;
+        ui->labelHertz->setText("kHz");
+    }
+    ui->actualFreqText->setText(QString::number(actualFreq));//.ToString("##.000");
+    usbDevice.controlReadTransfer('c', (uint16_t)(desiredFreq >> 16), (uint16_t)(desiredFreq & 0x0000FFFF));
+
+}
+
+void XprotolabInterface::updateFrequency()
+{
+    float f;
+    f = ui->frequencySlider->value();
+    if(ui->radioButton10->isChecked())
+        ui->doubleSpinBoxDesiredFreq->setValue(f / 10);
+    else if(ui->radioButton100->isChecked())
+        ui->doubleSpinBoxDesiredFreq->setValue(f);
+    else if(ui->radioButton1K->isChecked())
+        ui->doubleSpinBoxDesiredFreq->setValue(f * 10);
+    else if(ui->radioButton10K->isChecked())
+        ui->doubleSpinBoxDesiredFreq->setValue(f * 100);
+    else
+        ui->doubleSpinBoxDesiredFreq->setValue(f * 1000);
+}
+
+void XprotolabInterface::on_frequencySlider_valueChanged(int)
+{
+    updateFrequency();
+}
+
+void XprotolabInterface::on_radioButton10_clicked()
+{
+    updateFrequency();
+}
+
+void XprotolabInterface::on_radioButton100_clicked()
+{
+    updateFrequency();
+}
+
+void XprotolabInterface::on_radioButton1K_clicked()
+{
+    updateFrequency();
+}
+
+void XprotolabInterface::on_radioButton10K_clicked()
+{
+    updateFrequency();
+}
+
+void XprotolabInterface::on_radioButton100K_clicked()
+{
+    updateFrequency();
+}
+
+void XprotolabInterface::setupValues()
+{
+    // Sampling rate
+    rateText << "8μs/div" << "16μs/div" << "32μs/div" << "64μs/div" << "128μs/div" << "256μs/div" << "500μs/div" << "1ms/div"
+             << "2ms/div" << "5ms/div" << "10ms/div" << "20ms/div" << "50ms/div" << "0.1s/div" << "0.2s/div" << "0.5s/div"
+             << "1s/div" << "2s/div" << "5s/div" << "10s/div" << "20s/div" << "50s/div";
+
+    // Gain Text with x1 probe
+    gainText << "5.12V/div" << "2.56V/div" << "1.28V/div" << "0.64V/div" << "0.32V/div" << "0.16V/div" << "80mV/div" << "----";
+
+    freqValue[0] = 10;
+    int temp = 2000000;
+    for(int i=1;i<7;i++) // Kilo Hertz
+    {
+         freqValue[i] = temp;
+         temp = temp/2;
+    }
+    freqValue[7] = 32000;
+    freqValue[8] = 16000000;
+    freqValue[9] = 8000000;
+    temp = 3200000;
+    for(int i=10;i<13;i++) // Hertz
+    {
+         freqValue[i] = temp;
+         temp = temp/2;
+    }
+    freqValue[13] = 320000;
+    freqValue[14] = 160000;
+    freqValue[15] = 80000;
+    freqValue[16] = 32000;
+    freqValue[17] = 16000;
+    freqValue[18] = 8000;
+    temp = 3200;
+    for(int i=19;i<22;i++) // Hertz
+    {
+         freqValue[i] = temp;
+         temp = temp/2;
+    }
+    freqValue[22] = 320;
+}

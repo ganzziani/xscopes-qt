@@ -180,7 +180,7 @@ bool LibUsbDevice::controlReadTransfer(uint8_t command, uint16_t value , uint16_
     }
     int bytesRead;
     bytesRead = libusb_control_transfer(deviceHandle,0xC0,command,value,index,inBuffer,LEN_CONTROL_BUFFER,1000);
-    if (bytesRead > 0)
+    if (bytesRead >= 0)
     {
         if(bytesRead<LEN_CONTROL_BUFFER)
             inBuffer[bytesRead] = '\0';
