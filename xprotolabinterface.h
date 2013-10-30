@@ -61,6 +61,8 @@ private:
     void sendMFFTControls();
     void sendSweepControls();
     void sendSnifferSettings();
+    void updateFrequency();
+    void setupValues();
     
 private slots:
     void on_playButton_clicked();
@@ -68,8 +70,6 @@ private slots:
     void on_autoButton_clicked();
 
     void on_connectButton_clicked();
-
-    void horzScrollBarChanged(int);
 
     void xAxisChanged(QCPRange);
 
@@ -124,8 +124,6 @@ private slots:
     void on_checkBoxCHDInvert_clicked();
 
     void on_checkBoxCHDThick0_clicked();
-
-    void on_checkBoxCHDThick1_clicked();
 
     void on_chdPullSlider_valueChanged(int value);
 
@@ -227,6 +225,46 @@ private slots:
 
     void on_horizontalScrollBar_sliderMoved(int position);
 
+    void on_doubleSpinBoxTrigHold_valueChanged(double arg1);
+
+    void on_comboBoxTrigSource_currentIndexChanged(int index);
+
+    void on_doubleSpinBoxTrigAuto_valueChanged(double arg1);
+
+    void on_chdPositionSlider_valueChanged(int value);
+
+    void on_sweepStartFreqSlider_valueChanged(int value);
+
+    void on_sweepEndFreqSlider_valueChanged(int value);
+
+    void on_sweepSpeedSlider_valueChanged(int value);
+
+    void on_doubleSpinBoxAmp_valueChanged(double arg1);
+
+    void on_amplitudeSlider_valueChanged(int value);
+
+    void on_doubleSpinBoxDuty_valueChanged(double arg1);
+
+    void on_dutyCycleSlider_valueChanged(int value);
+
+    void on_doubleSpinBoxOffset_valueChanged(double arg1);
+
+    void on_offsetSlider_valueChanged(int value);
+
+    void on_doubleSpinBoxDesiredFreq_valueChanged(double arg1);
+
+    void on_frequencySlider_valueChanged(int value);
+
+    void on_radioButton10_clicked();
+
+    void on_radioButton100_clicked();
+
+    void on_radioButton1K_clicked();
+
+    void on_radioButton10K_clicked();
+
+    void on_radioButton100K_clicked();
+
 private:
     Ui::XprotolabInterface *ui;
     QTimer dataTimer;
@@ -234,7 +272,7 @@ private:
     bool isScrolling;
     double rangeMax;
     QStringList rateText,gainText;
-    //List<int> freqValue;
+    int freqValue[23];
    // double xtime;
 };
 
