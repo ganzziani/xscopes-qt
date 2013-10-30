@@ -1,16 +1,17 @@
 #ifndef LIBUSBDEVICE_H
 #define LIBUSBDEVICE_H
-
 #include <QObject>
 #include <QFuture>
-#include "libusb.h"
-#include "libusbdeviceinfo.h"
-#include <QDebug>
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 #include <QtConcurrent/QtConcurrent>
+#define NOMINMAX
 #else
 #include <QtConcurrentRun>
 #endif
+#include "libusb.h"
+#include "libusbdeviceinfo.h"
+#include <QDebug>
+
 
 
 
