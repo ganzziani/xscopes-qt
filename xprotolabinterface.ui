@@ -91,7 +91,7 @@
         </font>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <property name="elideMode">
         <enum>Qt::ElideNone</enum>
@@ -340,7 +340,7 @@
                    <string/>
                   </property>
                   <property name="currentIndex">
-                   <number>0</number>
+                   <number>2</number>
                   </property>
                   <widget class="QWidget" name="ch1Tab">
                    <attribute name="title">
@@ -2842,12 +2842,18 @@
                     <property name="text">
                      <string>100</string>
                     </property>
+                    <property name="checked">
+                     <bool>false</bool>
+                    </property>
                    </widget>
                   </item>
                   <item>
                    <widget class="QRadioButton" name="radioButton1K">
                     <property name="text">
                      <string>1K</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
@@ -2907,7 +2913,17 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QDoubleSpinBox" name="doubleSpinBoxDesiredFreq"/>
+                     <widget class="QDoubleSpinBox" name="doubleSpinBoxDesiredFreq">
+                      <property name="minimum">
+                       <double>1.000000000000000</double>
+                      </property>
+                      <property name="maximum">
+                       <double>200000.000000000000000</double>
+                      </property>
+                      <property name="value">
+                       <double>1000.000000000000000</double>
+                      </property>
+                     </widget>
                     </item>
                    </layout>
                   </item>
@@ -2938,10 +2954,17 @@ Frequency</string>
                         <height>38</height>
                        </size>
                       </property>
+                      <property name="font">
+                       <font>
+                        <pointsize>13</pointsize>
+                        <weight>75</weight>
+                        <bold>true</bold>
+                       </font>
+                      </property>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="label_39">
+                     <widget class="QLabel" name="labelHertz">
                       <property name="font">
                        <font>
                         <pointsize>26</pointsize>
@@ -3003,6 +3026,15 @@ Frequency</string>
                  <property name="decimals">
                   <number>3</number>
                  </property>
+                 <property name="maximum">
+                  <double>40.000000000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.030000000000000</double>
+                 </property>
+                 <property name="value">
+                  <double>2.000000000000000</double>
+                 </property>
                 </widget>
                </item>
                <item>
@@ -3051,6 +3083,15 @@ Frequency</string>
                 <widget class="QDoubleSpinBox" name="doubleSpinBoxDuty">
                  <property name="decimals">
                   <number>3</number>
+                 </property>
+                 <property name="maximum">
+                  <double>99.900000000000006</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.400000000000000</double>
+                 </property>
+                 <property name="value">
+                  <double>50.000000000000000</double>
                  </property>
                 </widget>
                </item>
@@ -3114,7 +3155,13 @@ Frequency</string>
                   <number>3</number>
                  </property>
                  <property name="minimum">
-                  <double>-20.000000000000000</double>
+                  <double>-2.000000000000000</double>
+                 </property>
+                 <property name="maximum">
+                  <double>10.000000000000000</double>
+                 </property>
+                 <property name="singleStep">
+                  <double>0.016000000000000</double>
                  </property>
                 </widget>
                </item>
@@ -3306,7 +3353,7 @@ Frequency</string>
                        <widget class="QLineEdit" name="startFreqText"/>
                       </item>
                       <item>
-                       <widget class="QLabel" name="label_48">
+                       <widget class="QLabel" name="labelUnitStart">
                         <property name="text">
                          <string>Hz</string>
                         </property>
@@ -3355,7 +3402,7 @@ Frequency</string>
                        <widget class="QLineEdit" name="endFreqText"/>
                       </item>
                       <item>
-                       <widget class="QLabel" name="label_49">
+                       <widget class="QLabel" name="labelUnitEnd">
                         <property name="text">
                          <string>Hz</string>
                         </property>
@@ -3495,7 +3542,7 @@ Frequency</string>
            <item>
             <widget class="QTabWidget" name="tabWidget">
              <property name="currentIndex">
-              <number>2</number>
+              <number>0</number>
              </property>
              <widget class="QWidget" name="i2cTab">
               <attribute name="title">
@@ -4447,7 +4494,7 @@ Frequency</string>
   <customwidget>
    <class>QCustomPlot</class>
    <extends>QWidget</extends>
-   <header location="local">qcustomplot.h</header>
+   <header>qcustomplot.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
