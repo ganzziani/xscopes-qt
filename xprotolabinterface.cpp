@@ -1298,6 +1298,7 @@ void XprotolabInterface::on_horizontalScrollBar_sliderMoved(int position)
 //    }
 }
 
+
 // M 15 Vertical cursor A
 // M 16 Vertical cursor B
 // M 17 CH1 Horizontal cursor A
