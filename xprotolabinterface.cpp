@@ -137,9 +137,9 @@ void XprotolabInterface::plotData()
         {
             byte data = usbDevice.chData[i+512];
             if((data & (byte)(1 << m)) != 0)
-                bit[m].push_back(20+(m*20));
+                bit[m].push_back(20+(m*20)+ui->chdPositionSlider->value()*50);
             else
-                bit[m].push_back(10+(m*20));
+                bit[m].push_back(10+(m*20)+ui->chdPositionSlider->value()*50);
 
         }
     }
