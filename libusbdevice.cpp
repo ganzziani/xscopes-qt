@@ -94,7 +94,6 @@ void LibUsbDevice::initializeDevice()
     libusb_set_debug(context, LIBUSB_LOG_LEVEL_INFO); //set verbosity level to 3
 }
 
-
 void LibUsbDevice::openDevice()
 {
     int status;

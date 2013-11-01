@@ -91,7 +91,7 @@
         </font>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <property name="elideMode">
         <enum>Qt::ElideNone</enum>
@@ -2961,6 +2961,9 @@ Frequency</string>
                         <bold>true</bold>
                        </font>
                       </property>
+                      <property name="readOnly">
+                       <bool>true</bool>
+                      </property>
                      </widget>
                     </item>
                     <item>
@@ -3964,518 +3967,620 @@ Frequency</string>
         <attribute name="title">
          <string>Options</string>
         </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_93">
-         <item>
+        <widget class="QGroupBox" name="groupBox_10">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>340</width>
+           <height>58</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>File</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_78">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_77">
+            <item>
+             <widget class="QPushButton" name="pushButton_11">
+              <property name="text">
+               <string>Load Wave</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_12">
+              <property name="text">
+               <string>Save Wave</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_13">
+              <property name="text">
+               <string>Save BMP</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_14">
+              <property name="text">
+               <string>Save CSV</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QGroupBox" name="groupBox_11">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>74</y>
+           <width>421</width>
+           <height>175</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Display</string>
+         </property>
+         <widget class="QWidget" name="layoutWidget">
+          <property name="geometry">
+           <rect>
+            <x>11</x>
+            <y>20</y>
+            <width>399</width>
+            <height>145</height>
+           </rect>
+          </property>
           <layout class="QVBoxLayout" name="verticalLayout_92">
            <item>
-            <widget class="QGroupBox" name="groupBox_10">
-             <property name="title">
-              <string>File</string>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_78">
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_77">
-                <item>
-                 <widget class="QPushButton" name="pushButton_11">
-                  <property name="text">
-                   <string>Load Wave</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="pushButton_12">
-                  <property name="text">
-                   <string>Save Wave</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="pushButton_13">
-                  <property name="text">
-                   <string>Save BMP</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="pushButton_14">
-                  <property name="text">
-                   <string>Save CSV</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
+            <layout class="QHBoxLayout" name="horizontalLayout_86">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_84">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_81">
+                 <item>
+                  <widget class="QLabel" name="label_63">
+                   <property name="text">
+                    <string>Intensity</string>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_79">
+                   <item>
+                    <widget class="QLabel" name="label_64">
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="pixmap">
+                      <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/lowintense.png</pixmap>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSlider" name="horizontalSlider_8">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="tickPosition">
+                      <enum>QSlider::TicksBelow</enum>
+                     </property>
+                     <property name="tickInterval">
+                      <number>12</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_67">
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="pixmap">
+                      <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/veryintense.png</pixmap>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_82">
+                 <item>
+                  <widget class="QLabel" name="label_65">
+                   <property name="minimumSize">
+                    <size>
+                     <width>43</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>Decay</string>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_80">
+                   <item>
+                    <widget class="QLabel" name="label_66">
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="pixmap">
+                      <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/shortdecay.png</pixmap>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QSlider" name="horizontalSlider_9">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="tickPosition">
+                      <enum>QSlider::TicksBelow</enum>
+                     </property>
+                     <property name="tickInterval">
+                      <number>12</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_68">
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="pixmap">
+                      <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/longdecay.png</pixmap>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_86">
+               <item>
+                <widget class="QCheckBox" name="checkBoxInvert">
+                 <property name="text">
+                  <string>Invert</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="checkBoxShowSettings">
+                 <property name="text">
+                  <string>Show Settings</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="checkBoxFlip">
+                 <property name="text">
+                  <string>Flip</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_11">
-             <property name="title">
-              <string>Display</string>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_87">
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_87">
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_84">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_81">
-                    <item>
-                     <widget class="QLabel" name="label_63">
-                      <property name="text">
-                       <string>Intensity</string>
-                      </property>
-                      <property name="scaledContents">
-                       <bool>true</bool>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                      </property>
-                      <property name="wordWrap">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_79">
-                      <item>
-                       <widget class="QLabel" name="label_64">
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="pixmap">
-                         <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/lowintense.png</pixmap>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QSlider" name="horizontalSlider_8">
-                        <property name="orientation">
-                         <enum>Qt::Horizontal</enum>
-                        </property>
-                        <property name="tickPosition">
-                         <enum>QSlider::TicksBelow</enum>
-                        </property>
-                        <property name="tickInterval">
-                         <number>12</number>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLabel" name="label_67">
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="pixmap">
-                         <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/veryintense.png</pixmap>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_82">
-                    <item>
-                     <widget class="QLabel" name="label_65">
-                      <property name="minimumSize">
-                       <size>
-                        <width>43</width>
-                        <height>0</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string>Decay</string>
-                      </property>
-                      <property name="scaledContents">
-                       <bool>true</bool>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                      </property>
-                      <property name="wordWrap">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_80">
-                      <item>
-                       <widget class="QLabel" name="label_66">
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="pixmap">
-                         <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/shortdecay.png</pixmap>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QSlider" name="horizontalSlider_9">
-                        <property name="orientation">
-                         <enum>Qt::Horizontal</enum>
-                        </property>
-                        <property name="tickPosition">
-                         <enum>QSlider::TicksBelow</enum>
-                        </property>
-                        <property name="tickInterval">
-                         <number>12</number>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLabel" name="label_68">
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="pixmap">
-                         <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/longdecay.png</pixmap>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_86">
-                  <item>
-                   <layout class="QVBoxLayout" name="verticalLayout_83">
-                    <item>
-                     <widget class="QCheckBox" name="checkBox_21">
-                      <property name="text">
-                       <string>Color Gradient</string>
-                      </property>
-                      <property name="icon">
-                       <iconset resource="xprotolabinterface.qrc">
-                        <normaloff>:/Bitmaps/Bitmaps/colorgradient.png</normaloff>:/Bitmaps/Bitmaps/colorgradient.png</iconset>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QCheckBox" name="checkBoxPersistence">
-                      <property name="text">
-                       <string>Infinite Persistemce</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QCheckBox" name="checkBoxVectors">
-                      <property name="text">
-                       <string>Vectors</string>
-                      </property>
-                      <property name="checked">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QVBoxLayout" name="verticalLayout_86">
-                    <item>
-                     <spacer name="verticalSpacer_4">
-                      <property name="orientation">
-                       <enum>Qt::Vertical</enum>
-                      </property>
-                      <property name="sizeHint" stdset="0">
-                       <size>
-                        <width>20</width>
-                        <height>40</height>
-                       </size>
-                      </property>
-                     </spacer>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_83">
-                      <item>
-                       <widget class="QToolButton" name="chooseColorButton_8">
-                        <property name="maximumSize">
-                         <size>
-                          <width>15</width>
-                          <height>15</height>
-                         </size>
-                        </property>
-                        <property name="text">
-                         <string/>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLabel" name="label_69">
-                        <property name="text">
-                         <string>Background Color</string>
-                        </property>
-                        <property name="scaledContents">
-                         <bool>true</bool>
-                        </property>
-                        <property name="wordWrap">
-                         <bool>false</bool>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QVBoxLayout" name="verticalLayout_85">
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_84">
-                      <item>
-                       <widget class="QLabel" name="label_70">
-                        <property name="text">
-                         <string>Display Average</string>
-                        </property>
-                        <property name="scaledContents">
-                         <bool>true</bool>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QComboBox" name="comboBox_7"/>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_85">
-                      <item>
-                       <widget class="QLabel" name="label_71">
-                        <property name="minimumSize">
-                         <size>
-                          <width>78</width>
-                          <height>0</height>
-                         </size>
-                        </property>
-                        <property name="text">
-                         <string>Grid</string>
-                        </property>
-                        <property name="scaledContents">
-                         <bool>true</bool>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QComboBox" name="comboBox_8"/>
-                      </item>
-                     </layout>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="groupBox_12">
-             <property name="title">
-              <string>Connection</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_90">
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_90">
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_89">
-                  <item>
-                   <widget class="QCheckBox" name="checkBox_24">
+            <layout class="QHBoxLayout" name="horizontalLayout_87">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_83">
+               <item>
+                <widget class="QCheckBox" name="checkBox_21">
+                 <property name="text">
+                  <string>Color Gradient</string>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="xprotolabinterface.qrc">
+                   <normaloff>:/Bitmaps/Bitmaps/colorgradient.png</normaloff>:/Bitmaps/Bitmaps/colorgradient.png</iconset>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="checkBoxPersistence">
+                 <property name="text">
+                  <string>Infinite Persistence</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="checkBoxVectors">
+                 <property name="text">
+                  <string>Vectors</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_87">
+               <item>
+                <spacer name="verticalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_83">
+                 <item>
+                  <widget class="QToolButton" name="chooseColorButton_8">
+                   <property name="maximumSize">
+                    <size>
+                     <width>15</width>
+                     <height>15</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_69">
+                   <property name="text">
+                    <string>Background Color</string>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_85">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_84">
+                 <item>
+                  <widget class="QLabel" name="label_70">
+                   <property name="text">
+                    <string>Display Average</string>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="comboBox_7">
+                   <item>
                     <property name="text">
-                     <string>Connect at startup</string>
+                     <string>1</string>
                     </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="connectButton">
+                   </item>
+                   <item>
                     <property name="text">
-                     <string>Connect</string>
+                     <string>2</string>
                     </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_12">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_88">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_88">
-                    <item>
-                     <widget class="QLabel" name="label_72">
-                      <property name="text">
-                       <string>COM Port</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QComboBox" name="comboBox_9"/>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_89">
-                    <item>
-                     <widget class="QLabel" name="label_73">
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="pixmap">
-                       <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/led-off.png</pixmap>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="label_74">
-                      <property name="font">
-                       <font>
-                        <pointsize>9</pointsize>
-                        <weight>75</weight>
-                        <bold>true</bold>
-                       </font>
-                      </property>
-                      <property name="text">
-                       <string>Not Connected</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="groupBox_13">
-             <property name="title">
-              <string>Device Firmware</string>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_95">
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_91">
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_93">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_91">
-                    <item>
-                     <widget class="QLabel" name="label_75">
-                      <property name="text">
-                       <string>Current Version</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="currentFirwareVersion"/>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_92">
-                    <item>
-                     <widget class="QLabel" name="label_76">
-                      <property name="text">
-                       <string>Latest Version</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="latestFirmWareVersion">
-                      <property name="text">
-                       <string>2.13</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_94">
-                  <item>
-                   <spacer name="horizontalSpacer_13">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="pushButton_16">
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>32</height>
-                     </size>
-                    </property>
+                   </item>
+                   <item>
                     <property name="text">
-                     <string>UPGRADE FIRMWARE</string>
+                     <string>4</string>
                     </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <spacer name="horizontalSpacer_14">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>8</string>
                     </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>16</string>
                     </property>
-                   </spacer>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <spacer name="verticalSpacer_5">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>32</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>64</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>128</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_85">
+                 <item>
+                  <widget class="QLabel" name="label_71">
+                   <property name="minimumSize">
+                    <size>
+                     <width>78</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>Grid</string>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="comboBoxGrid">
+                   <item>
+                    <property name="text">
+                     <string>No Grid</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Dots</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Lines</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Full</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </item>
+            </layout>
            </item>
           </layout>
-         </item>
-        </layout>
+         </widget>
+        </widget>
+        <widget class="QGroupBox" name="groupBox_12">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>255</y>
+           <width>315</width>
+           <height>89</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Connection</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_90">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_90">
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_89">
+              <item>
+               <widget class="QCheckBox" name="checkBox_24">
+                <property name="text">
+                 <string>Connect at startup</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="connectButton">
+                <property name="text">
+                 <string>Connect</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_12">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_88">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_88">
+                <item>
+                 <widget class="QLabel" name="label_72">
+                  <property name="text">
+                   <string>COM Port</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="comboBox_9"/>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_89">
+                <item>
+                 <widget class="QLabel" name="label_73">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/led-off.png</pixmap>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_74">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Not Connected</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QGroupBox" name="groupBox_13">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>350</y>
+           <width>453</width>
+           <height>99</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Device Firmware</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_95">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_91">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_93">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_91">
+                <item>
+                 <widget class="QLabel" name="label_75">
+                  <property name="text">
+                   <string>Current Version</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="currentFirwareVersion"/>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_92">
+                <item>
+                 <widget class="QLabel" name="label_76">
+                  <property name="text">
+                   <string>Latest Version</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="latestFirmWareVersion">
+                  <property name="text">
+                   <string>2.22</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_94">
+              <item>
+               <spacer name="horizontalSpacer_13">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButton_16">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>32</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>UPGRADE FIRMWARE</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_14">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
        </widget>
        <widget class="QWidget" name="aboutTab">
         <attribute name="title">

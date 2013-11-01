@@ -61,6 +61,7 @@ private:
     void sendMFFTControls();
     void sendSweepControls();
     void sendSnifferSettings();
+    void sendDisplayControls();
     void updateFrequency();
     void setupValues();
     
@@ -265,6 +266,20 @@ private slots:
 
     void on_radioButton100K_clicked();
 
+    void on_checkBoxInvert_clicked();
+
+    void on_checkBoxShowSettings_clicked();
+
+    void on_checkBoxFlip_clicked();
+
+    void on_checkBoxPersistence_clicked();
+
+    void on_checkBoxVectors_clicked();
+
+    void on_comboBoxGrid_currentIndexChanged(int index);
+
+    void on_elasticMode_clicked();
+
 private:
     Ui::XprotolabInterface *ui;
     QTimer dataTimer;
@@ -273,6 +288,8 @@ private:
     double rangeMax;
     QStringList rateText,gainText;
     int freqValue[23];
+    bool bitChecked[8];
+   // QCPLegend *legend;
    // double xtime;
 };
 

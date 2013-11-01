@@ -13,6 +13,7 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     setupGrid(ui->plotterWidget);
     setupValues();
     //connect(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), this, SLOT(xAxisChanged(QCPRange)));
+    //connect(ui->plotterWidget, SIGNAL(), this, SLOT(xAxisChanged(QCPRange)));
     usbDevice.initializeDevice();
     on_connectButton_clicked();
 }
@@ -24,14 +25,16 @@ XprotolabInterface::~XprotolabInterface()
 
 void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
 { 
-    customPlot->plotLayout()->clear();
+  //  customPlot->plotLayout()->clear();
     customPlot->plotLayout()->addElement(0, 0, new QCPAxisRect(customPlot));
-    QLinearGradient plotGradient;
-    plotGradient.setStart(0, 0);
-    plotGradient.setFinalStop(0, 350);
-    plotGradient.setColorAt(0, QColor(0, 50, 200));
-    plotGradient.setColorAt(1, QColor(50, 0, 100));
-    customPlot->setBackground(plotGradient);
+   // legend = customPlot->legend;
+   // customPlot->legend = new QCPLegend();
+//    QLinearGradient plotGradient;
+//    plotGradient.setStart(0, 0);
+//    plotGradient.setFinalStop(0, 350);
+//    plotGradient.setColorAt(0, QColor(0, 50, 200));
+//    plotGradient.setColorAt(1, QColor(50, 0, 100));
+//    customPlot->setBackground(plotGradient);
     customPlot->addGraph(customPlot->axisRect(0)->axis(QCPAxis::atBottom),customPlot->axisRect(0)->axis(QCPAxis::atLeft)); // blue line
     customPlot->graph(0)->setPen(QPen(Qt::green));
   //  customPlot->graph(0)->setBrush(QBrush(QColor(240, 255, 200)));
@@ -45,6 +48,16 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
  //   customPlot->graph(1)->setBrush(QBrush(QColor(240, 255, 200)));
     customPlot->graph(1)->setAntialiasedFill(false);
     customPlot->graph(1)->setName("CH2");
+
+    for(int i=0;i<8;i++)
+    {
+        customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));    // red line
+        customPlot->graph(i+2)->setPen(QPen(Qt::red));
+        customPlot->graph(i+2)->setAntialiasedFill(false);
+        customPlot->graph(i+2)->setName("Bit "+QString::number(i));
+        customPlot->graph(i+2)->setLineStyle(QCPGraph::lsStepCenter);
+    }
+
 
    // customPlot->graph(0)->setChannelFillGraph(customPlot->graph(1));
 
@@ -63,10 +76,11 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
    connect(customPlot->axisRect()->axis(QCPAxis::atLeft), SIGNAL(rangeChanged(QCPRange)), customPlot->axisRect()->axis(QCPAxis::atRight), SLOT(setRange(QCPRange)));
 
    //customPlot->add
-  //  customPlot->legend->setFont(QFont("Helvetica",9));
+   customPlot->legend->setFont(QFont("Helvetica",9));
+   customPlot->legend->setVisible(true);
     // set locale to english, so we get english decimal separator:
   //  customPlot->setLocale(QLocale(QLocale::English, QLocale::UnitedKingdom));
-   customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+   customPlot->setInteractions(QCP::iRangeZoom);
    connect(&dataTimer, SIGNAL(timeout()), this, SLOT(plotData()));
    dataTimer.start(0); // Interval 0 means to refresh as fast as possible
 
@@ -75,7 +89,7 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
 
 void XprotolabInterface::plotData()
 {
-    static double xtime=0,firstFrame = 0, rolltime = 0;
+    static double xtime=0,firstFrame = 0;
     static int frameCount = 0;
     if(!usbDevice.dataAvailable)
     {
@@ -86,7 +100,10 @@ void XprotolabInterface::plotData()
 #else
     double lastFrame = QDateTime::currentDateTime().toMSecsSinceEpoch()/1000.0;
 #endif
-    QVector<double> key, ch1,ch2;
+    QVector<double> key;
+    double ch1,ch2;
+    QVector<double> ch1Buffer,ch2Buffer;
+    QVector<double> bit[8];
     int xmax = 256;
     int step = 1,i=0;
     if(ui->samplingSlider->value()<11)
@@ -94,70 +111,97 @@ void XprotolabInterface::plotData()
         step = 2;
         i=ui->horizontalScrollBar->value();
     }
+    else if(ui->rollMode->isChecked())
+    {
+        i = usbDevice.chData[769];
+    }
     for(xtime = 0; xtime<xmax; xtime+=step,i++)
     {
-        rolltime++;
-        if(ui->rollMode->isChecked())
-            key.push_back(rolltime);
-        else if (ui->xyMode->isChecked())
-            key.push_back(((double)usbDevice.chData[i])*2);
+        if(i>255)
+            i=0;
+        if (ui->xyMode->isChecked())
+        {
+            key.push_back((double)(usbDevice.chData[i]));
+        }
         else
+        {
             key.push_back(xtime);
-        ch1.push_back(rangeMax-((rangeMax/8+ui->ch1PositionSlider->minimum() - ui->ch1PositionSlider->value()) +(double)usbDevice.chData[i])*(2));
-        ch2.push_back(rangeMax-((rangeMax/8+ui->ch2PositionSlider->minimum() - ui->ch2PositionSlider->value()) +(double)usbDevice.chData[i+256])*(2));
-    }
-    if(ui->rollMode->isChecked())               // major issue
-    {
-        if(ui->xyMode->isChecked())
-        {
-            ui->rollMode->setChecked(false);
-            return;
         }
-        else
-        {
-            //ui->plotterWidget->graph(0)->clearData();
-            ui->plotterWidget->graph(0)->addData(key, ch1);
-            ui->plotterWidget->graph(0)->rescaleValueAxis(true);
-           // ui->plotterWidget->graph(1)->clearData();
-            ui->plotterWidget->graph(1)->addData(key, ch2);
-            ui->plotterWidget->graph(1)->rescaleValueAxis(true);
-            ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(rolltime-xmax, rolltime);
-    //        ui->horizontalScrollBar->setRange(0,rolltime);
-    //        ui->horizontalScrollBar->setValue(rolltime);
-        }
+        ch1 = rangeMax-((rangeMax/8+ui->ch1PositionSlider->minimum() - ui->ch1PositionSlider->value()) +(double)usbDevice.chData[i])*2;
+        ch2 = rangeMax-((rangeMax/8+ui->ch2PositionSlider->minimum() - ui->ch2PositionSlider->value()) +(double)usbDevice.chData[i+256])*2;
 
+        ch1Buffer.push_back(ch1);
+        ch2Buffer.push_back(ch2);
+
+        for(int m=0;m<8;m++)
+        {
+            byte data = usbDevice.chData[i+512];
+            if((data & (byte)(1 << m)) != 0)
+                bit[m].push_back(20+(m*20));
+            else
+                bit[m].push_back(10+(m*20));
+
+        }
+    }
+
+    if(ui->xyMode->isChecked())
+    {
+        ui->plotterWidget->graph(0)->clearData();
+        ui->plotterWidget->graph(1)->clearData();
+        ui->plotterWidget->graph(0)->setData(key, ch2Buffer);
+        ui->plotterWidget->graph(0)->rescaleValueAxis(true);
+        xtime=0;
+        //ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(key.first(), key.last());
     }
     else
     {
-        if(ui->xyMode->isChecked())
+        if(!ui->checkBoxPersistence->isChecked())
+             ui->plotterWidget->graph(0)->clearData();
+        if(ui->checkBoxCH1Trace->isChecked())
         {
-            qSort(ch2.begin(),ch2.end());
-            qSort(key.begin(),key.end());
-            ui->plotterWidget->graph(0)->clearData();
-            ui->plotterWidget->graph(1)->clearData();
-            ui->plotterWidget->graph(0)->setData(key, ch2);
-            ui->plotterWidget->graph(0)->rescaleValueAxis(true);
-            xtime=0;
-            ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(key.first(), key.last());
+            if(!ui->checkBoxPersistence->isChecked())
+                ui->plotterWidget->graph(0)->setData(key, ch1Buffer);
+            else
+                ui->plotterWidget->graph(0)->addData(key, ch1Buffer);
+            //ui->plotterWidget->graph(0)->rescaleValueAxis(true);
         }
-        else
+        if(!ui->checkBoxPersistence->isChecked())
+             ui->plotterWidget->graph(1)->clearData();
+        if(ui->checkBoxCH2Trace->isChecked())
         {
-            ui->plotterWidget->graph(0)->clearData();
-            ui->plotterWidget->graph(0)->setData(key, ch1);
-            ui->plotterWidget->graph(0)->rescaleValueAxis(true);
-            ui->plotterWidget->graph(1)->clearData();
-            ui->plotterWidget->graph(1)->setData(key, ch2);
-            //ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->setRange(0,rangeMax);
-           // ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->setTickStep(rangeMax/8);
-           // ui->plotterWidget->graph(1)->rescaleValueAxis(true);
-            xtime=0;
-            ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(0, xmax);
+            if(!ui->checkBoxPersistence->isChecked())
+                ui->plotterWidget->graph(1)->setData(key, ch2Buffer);
+            else
+                ui->plotterWidget->graph(1)->addData(key, ch2Buffer);
+            //ui->plotterWidget->graph(1)->rescaleValueAxis(true);
+        }
+        for(int k=0;k<8;k++)
+        {
+            if(!ui->checkBoxPersistence->isChecked())
+                ui->plotterWidget->graph(k+2)->clearData();
+            if(ui->checkBoxCHDTrace->isChecked()&&bitChecked[k])
+            {
+                if(!ui->checkBoxPersistence->isChecked())
+                    ui->plotterWidget->graph(k+2)->setData(key, bit[k]);
+                else
+                    ui->plotterWidget->graph(k+2)->addData(key, bit[k]);
+              // qDebug()<<bit[k];
+               //ui->plotterWidget->graph(1)->rescaleValueAxis(true);
+            }
+
         }
 
+        //ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->setRange(0,rangeMax);
+       // ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->setTickStep(rangeMax/8);
+       // ui->plotterWidget->graph(1)->rescaleValueAxis(true);
+        xtime=0;
+        ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(0, xmax);
     }
 
+
+
     ui->plotterWidget->replot();
-    //usbDevice.dataAvailable = false;
+    usbDevice.dataAvailable = false;
     ++frameCount;
     if (lastFrame-firstFrame > 2) // average fps over 2 seconds
     {
@@ -276,14 +320,14 @@ void XprotolabInterface::readDeviceSettings()
 
     // GPIO4 Mask
     data = usbDevice.inBuffer[4]; // mask
-    ui->checkBoxCHD0->setChecked((data & (byte)(1 << 0)) != 0);
-    ui->checkBoxCHD1->setChecked((data & (byte)(1 << 1)) != 0);
-    ui->checkBoxCHD2->setChecked((data & (byte)(1 << 2)) != 0);
-    ui->checkBoxCHD3->setChecked((data & (byte)(1 << 3)) != 0);
-    ui->checkBoxCHD4->setChecked((data & (byte)(1 << 4)) != 0);
-    ui->checkBoxCHD5->setChecked((data & (byte)(1 << 5)) != 0);
-    ui->checkBoxCHD6->setChecked((data & (byte)(1 << 6)) != 0);
-    ui->checkBoxCHD7->setChecked((data & (byte)(1 << 7)) != 0);
+    ui->checkBoxCHD0->setChecked((data & (byte)(1 << 0)) != 0);bitChecked[0] = ui->checkBoxCHD0->isChecked();
+    ui->checkBoxCHD1->setChecked((data & (byte)(1 << 1)) != 0);bitChecked[1] = ui->checkBoxCHD1->isChecked();
+    ui->checkBoxCHD2->setChecked((data & (byte)(1 << 2)) != 0);bitChecked[2] = ui->checkBoxCHD2->isChecked();
+    ui->checkBoxCHD3->setChecked((data & (byte)(1 << 3)) != 0);bitChecked[3] = ui->checkBoxCHD3->isChecked();
+    ui->checkBoxCHD4->setChecked((data & (byte)(1 << 4)) != 0);bitChecked[4] = ui->checkBoxCHD4->isChecked();
+    ui->checkBoxCHD5->setChecked((data & (byte)(1 << 5)) != 0);bitChecked[5] = ui->checkBoxCHD5->isChecked();
+    ui->checkBoxCHD6->setChecked((data & (byte)(1 << 6)) != 0);bitChecked[6] = ui->checkBoxCHD6->isChecked();
+    ui->checkBoxCHD7->setChecked((data & (byte)(1 << 7)) != 0);bitChecked[7] = ui->checkBoxCHD7->isChecked();
 
     // GPIO5 Trigger
     data = usbDevice.inBuffer[5];   // Trigger
@@ -332,8 +376,14 @@ void XprotolabInterface::readDeviceSettings()
 
     // GPIO7 display
     data = usbDevice.inBuffer[7];
+    ui->comboBoxGrid->setCurrentIndex(data & 0x3);
+    ui->elasticMode->setChecked((data & (byte)(1 << 2)) != 0);
+    ui->checkBoxInvert->setChecked((data & (byte)(1 << 3)) != 0);
+    ui->checkBoxFlip->setChecked((data & (byte)(1 << 4)) != 0);
     ui->checkBoxPersistence->setChecked((data & (byte)(1 << 5)) != 0);
     ui->checkBoxVectors->setChecked((data & (byte)(1 << 6)) != 0);
+    ui->checkBoxShowSettings->setChecked((data & (byte)(1 << 6)) != 0);
+
     // Grid settings (2 bits)
     /*
     if ((data & (byte)(1 << 2)) != 0) radioTrigNormal.Checked = true;    // Average on successive traces
@@ -777,21 +827,21 @@ void XprotolabInterface::on_checkBoxASCII_clicked()
 void XprotolabInterface::sendCHDBitControls()
 {
     byte field = 0;
-    if(ui->checkBoxCHD0->isChecked())
+    if(bitChecked[0] = ui->checkBoxCHD0->isChecked())
         field += (1 << 0);
-    if(ui->checkBoxCHD1->isChecked())
+    if(bitChecked[1] = ui->checkBoxCHD1->isChecked())
         field += (1 << 1);
-    if(ui->checkBoxCHD2->isChecked())
+    if(bitChecked[2] = ui->checkBoxCHD2->isChecked())
         field += (1 << 2);
-    if(ui->checkBoxCHD3->isChecked())
+    if(bitChecked[3] = ui->checkBoxCHD3->isChecked())
         field += (1 << 3);
-    if(ui->checkBoxCHD4->isChecked())
+    if(bitChecked[4] = ui->checkBoxCHD4->isChecked())
         field += (1 << 4);
-    if(ui->checkBoxCHD5->isChecked())
+    if(bitChecked[5] = ui->checkBoxCHD5->isChecked())
         field += (1 << 5);
-    if(ui->checkBoxCHD6->isChecked())
+    if(bitChecked[6] = ui->checkBoxCHD6->isChecked())
         field += (1 << 6);
-    if(ui->checkBoxCHD7->isChecked())
+    if(bitChecked[7] = ui->checkBoxCHD7->isChecked())
         field += (1 << 7);
     usbDevice.controlWriteTransfer(4, field);
 }
@@ -928,6 +978,62 @@ void XprotolabInterface::on_rollMode_clicked()
 }
 
 // GPIO7 display
+
+void XprotolabInterface::sendDisplayControls()
+{
+    byte field = 0;
+
+    field += (byte)(ui->comboBoxGrid->currentIndex());   // Grid
+    if(ui->elasticMode->isChecked())
+        field += (1 << 2);   // Average Display
+    if(ui->checkBoxInvert->isChecked())
+        field += (1 << 3);   // Invert Display
+    if(ui->checkBoxFlip->isChecked())
+        field += (1 << 4);   // Flip Display
+    if(ui->checkBoxPersistence->isChecked())
+        field += (1 << 5);   // Persistence
+    if(ui->checkBoxVectors->isChecked())
+        field += (1 << 6);   // Line/Pixel Display
+    if(ui->checkBoxShowSettings->isChecked())
+        field += (1 << 7);   // Edge
+    usbDevice.controlWriteTransfer(7, field);
+}
+
+void XprotolabInterface::on_checkBoxInvert_clicked()
+{
+    sendDisplayControls();
+}
+
+void XprotolabInterface::on_checkBoxShowSettings_clicked()
+{
+    sendDisplayControls();
+}
+
+void XprotolabInterface::on_checkBoxFlip_clicked()
+{
+    sendDisplayControls();
+}
+
+void XprotolabInterface::on_checkBoxPersistence_clicked()
+{
+    sendDisplayControls();
+}
+
+void XprotolabInterface::on_checkBoxVectors_clicked()
+{
+    sendDisplayControls();
+}
+
+void XprotolabInterface::on_comboBoxGrid_currentIndexChanged(int)
+{
+    sendDisplayControls();
+}
+
+void XprotolabInterface::on_elasticMode_clicked()
+{
+    sendDisplayControls();
+}
+
 
 // GPIO8 MFFT
 
@@ -1166,6 +1272,8 @@ void XprotolabInterface::on_horizontalScrollBar_sliderMoved(int position)
     if(!usbDevice.isDeviceConnected)
         return;
     usbDevice.controlWriteTransfer(14, (byte)(position));
+    usbDevice.dataAvailable = true;
+    plotData();
 //    if(checkBoxStop.Checked) {
 //        Invalidate(new Rectangle(0, 0, 512, 512));
 //    }
@@ -1565,3 +1673,4 @@ void XprotolabInterface::setupValues()
     }
     freqValue[22] = 320;
 }
+
