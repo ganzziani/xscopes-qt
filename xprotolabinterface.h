@@ -33,6 +33,14 @@
 #include <QMessageBox>
 #include "qcustomplot.h"
 #include "libusbdevice.h"
+#include "fft.h"
+
+enum WindowFunction {
+    Rectangular,
+    Hamming,
+    Hann,
+    Blackman
+};
 
 namespace Ui {
 class XprotolabInterface;
@@ -64,6 +72,7 @@ private:
     void sendDisplayControls();
     void updateFrequency();
     void setupValues();
+    void setFFTWindow(int);
     
 private slots:
     void on_playButton_clicked();
@@ -280,15 +289,18 @@ private slots:
 
     void on_elasticMode_clicked();
 
+
 private:
     Ui::XprotolabInterface *ui;
     QTimer dataTimer;
     LibUsbDevice usbDevice;
     bool isScrolling;
-    double rangeMax;
+    double rangeMax,fftWindow[256];
     QStringList rateText,gainText;
     int freqValue[23];
     bool bitChecked[8];
+    QCPBars *bars1,*bars2;
+
    // QCPLegend *legend;
    // double xtime;
 };

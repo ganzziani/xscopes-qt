@@ -15,13 +15,17 @@ TEMPLATE = app
 SOURCES += main.cpp\
         xprotolabinterface.cpp \
     qcustomplot.cpp \
-    libusbdevice.cpp
+    libusbdevice.cpp \
+    fft.cpp \
+    complex.cpp
 
 HEADERS  += xprotolabinterface.h \
     qcustomplot.h \
     libusb.h \
     libusbdevice.h \
-    libusbdeviceinfo.h
+    libusbdeviceinfo.h \
+    fft.h \
+    complex.h
 
 FORMS    += xprotolabinterface.ui
 

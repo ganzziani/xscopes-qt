@@ -57,12 +57,18 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
         customPlot->graph(i+2)->setName("Bit "+QString::number(i));
         customPlot->graph(i+2)->setLineStyle(QCPGraph::lsStepCenter);
     }
+    bars1 = new QCPBars(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));
+    customPlot->addPlottable(bars1);
+    bars1->setPen(QPen(Qt::red));
+    bars2 = new QCPBars(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));
+    customPlot->addPlottable(bars2);
+    bars2->setPen(QPen(Qt::blue));
 
 
    // customPlot->graph(0)->setChannelFillGraph(customPlot->graph(1));
 
-   customPlot->axisRect()->axis(QCPAxis::atBottom)->setAutoTickLabels(false);
-   customPlot->axisRect()->axis(QCPAxis::atBottom)->setAutoTickStep(true);
+ //  customPlot->axisRect()->axis(QCPAxis::atBottom)->setAutoTickLabels(false);
+ //  customPlot->axisRect()->axis(QCPAxis::atBottom)->setAutoTickStep(true);
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setAutoTickLabels(false);
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setAutoTickStep(false);
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setRange(0,rangeMax);
@@ -89,7 +95,7 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
 
 void XprotolabInterface::plotData()
 {
-    static double xtime=0,firstFrame = 0;
+    static double firstFrame = 0;
     static int frameCount = 0;
     if(!usbDevice.dataAvailable)
     {
@@ -102,8 +108,9 @@ void XprotolabInterface::plotData()
 #endif
     QVector<double> key;
     double ch1,ch2;
-    QVector<double> ch1Buffer,ch2Buffer;
+    QVector<double> ch1Buffer,ch2Buffer,fft1,fft2;
     QVector<double> bit[8];
+    complex pSignal1[256],pSignal2[256];
     int xmax = 256;
     int step = 1,i=0;
     if(ui->samplingSlider->value()<11)
@@ -115,7 +122,7 @@ void XprotolabInterface::plotData()
     {
         i = usbDevice.chData[769];
     }
-    for(xtime = 0; xtime<xmax; xtime+=step,i++)
+    for(int xtime = 0; xtime<xmax; xtime+=step,i++)
     {
         if(i>255)
             i=0;
@@ -133,13 +140,17 @@ void XprotolabInterface::plotData()
         ch1Buffer.push_back(ch1);
         ch2Buffer.push_back(ch2);
 
-        for(int m=0;m<8;m++)
+        if(ui->checkBoxCHDTrace->isChecked())
         {
-            byte data = usbDevice.chData[i+512];
-            if((data & (byte)(1 << m)) != 0)
-                bit[m].push_back(20+(m*20)+ui->chdPositionSlider->value()*50);
-            else
-                bit[m].push_back(10+(m*20)+ui->chdPositionSlider->value()*50);
+            for(int m=0;m<8;m++)
+            {
+                byte data = usbDevice.chData[i+512];
+                if((data & (byte)(1 << m)) != 0)
+                    bit[m].push_back(20+(m*20)+ui->chdPositionSlider->value()*50);
+                else
+                    bit[m].push_back(10+(m*20)+ui->chdPositionSlider->value()*50);
+
+            }
 
         }
     }
@@ -150,8 +161,7 @@ void XprotolabInterface::plotData()
         ui->plotterWidget->graph(1)->clearData();
         ui->plotterWidget->graph(0)->setData(key, ch2Buffer);
         ui->plotterWidget->graph(0)->rescaleValueAxis(true);
-        xtime=0;
-        //ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(key.first(), key.last());
+       //ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(key.first(), key.last());
     }
     else
     {
@@ -190,12 +200,135 @@ void XprotolabInterface::plotData()
             }
 
         }
+        if(!ui->checkBoxPersistence->isChecked())
+        {
+           bars1->clearData();
+           bars2->clearData();
+        }
+
+        if(ui->checkBoxFFTTrace->isChecked())
+        {
+
+            double magnitude,magnitude2;
+            double real1,real2,imag;
+            for(int j = 0; j < 256; j++ )
+            {
+                if(!ui->checkBoxIQFFT->isChecked())
+                {
+                    real1 = (double)usbDevice.chData[j] * fftWindow[j];
+                    real2 = (double)usbDevice.chData[j+256] * fftWindow[j];
+                    pSignal1[j] = complex(real1,real1);
+                    pSignal2[j] = complex(real2,real2);
+                }
+                else
+                {
+                    real1 = (double)usbDevice.chData[j] * fftWindow[j];
+                    imag = (double)usbDevice.chData[j+256] * fftWindow[j];
+                    pSignal1[j] = complex(real1,imag);
+                }
+
+            }
+            if(!ui->checkBoxIQFFT->isChecked())
+            {
+                if(ui->checkBoxFFTCH1->isChecked())
+                    CFFT::Forward(pSignal1, 256);
+                if(ui->checkBoxFFTCH2->isChecked())
+                    CFFT::Forward(pSignal2, 256);
+            }
+            else
+                CFFT::Forward(pSignal1, 256);
+
+            i = ui->horizontalScrollBar->value();
+            for(int k=0;k<128;k++,i++)
+            {
+                if(i>255)
+                    i=0;
+                if(!ui->checkBoxIQFFT->isChecked())
+                {
+                    if(ui->checkBoxFFTCH1->isChecked())
+                        magnitude = sqrt(pSignal1[k].re()*pSignal1[k].re()+pSignal1[k].im()*pSignal1[k].im());
+                    if(ui->checkBoxFFTCH2->isChecked())
+                        magnitude2 = sqrt(pSignal2[k].re()*pSignal2[k].re()+pSignal2[k].im()*pSignal2[k].im());
+                    if(ui->checkBoxLogY->isChecked())
+                    {
+                        magnitude = 16*log(magnitude)/log(2.0);
+                        magnitude2 = 16*log(magnitude2)/log(2.0);
+                    }
+                    else
+                    {
+                        magnitude = magnitude*0.05;
+                        magnitude2 = magnitude2*0.05;
+                    }
+                    if(ui->checkBoxFFTCH1->isChecked())
+                        fft1.push_back(magnitude);
+                    if(ui->checkBoxFFTCH2->isChecked())
+                        fft2.push_back(magnitude2);
+//                    if(ui->checkBoxFFTCH1->isChecked()&&ui->checkBoxFFTCH2->isChecked())
+//                    {
+//                        bars1->moveAbove(bars2);
+//                    }
+                }
+                else
+                {
+                    magnitude = sqrt(pSignal1[i].re()*pSignal1[i].re()+pSignal1[i].im()*pSignal1[i].im());
+                    if(ui->checkBoxLogY->isChecked())
+                        magnitude = 16*log(magnitude)/log(2.0);
+                    else
+                        magnitude = magnitude*0.05;
+                   // magnitude = magnitude*0.5;
+                    fft1.push_back(magnitude);
+                }
+
+               // if(magnit)
+              //  qDebug()<<magnitude;
+            }
+            if(!ui->checkBoxPersistence->isChecked())
+            {
+//                if(key.size()>fft1.size())
+//                {
+//                    qDebug()<<"key: "<<key.size();
+//                    bars1->setWidth(2);
+//                }
+                if(!ui->checkBoxIQFFT->isChecked())
+                {
+                    bars1->clearData();
+                    if(ui->checkBoxFFTCH1->isChecked())
+                        bars1->setData(key, fft1);
+                    bars2->clearData();
+                    if(ui->checkBoxFFTCH2->isChecked())
+                        bars2->setData(key, fft2);
+                }
+                else
+                {
+                    bars1->clearData();
+                    bars1->setData(key, fft1);
+                }
+
+               // bars1->rescaleKeyAxis(true);
+            }
+            else
+            {
+                if(!ui->checkBoxIQFFT->isChecked())
+                {
+                    if(ui->checkBoxFFTCH1->isChecked())
+                        bars1->addData(key, fft1);
+                    if(ui->checkBoxFFTCH2->isChecked())
+                        bars2->addData(key, fft2);
+                }
+                else
+                {
+                    bars1->addData(key, fft1);
+                }
+
+
+            }
+        }
 
         //ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->setRange(0,rangeMax);
        // ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->setTickStep(rangeMax/8);
        // ui->plotterWidget->graph(1)->rescaleValueAxis(true);
-        xtime=0;
-        ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(0, xmax);
+
+        ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(0, 256);
     }
 
 
@@ -212,7 +345,33 @@ void XprotolabInterface::plotData()
     }
 }
 
+void XprotolabInterface::setFFTWindow(int type)
+{
+    for (int i=0; i<256; ++i)
+    {
+        double x = 1.0;
 
+        switch (type)
+        {
+        case Rectangular:
+            x = 1.0;
+            break;
+        case Hamming:
+            x = 0.53836 - 0.46164 * qCos((2 * M_PI * i) / (256 - 1));
+            break;
+        case Hann:
+            x = 0.5 * (1 - qCos((2 * M_PI * i) / (256 - 1)));
+            break;
+        case Blackman:
+            x = 0.42 - 0.5 * qCos((2 * M_PI * i) / (256 - 1)) + 0.08 * qCos((4 * M_PI * i) / (256 - 1)) ;
+            break;
+        default:
+            break;
+        }
+
+        fftWindow[i] = x;
+    }
+}
 
 void XprotolabInterface::xAxisChanged(QCPRange range)
 {
@@ -397,15 +556,31 @@ void XprotolabInterface::readDeviceSettings()
     // GPIO8 MFFT
     data = usbDevice.inBuffer[8];
     if((data & (byte)(1 << 0)) != 0)
+    {
         ui->radioButtonHamming->setChecked(true);
+        setFFTWindow(Hamming);
+    }
     else if((data & (byte)(1 << 1)) != 0)
+    {
         ui->radioButtonHann->setChecked(true);
+        setFFTWindow(Hann);
+    }
     else if((data & (byte)(1 << 2)) != 0)
+    {
         ui->radioButtonBlackman->setChecked(true);
+        setFFTWindow(Blackman);
+    }
     else
+    {
         ui->radioButtonRect->setChecked(true);
+        setFFTWindow(Rectangular);
+    }
     ui->checkBoxLogY->setChecked((data & (byte)(1 << 3)) != 0);
     ui->checkBoxIQFFT->setChecked((data & (byte)(1 << 4)) != 0);
+    if(ui->checkBoxIQFFT->isChecked())
+        ui->groupBoxPlot->setEnabled(false);
+    else
+        ui->groupBoxPlot->setEnabled(true);
     ui->xyMode->setChecked((data & (byte)(1 << 6)) != 0);
     ui->checkBoxFFTTrace->setChecked((data & (byte)(1 << 7)) != 0);
 
@@ -1041,15 +1216,28 @@ void XprotolabInterface::sendMFFTControls()
 {
     byte field = 0;
     if(ui->radioButtonHamming->isChecked())
+    {
         field += (1 << 0);
-    if(ui->radioButtonHann->isChecked())
+    }
+    else if(ui->radioButtonHann->isChecked())
+    {
         field += (1 << 1);
-    if(ui->radioButtonBlackman->isChecked())
+    }
+    else if(ui->radioButtonBlackman->isChecked())
+    {
         field += (1 << 2);
+    }
     if(ui->checkBoxLogY->isChecked())
         field += (1 << 3);
     if(ui->checkBoxIQFFT->isChecked())
+    {
         field += (1 << 4);
+        ui->groupBoxPlot->setEnabled(false);
+    }
+    else
+    {
+        ui->groupBoxPlot->setEnabled(true);
+    }
     if(ui->xyMode->isChecked())
         field += (1 << 6);       // XY Mode
     else
@@ -1076,21 +1264,25 @@ void XprotolabInterface::on_checkBoxIQFFT_clicked()
 
 void XprotolabInterface::on_radioButtonRect_clicked()
 {
+    setFFTWindow(Rectangular);
     sendMFFTControls();
 }
 
 void XprotolabInterface::on_radioButtonHamming_clicked()
 {
+    setFFTWindow(Hamming);
     sendMFFTControls();
 }
 
 void XprotolabInterface::on_radioButtonHann_clicked()
 {
+    setFFTWindow(Hann);
     sendMFFTControls();
 }
 
 void XprotolabInterface::on_radioButtonBlackman_clicked()
 {
+    setFFTWindow(Blackman);
     sendMFFTControls();
 }
 
