@@ -66,7 +66,14 @@ private:
     void sendCHDControls();
     void sendCHDBitControls();
     void sendTriggerControls();
+    void sendCursorControls();
     void sendMFFTControls();
+    void sendVerticalCursorA();
+    void sendVerticalCursorB();
+    void sendHorizontalCursorCH1A();
+    void sendHorizontalCursorCH1B();
+    void sendHorizontalCursorCH2A();
+    void sendHorizontalCursorCH2B();
     void sendSweepControls();
     void sendSnifferSettings();
     void sendDisplayControls();
@@ -77,6 +84,7 @@ private:
 private slots:
     void on_playButton_clicked();
     void plotData();
+    void moveCursor(QMouseEvent*);
     void on_autoButton_clicked();
 
     void on_connectButton_clicked();
@@ -290,16 +298,30 @@ private slots:
     void on_elasticMode_clicked();
 
 
+    void on_checkBoxCursorAuto_clicked();
+
+    void on_checkBoxCursorTrack_clicked();
+
+    void on_checkBoxCursorVertical_clicked();
+
+    void on_radioButtonCursorCH1_clicked();
+
+    void on_radioButtonCursorCH2_clicked();
+
+    void on_radioButtonCursorNone_clicked();
+
 private:
     Ui::XprotolabInterface *ui;
     QTimer dataTimer;
     LibUsbDevice usbDevice;
     bool isScrolling;
-    double rangeMax,fftWindow[256];
+    double rangeMax,fftWindow[256],hCursorAPos ,hCursorBPos ,vCursorAPos ,vCursorBPos;
     QStringList rateText,gainText;
-    int freqValue[23];
-    bool bitChecked[8];
-    QCPBars *bars1,*bars2;
+    int freqValue[23],xmax;
+    bool bitChecked[8],itemIsSelected;
+    QCPGraph *bars1,*bars2,*hCursorA, *hCursorB, *vCursorA, *vCursorB;
+    QCPItemTracer *phaseTracerAA, *phaseTracerAB, *phaseTracerBA, *phaseTracerBB;
+    QCPItemLine *hCursorAHead, *hCursorBHead, *vCursorAHead, *vCursorBHead;
 
    // QCPLegend *legend;
    // double xtime;

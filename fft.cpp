@@ -1,4 +1,4 @@
-//   fft.cpp - impelementation of class
+//   fft.cpp - implementation of class
 //   of fast Fourier transform - FFT
 //
 //   The code is property of LIBROW

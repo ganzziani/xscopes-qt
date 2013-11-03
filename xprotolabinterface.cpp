@@ -10,10 +10,17 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     const QRect screen = QApplication::desktop()->screenGeometry();
     this->move( screen.center() - this->rect().center() );
     rangeMax = 512;
+    xmax = 256;
+    hCursorAPos = 200;
+    hCursorBPos = 100;
+    vCursorAPos = 50;
+    vCursorBPos = 150;
+    itemIsSelected = false;
     setupGrid(ui->plotterWidget);
     setupValues();
     //connect(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), this, SLOT(xAxisChanged(QCPRange)));
     //connect(ui->plotterWidget, SIGNAL(), this, SLOT(xAxisChanged(QCPRange)));
+    connect(ui->plotterWidget, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(moveCursor(QMouseEvent*)));
     usbDevice.initializeDevice();
     on_connectButton_clicked();
 }
@@ -25,8 +32,8 @@ XprotolabInterface::~XprotolabInterface()
 
 void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
 { 
-  //  customPlot->plotLayout()->clear();
-    customPlot->plotLayout()->addElement(0, 0, new QCPAxisRect(customPlot));
+    //customPlot->plotLayout()->clear();
+   // customPlot->plotLayout()->addElement(0, 0, new QCPAxisRect(customPlot));
    // legend = customPlot->legend;
    // customPlot->legend = new QCPLegend();
 //    QLinearGradient plotGradient;
@@ -36,15 +43,16 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
 //    plotGradient.setColorAt(1, QColor(50, 0, 100));
 //    customPlot->setBackground(plotGradient);
     customPlot->addGraph(customPlot->axisRect(0)->axis(QCPAxis::atBottom),customPlot->axisRect(0)->axis(QCPAxis::atLeft)); // blue line
-    customPlot->graph(0)->setPen(QPen(Qt::green));
+    customPlot->graph(0)->setPen(QPen(Qt::darkGreen, 2));
   //  customPlot->graph(0)->setBrush(QBrush(QColor(240, 255, 200)));
  //   customPlot->graph(0)->setScatterStyle(QCPScatterStyle::ssStar);
   //  customPlot->graph(0)->setLineStyle(QCPGraph::lsStepCenter);
-    customPlot->graph(0)->setAntialiasedFill(false);
+  //  customPlot->graph(0)->setAntialiasedFill(false);
+
     customPlot->graph(0)->setName("CH1");
 
     customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));    // red line
-    customPlot->graph(1)->setPen(QPen(Qt::red));
+    customPlot->graph(1)->setPen(QPen(Qt::red, 2));
  //   customPlot->graph(1)->setBrush(QBrush(QColor(240, 255, 200)));
     customPlot->graph(1)->setAntialiasedFill(false);
     customPlot->graph(1)->setName("CH2");
@@ -52,29 +60,132 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
     for(int i=0;i<8;i++)
     {
         customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));    // red line
-        customPlot->graph(i+2)->setPen(QPen(Qt::red));
+        customPlot->graph(i+2)->setPen(QPen(Qt::red, 1.5));
         customPlot->graph(i+2)->setAntialiasedFill(false);
         customPlot->graph(i+2)->setName("Bit "+QString::number(i));
         customPlot->graph(i+2)->setLineStyle(QCPGraph::lsStepCenter);
     }
-    bars1 = new QCPBars(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));
-    customPlot->addPlottable(bars1);
-    bars1->setPen(QPen(Qt::red));
-    bars2 = new QCPBars(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));
-    customPlot->addPlottable(bars2);
-    bars2->setPen(QPen(Qt::blue));
+    bars1 = customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));    // red line
+    customPlot->graph(10)->setPen(QPen(Qt::red, 2));
+    customPlot->graph(10)->setAntialiasedFill(false);
+   // customPlot->graph(10)->setName("Bit "+QString::number(i));
+    customPlot->graph(10)->setLineStyle(QCPGraph::lsImpulse);
+
+    bars2 = customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));    // red line
+    customPlot->graph(11)->setPen(QPen(Qt::blue, 2));
+    customPlot->graph(11)->setLineStyle(QCPGraph::lsImpulse);
+   // customPlot->graph(11)->setName("Bit "+QString::number(i));
+
+    //bars1->setBrush(QBrush(QColor(240, 255, 200)));
 
 
    // customPlot->graph(0)->setChannelFillGraph(customPlot->graph(1));
 
- //  customPlot->axisRect()->axis(QCPAxis::atBottom)->setAutoTickLabels(false);
- //  customPlot->axisRect()->axis(QCPAxis::atBottom)->setAutoTickStep(true);
-   customPlot->axisRect()->axis(QCPAxis::atLeft)->setAutoTickLabels(false);
+    hCursorA = customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));    // red line
+    hCursorA->setPen(QPen(Qt::red, 1, Qt::DashLine));
+    hCursorA->setName("HA");
+    hCursorA->setSelectable(false);
+   // hCursorA->setType(QCPItemPosition::ptAxisRectRatio);
+    hCursorAHead = new QCPItemLine(customPlot);
+    customPlot->addItem(hCursorAHead);
+    hCursorAHead->start->setCoords(0,hCursorAPos);
+    hCursorAHead->end->setCoords(10, hCursorAPos); // point to (4, 1.6) in x-y-plot coordinates
+    hCursorAHead->setHead(QCPLineEnding::esFlatArrow);
+    hCursorAHead->setPen(QPen(Qt::red,2, Qt::DashLine));
+
+
+    hCursorB = customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));    // red line
+    hCursorB->setPen(QPen(Qt::red, 1, Qt::DashLine));
+    hCursorB->setName("HB");
+    hCursorB->setSelectable(false);
+
+    hCursorBHead = new QCPItemLine(customPlot);
+    customPlot->addItem(hCursorBHead);
+    hCursorBHead->start->setCoords(0,hCursorBPos);
+    hCursorBHead->end->setCoords(10, hCursorBPos); // point to (4, 1.6) in x-y-plot coordinates
+    hCursorBHead->setHead(QCPLineEnding::esFlatArrow);
+    hCursorBHead->setPen(QPen(Qt::red,1, Qt::DashLine));
+
+    vCursorA = customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));    // red line
+    vCursorA->setPen(QPen(Qt::red, 1, Qt::DashLine));
+    vCursorA->setName("VA");
+    vCursorA->setSelectable(false);
+   // hCursorA->setType(QCPItemPosition::ptAxisRectRatio);
+    vCursorAHead = new QCPItemLine(customPlot);
+    customPlot->addItem(vCursorAHead);
+    vCursorAHead->start->setCoords(vCursorAPos,rangeMax);
+    vCursorAHead->end->setCoords(vCursorAPos,rangeMax-10); // point to (4, 1.6) in x-y-plot coordinates
+    vCursorAHead->setHead(QCPLineEnding::esFlatArrow);
+    vCursorAHead->setPen(QPen(Qt::red,1, Qt::DashLine));
+
+
+    vCursorB = customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));    // red line
+    vCursorB->setPen(QPen(Qt::red, 1, Qt::DashLine));
+    vCursorB->setName("VB");
+    vCursorB->setSelectable(false);
+
+    vCursorBHead = new QCPItemLine(customPlot);
+    customPlot->addItem(vCursorBHead);
+    vCursorBHead->start->setCoords(vCursorBPos,rangeMax);
+    vCursorBHead->end->setCoords(vCursorBPos,rangeMax-10); // point to (4, 1.6) in x-y-plot coordinates
+    vCursorBHead->setHead(QCPLineEnding::esFlatArrow);
+    vCursorBHead->setPen(QPen(Qt::red,1, Qt::DashLine));
+
+
+
+
+//   customPlot->axisRect()->axis(QCPAxis::atBottom)->setTickLabels(true);
+//   customPlot->axisRect()->axis(QCPAxis::atBottom)->setAutoTickStep(false);
+//   customPlot->axisRect()->axis(QCPAxis::atBottom)->setRange(0,128);
+//   customPlot->axisRect()->axis(QCPAxis::atBottom)->setTickStep(128/8);
+
+   customPlot->axisRect()->axis(QCPAxis::atLeft)->setAutoTickLabels(true);
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setAutoTickStep(false);
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setRange(0,rangeMax);
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setTickStep(rangeMax/8);
  //  customPlot->axisRect()->axis(QCPAxis::atLeft)->setOffset(1);
    customPlot->axisRect()->setupFullAxesBox();
+   customPlot->axisRect()->setRangeDrag(Qt::Horizontal);
+
+   phaseTracerAA = new QCPItemTracer(customPlot);
+   customPlot->addItem(phaseTracerAA);
+   phaseTracerAA->setGraph(customPlot->graph(0));
+   phaseTracerAA->setGraphKey(vCursorAPos);
+   phaseTracerAA->setInterpolating(true);
+   phaseTracerAA->setStyle(QCPItemTracer::tsCircle);
+   phaseTracerAA->setPen(QPen(Qt::red));
+   phaseTracerAA->setBrush(Qt::red);
+   phaseTracerAA->setSize(7);
+
+   phaseTracerAB = new QCPItemTracer(customPlot);
+   customPlot->addItem(phaseTracerAB);
+   phaseTracerAB->setGraph(customPlot->graph(0));
+   phaseTracerAB->setGraphKey(vCursorBPos);
+   phaseTracerAB->setInterpolating(true);
+   phaseTracerAB->setStyle(QCPItemTracer::tsCircle);
+   phaseTracerAB->setPen(QPen(Qt::red));
+   phaseTracerAB->setBrush(Qt::red);
+   phaseTracerAB->setSize(7);
+
+   phaseTracerBA = new QCPItemTracer(customPlot);
+   customPlot->addItem(phaseTracerBA);
+   phaseTracerBA->setGraph(customPlot->graph(1));
+   phaseTracerBA->setGraphKey(vCursorAPos);
+   phaseTracerBA->setInterpolating(true);
+   phaseTracerBA->setStyle(QCPItemTracer::tsCircle);
+   phaseTracerBA->setPen(QPen(Qt::red));
+   phaseTracerBA->setBrush(Qt::red);
+   phaseTracerBA->setSize(7);
+
+   phaseTracerBB = new QCPItemTracer(customPlot);
+   customPlot->addItem(phaseTracerBB);
+   phaseTracerBB->setGraph(customPlot->graph(1));
+   phaseTracerBB->setGraphKey(vCursorAPos);
+   phaseTracerBB->setInterpolating(true);
+   phaseTracerBB->setStyle(QCPItemTracer::tsCircle);
+   phaseTracerBB->setPen(QPen(Qt::red));
+   phaseTracerBB->setBrush(Qt::red);
+   phaseTracerBB->setSize(7);
 
    //customPlot->axisRect()->setMaximumSize(,512);
     // make left and bottom axes transfer their ranges to right and top axes:
@@ -82,11 +193,11 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
    connect(customPlot->axisRect()->axis(QCPAxis::atLeft), SIGNAL(rangeChanged(QCPRange)), customPlot->axisRect()->axis(QCPAxis::atRight), SLOT(setRange(QCPRange)));
 
    //customPlot->add
-   customPlot->legend->setFont(QFont("Helvetica",9));
-   customPlot->legend->setVisible(true);
+//   customPlot->legend->setFont(QFont("Helvetica",9));
+//   customPlot->legend->setVisible(true);
     // set locale to english, so we get english decimal separator:
   //  customPlot->setLocale(QLocale(QLocale::English, QLocale::UnitedKingdom));
-   customPlot->setInteractions(QCP::iRangeZoom);
+   customPlot->setInteractions(QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iSelectItems);
    connect(&dataTimer, SIGNAL(timeout()), this, SLOT(plotData()));
    dataTimer.start(0); // Interval 0 means to refresh as fast as possible
 
@@ -106,12 +217,15 @@ void XprotolabInterface::plotData()
 #else
     double lastFrame = QDateTime::currentDateTime().toMSecsSinceEpoch()/1000.0;
 #endif
-    QVector<double> key;
-    double ch1,ch2;
+    QVector<double> key,hCursorPos[2],vCursorPos[2], vCursorKey;
+    double ch1,ch2,minV,maxV,aTrack,bTrack;
     QVector<double> ch1Buffer,ch2Buffer,fft1,fft2;
     QVector<double> bit[8];
     complex pSignal1[256],pSignal2[256];
-    int xmax = 256;
+    phaseTracerAA->setVisible(false);
+    phaseTracerAB->setVisible(false);
+    phaseTracerBA->setVisible(false);
+    phaseTracerBB->setVisible(false);
     int step = 1,i=0;
     if(ui->samplingSlider->value()<11)
     {
@@ -139,6 +253,43 @@ void XprotolabInterface::plotData()
 
         ch1Buffer.push_back(ch1);
         ch2Buffer.push_back(ch2);
+        hCursorPos[0].push_back(hCursorAPos);
+        hCursorPos[1].push_back(hCursorBPos);
+
+        if(ui->radioButtonCursorCH1->isChecked())
+        {
+            if(xtime == 0)
+            {
+                minV = ch1;
+                maxV = ch1;
+            }
+            if(minV>ch1)
+                minV = ch1;
+            else if(maxV<ch1)
+                maxV = ch1;
+            if(xtime==vCursorAPos)
+                aTrack = ch1;
+            else if(xtime==vCursorBPos)
+                bTrack = ch1;
+        }
+        else if(ui->radioButtonCursorCH2->isChecked())
+        {
+            if(xtime == 0)
+            {
+                minV = ch2;
+                maxV = ch2;
+            }
+            if(minV>ch2)
+                minV = ch2;
+            else if(maxV<ch2)
+                maxV = ch2;
+            if(xtime==(int)vCursorAPos)
+                aTrack = ch2;
+            else if(xtime==(int)vCursorBPos)
+                bTrack = ch2;
+        }
+
+
 
         if(ui->checkBoxCHDTrace->isChecked())
         {
@@ -177,7 +328,7 @@ void XprotolabInterface::plotData()
         }
         if(!ui->checkBoxPersistence->isChecked())
              ui->plotterWidget->graph(1)->clearData();
-        if(ui->checkBoxCH2Trace->isChecked())
+        if(ui->checkBoxCH2Trace->isChecked()&&ui->samplingSlider->value()>0)
         {
             if(!ui->checkBoxPersistence->isChecked())
                 ui->plotterWidget->graph(1)->setData(key, ch2Buffer);
@@ -331,7 +482,75 @@ void XprotolabInterface::plotData()
         ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(0, 256);
     }
 
+    for(int j=0;j<rangeMax;j++)
+    {
+        vCursorKey.push_back(j);
+        vCursorPos[0].push_back(vCursorAPos);
+        vCursorPos[1].push_back(vCursorBPos);
+    }
 
+    hCursorA->clearData();
+    hCursorB->clearData();
+    if(!ui->radioButtonCursorNone->isChecked())
+    {
+        if(ui->checkBoxCursorAuto->isChecked())
+        {
+            hCursorPos[0].clear();
+            hCursorPos[1].clear();
+            for(int j=0;j<256;j++)
+            {
+                hCursorPos[0].push_back(minV);
+                hCursorPos[1].push_back(maxV);
+            }
+            hCursorAPos = minV;
+            hCursorBPos = maxV;
+            hCursorAHead->start->setCoords(0,hCursorAPos);
+            hCursorAHead->end->setCoords(10,hCursorAPos);
+            hCursorBHead->start->setCoords(0,hCursorBPos);
+            hCursorBHead->end->setCoords(10,hCursorBPos);
+        }
+        else if(ui->checkBoxCursorTrack->isChecked())
+        {
+            hCursorPos[0].clear();
+            hCursorPos[1].clear();
+            for(int j=0;j<256;j++)
+            {
+                hCursorPos[0].push_back(aTrack);
+                hCursorPos[1].push_back(bTrack);
+            }
+            hCursorAPos = aTrack;
+            hCursorBPos = bTrack;
+            hCursorAHead->start->setCoords(0,hCursorAPos);
+            hCursorAHead->end->setCoords(10,hCursorAPos);
+            hCursorBHead->start->setCoords(0,hCursorBPos);
+            hCursorBHead->end->setCoords(10,hCursorBPos);
+            if(ui->radioButtonCursorCH1->isChecked())
+            {
+                phaseTracerAA->setGraphKey(vCursorAPos);
+                phaseTracerAB->setGraphKey(vCursorBPos);
+                phaseTracerAA->setVisible(true);
+                phaseTracerAB->setVisible(true);
+            }
+            else if(ui->radioButtonCursorCH2->isChecked())
+            {
+                phaseTracerBA->setGraphKey(vCursorAPos);
+                phaseTracerBB->setGraphKey(vCursorBPos);
+                phaseTracerBA->setVisible(true);
+                phaseTracerBB->setVisible(true);
+            }
+
+        }
+        hCursorA->setData(key,hCursorPos[0]);
+        hCursorB->setData(key,hCursorPos[1]);
+    }
+
+    vCursorA->clearData();
+    vCursorB->clearData();
+    if(ui->checkBoxCursorVertical->isChecked())
+    {
+        vCursorA->setData(vCursorPos[0],vCursorKey);
+        vCursorB->setData(vCursorPos[1],vCursorKey);
+    }
 
     ui->plotterWidget->replot();
     usbDevice.dataAvailable = false;
@@ -342,6 +561,64 @@ void XprotolabInterface::plotData()
         ui->statusBar->showMessage( QString::number(fps)+" "+tr("FPS") );
         firstFrame = lastFrame;
         frameCount = 0;
+    }
+}
+
+void XprotolabInterface::moveCursor(QMouseEvent *event)
+{
+   if(event->type()== QMouseEvent::MouseMove)
+    {
+        if(hCursorAHead->selected())
+        {
+            hCursorAPos = ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->pixelToCoord(event->posF().ry());
+            if(hCursorAPos>=rangeMax)
+                hCursorAPos = rangeMax-5;
+            else if(hCursorAPos<5)
+                hCursorAPos = 5;
+            hCursorAHead->start->setCoords(0,hCursorAPos);
+            hCursorAHead->end->setCoords(10,hCursorAPos);
+            if(ui->radioButtonCursorCH1->isChecked())
+                sendHorizontalCursorCH1A();
+            else if(ui->radioButtonCursorCH2->isChecked())
+                sendHorizontalCursorCH2A();
+        }
+        else if(hCursorBHead->selected())
+        {
+            hCursorBPos = ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->pixelToCoord(event->posF().ry());
+            if(hCursorBPos>=rangeMax)
+                hCursorBPos = rangeMax-5;
+            else if(hCursorBPos<5)
+                hCursorBPos = 5;
+            hCursorBHead->start->setCoords(0,hCursorBPos);
+            hCursorBHead->end->setCoords(10,hCursorBPos);
+            if(ui->radioButtonCursorCH1->isChecked())
+                sendHorizontalCursorCH1B();
+            else if(ui->radioButtonCursorCH2->isChecked())
+                sendHorizontalCursorCH2B();
+        }
+        else if(vCursorAHead->selected())
+        {
+            vCursorAPos = ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(event->posF().rx());
+            if(vCursorAPos>=xmax)
+                vCursorAPos = xmax-5;
+            else if(vCursorAPos<5)
+                vCursorAPos = 5;
+            vCursorAHead->start->setCoords(vCursorAPos,rangeMax);
+            vCursorAHead->end->setCoords(vCursorAPos,rangeMax-10);
+            sendVerticalCursorA();
+        }
+        else if(vCursorBHead->selected())
+        {
+            vCursorBPos = ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(event->posF().rx());
+            if(vCursorBPos>=xmax)
+                vCursorBPos = xmax-5;
+            else if(vCursorBPos<5)
+                vCursorBPos = 5;
+            vCursorBHead->start->setCoords(vCursorBPos,rangeMax);
+            vCursorBHead->end->setCoords(vCursorBPos,rangeMax-10);
+            sendVerticalCursorB();
+        }
+
     }
 }
 
@@ -521,14 +798,44 @@ void XprotolabInterface::readDeviceSettings()
     // GPIO6 Mcursors
     data=usbDevice.inBuffer[6];
     ui->rollMode->setChecked((data & (byte)(1 << 0)) != 0);  // Roll scope on slow sampling rates
-    /*if ((data & (byte)(1 << 1)) != 0) radioTrigNormal.Checked = true;   // Auto cursors
-    if ((data & (byte)(1 << 2)) != 0) radioTrigNormal.Checked = true;   // Track vertical with horizontal
-    if ((data & (byte)(1 << 3)) != 0) radioTrigNormal.Checked = true;   // CH1 Horizontal Cursor on
-    if ((data & (byte)(1 << 4)) != 0) radioTrigNormal.Checked = true;   // CH2 Horizontal Cursor on
-    if ((data & (byte)(1 << 5)) != 0) radioTrigNormal.Checked = true;   // Vertical Cursor on
-    if ((data & (byte)(1 << 6)) != 0) radioTrigNormal.Checked = true;   // Reference waveforms on
-    */
-    if((data & (byte)(1 << 7)) != 0)
+    if ((data & (byte)(1 << 1)) != 0)
+        ui->checkBoxCursorAuto->setChecked(true);   // Auto cursors
+    if ((data & (byte)(1 << 2)) != 0)
+        ui->checkBoxCursorTrack->setChecked(true);   // Track vertical with horizontal
+    if ((data & (byte)(1 << 3)) != 0)
+    {
+        ui->radioButtonCursorCH1->setChecked(true);   // CH1 Horizontal Cursor on
+        hCursorAHead->setVisible(true);
+        hCursorBHead->setVisible(true);
+    }
+    else if ((data & (byte)(1 << 4)) != 0)
+    {
+        ui->radioButtonCursorCH2->setChecked(true);   // CH2 Horizontal Cursor on
+        hCursorAHead->setVisible(true);
+        hCursorBHead->setVisible(true);
+
+    }
+    else
+    {
+        ui->radioButtonCursorNone->setChecked(true);
+        hCursorAHead->setVisible(false);
+        hCursorBHead->setVisible(false);
+    }
+    if ((data & (byte)(1 << 5)) != 0)
+    {
+        ui->checkBoxCursorVertical->setChecked(true);   // Vertical Cursor on
+        vCursorAHead->setVisible(true);
+        vCursorBHead->setVisible(true);
+    }
+    else
+    {
+        vCursorAHead->setVisible(false);
+        vCursorBHead->setVisible(false);
+    }
+
+//    if ((data & (byte)(1 << 6)) != 0)
+//        ui->checkBoxRefWave->setChecked(true);   // Reference waveforms on
+    if ((data & (byte)(1 << 7)) != 0)
         ui->radioButtonSniffSingle->setChecked(true);
     else
         ui->radioButtonSniffNormal->setChecked(true);
@@ -646,12 +953,55 @@ void XprotolabInterface::readDeviceSettings()
     data = usbDevice.inBuffer[14];
     if((byte)data >= ui->horizontalScrollBar->minimum() && (byte)data <= ui->horizontalScrollBar->maximum())
         ui->horizontalScrollBar->setValue((byte)data);
+
     // M 15 Vertical cursor A
+    data = usbDevice.inBuffer[15];
+    if((byte)data>=0 && (byte)data<128)
+    {
+        vCursorAPos = xmax*data/128;
+        vCursorAHead->start->setCoords(vCursorAPos,rangeMax);
+        vCursorAHead->end->setCoords(vCursorAPos,rangeMax-10);
+    }
     // M 16 Vertical cursor B
+    data = usbDevice.inBuffer[16];
+    if((byte)data>=0 && (byte)data<128)
+    {
+        vCursorBPos = xmax*data/128;
+        vCursorBHead->start->setCoords(vCursorBPos,rangeMax);
+        vCursorBHead->end->setCoords(vCursorBPos,rangeMax-10);
+    }
     // M 17 CH1 Horizontal cursor A
+    data = usbDevice.inBuffer[17];
+    if((byte)data>=0 && (byte)data<128 && ui->radioButtonCursorCH1->isChecked())
+    {
+        hCursorAPos = rangeMax*data/128;
+        hCursorAHead->start->setCoords(0,hCursorAPos);
+        hCursorAHead->end->setCoords(10,hCursorAPos);
+    }
     // M 18 CH1 Horizontal cursor B
+    data = usbDevice.inBuffer[18];
+    if((byte)data>=0 && (byte)data<128 && ui->radioButtonCursorCH1->isChecked())
+    {
+        hCursorBPos = rangeMax*data/128;
+        hCursorBHead->start->setCoords(0,hCursorBPos);
+        hCursorBHead->end->setCoords(10,hCursorBPos);
+    }
     // M 19 CH2 Horizontal cursor A
+    data = usbDevice.inBuffer[19];
+    if((byte)data>=0 && (byte)data<128 && ui->radioButtonCursorCH2->isChecked())
+    {
+        hCursorAPos = rangeMax*data/128;
+        hCursorAHead->start->setCoords(0,hCursorAPos);
+        hCursorAHead->end->setCoords(10,hCursorAPos);
+    }
     // M 20 CH2 Horizontal cursor B
+    data = usbDevice.inBuffer[120];
+    if((byte)data>=0 && (byte)data<128 && ui->radioButtonCursorCH2->isChecked())
+    {
+        hCursorBPos = rangeMax*data/128;
+        hCursorBHead->start->setCoords(0,hCursorBPos);
+        hCursorBHead->end->setCoords(10,hCursorBPos);
+    }
     // M 21 Trigger Hold
     data = usbDevice.inBuffer[21];
     ui->doubleSpinBoxTrigHold->setValue(data);
@@ -1142,14 +1492,89 @@ void XprotolabInterface::on_checkBoxCircular_clicked()
 
 // GPIO6 Mcursors
 
-void XprotolabInterface::on_rollMode_clicked()
+void XprotolabInterface::sendCursorControls()
 {
     byte field = 0;
     if(ui->rollMode->isChecked())
         field += (1 << 0);     // Roll Mode
+    if(ui->checkBoxCursorAuto->isChecked())
+        field += (1 << 1);     // Auto cursors
+    if(ui->checkBoxCursorTrack->isChecked())
+        field += (1 << 2);     // Track vertical with horizontal
+    if(ui->radioButtonCursorCH1->isChecked())
+    {
+        field += (1 << 3);     // CH1 Horizontal Cursor on
+        hCursorAHead->setVisible(true);
+        hCursorBHead->setVisible(true);
+    }
+    else if(ui->radioButtonCursorCH2->isChecked())
+    {
+        field += (1 << 4);     // CH2 Horizontal Cursor on
+        hCursorAHead->setVisible(true);
+        hCursorBHead->setVisible(true);
+
+    }
+    else
+    {
+        hCursorAHead->setVisible(false);
+        hCursorBHead->setVisible(false);
+    }
+    if(ui->checkBoxCursorVertical->isChecked())
+    {
+        field += (1 << 5);     // Vertical Cursor on
+        vCursorAHead->setVisible(true);
+        vCursorBHead->setVisible(true);
+    }
+    else
+    {
+        vCursorAHead->setVisible(false);
+        vCursorBHead->setVisible(false);
+    }
+//    if(ui->checkBoxRefWave->isChecked())
+//        field += (1 << 6);     // Reference waveforms on
     if(ui->radioButtonSniffSingle->isChecked())
         field+=(1 << 7);   // Single Sniffer
     usbDevice.controlWriteTransfer(6, field);
+
+}
+
+void XprotolabInterface::on_rollMode_clicked()
+{
+    sendCursorControls();
+}
+
+void XprotolabInterface::on_checkBoxCursorAuto_clicked()
+{
+    if(ui->checkBoxCursorTrack->isChecked())
+        ui->checkBoxCursorTrack->setChecked(false);
+    sendCursorControls();
+}
+
+void XprotolabInterface::on_checkBoxCursorTrack_clicked()
+{
+    if(ui->checkBoxCursorAuto->isChecked())
+        ui->checkBoxCursorAuto->setChecked(false);
+    sendCursorControls();
+}
+
+void XprotolabInterface::on_checkBoxCursorVertical_clicked()
+{
+    sendCursorControls();
+}
+
+void XprotolabInterface::on_radioButtonCursorCH1_clicked()
+{
+    sendCursorControls();
+}
+
+void XprotolabInterface::on_radioButtonCursorCH2_clicked()
+{
+    sendCursorControls();
+}
+
+void XprotolabInterface::on_radioButtonCursorNone_clicked()
+{
+    sendCursorControls();
 }
 
 // GPIO7 display
@@ -1483,11 +1908,48 @@ void XprotolabInterface::on_horizontalScrollBar_sliderMoved(int position)
 
 
 // M 15 Vertical cursor A
+void XprotolabInterface::sendVerticalCursorA()
+{
+    byte value;
+    value = 128*vCursorAPos/xmax;
+    usbDevice.controlWriteTransfer(15, value);
+}
+
 // M 16 Vertical cursor B
+void XprotolabInterface::sendVerticalCursorB()
+{
+    byte value;
+    value = 128*vCursorBPos/xmax;
+    usbDevice.controlWriteTransfer(16, value);
+}
 // M 17 CH1 Horizontal cursor A
+void XprotolabInterface::sendHorizontalCursorCH1A()
+{
+    byte value;
+    value = 128*hCursorAPos/rangeMax;
+    usbDevice.controlWriteTransfer(17, value);
+}
 // M 18 CH1 Horizontal cursor B
+void XprotolabInterface::sendHorizontalCursorCH1B()
+{
+    byte value;
+    value = 128*hCursorBPos/rangeMax;
+    usbDevice.controlWriteTransfer(18, value);
+}
 // M 19 CH2 Horizontal cursor A
+void XprotolabInterface::sendHorizontalCursorCH2A()
+{
+    byte value;
+    value = 128*hCursorAPos/rangeMax;
+    usbDevice.controlWriteTransfer(19, value);
+}
 // M 20 CH2 Horizontal cursor B
+void XprotolabInterface::sendHorizontalCursorCH2B()
+{
+    byte value;
+    value = 128*hCursorBPos/rangeMax;
+    usbDevice.controlWriteTransfer(20, value);
+}
 // M 21 Trigger Hold
 
 
@@ -1514,7 +1976,7 @@ void XprotolabInterface::on_doubleSpinBoxTrigAuto_valueChanged(double value)
 {
     byte data;
     data = (byte)(value / 40.96 - 1);
-    ui->doubleSpinBoxTrigHold->setValue(((double)data + 1) * 40.96);
+    ui->doubleSpinBoxTrigAuto->setValue(((double)data + 1) * 40.96);
     usbDevice.controlWriteTransfer(28, data);
 }
 
@@ -1865,4 +2327,5 @@ void XprotolabInterface::setupValues()
     }
     freqValue[22] = 320;
 }
+
 
