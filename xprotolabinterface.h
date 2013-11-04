@@ -322,6 +322,8 @@ private:
     QCPGraph *bars1,*bars2,*hCursorA, *hCursorB, *vCursorA, *vCursorB;
     QCPItemTracer *phaseTracerAA, *phaseTracerAB, *phaseTracerBA, *phaseTracerBB;
     QCPItemLine *hCursorAHead, *hCursorBHead, *vCursorAHead, *vCursorBHead;
+    QCPItemText *textLabelBit[8], *textLabelDeltaTime, *textLabelDeltaVoltage, *textLabelCH1, *textLabelCH2;
+   // QLabel *ch1Label, *ch2Label, *timeLabel;
 
    // QCPLegend *legend;
    // double xtime;

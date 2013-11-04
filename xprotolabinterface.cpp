@@ -16,6 +16,18 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     vCursorAPos = 50;
     vCursorBPos = 150;
     itemIsSelected = false;
+    ui->ch1ColorLabel->setStyleSheet("QLabel { background-color : green; }");
+    ui->ch2ColorLabel->setStyleSheet("QLabel { background-color : red; }");
+//    ch1Label = new QLabel(ui->statusBar);
+//    ch2Label = new QLabel(ui->statusBar);
+//    timeLabel = new QLabel(ui->statusBar);
+//    ch1Label->setMinimumWidth(120);
+//    ch2Label->setMinimumWidth(120);
+//    timeLabel->setMinimumWidth(120);
+//    ui->statusBar->addWidget(ch1Label,0);
+//    ui->statusBar->addWidget(ch2Label,0);
+//    ui->statusBar->addWidget(timeLabel,0);
+
     setupGrid(ui->plotterWidget);
     setupValues();
     //connect(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), this, SLOT(xAxisChanged(QCPRange)));
@@ -71,7 +83,7 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
    // customPlot->graph(10)->setName("Bit "+QString::number(i));
     customPlot->graph(10)->setLineStyle(QCPGraph::lsImpulse);
 
-    bars2 = customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));    // red line
+    bars2 = customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atRight));    // red line
     customPlot->graph(11)->setPen(QPen(Qt::blue, 2));
     customPlot->graph(11)->setLineStyle(QCPGraph::lsImpulse);
    // customPlot->graph(11)->setName("Bit "+QString::number(i));
@@ -80,6 +92,60 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
 
 
    // customPlot->graph(0)->setChannelFillGraph(customPlot->graph(1));
+    for(int i =0;i<8;i++)
+    {
+        textLabelBit[i] = new QCPItemText(customPlot);
+        customPlot->addItem(textLabelBit[i]);
+        textLabelBit[i]->setColor(Qt::red);
+    //    textLabel->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
+    //    textLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
+        textLabelBit[i]->position->setCoords(270, 250); // place position at center/top of axis rect
+        textLabelBit[i]->setText("Bit "+QString::number(i));
+        textLabelBit[i]->setFont(QFont(font().family(), 8)); // make font a bit larger
+       // textLabelBit[i]->setPen(QPen(Qt::red)); // show black border around text
+    }
+    textLabelDeltaTime = new QCPItemText(customPlot);
+    customPlot->addItem(textLabelDeltaTime);
+    textLabelDeltaTime->setColor(Qt::red);
+//    textLabel->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
+//    textLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
+    textLabelDeltaTime->position->setCoords(250, 0); // place position at center/top of axis rect
+    textLabelDeltaTime->setText("ΔT");
+    textLabelDeltaTime->setFont(QFont(font().family(), 8)); // make font a bit larger
+   // textLabelBit[i]->setPen(QPen(Qt::red)); // show black border around text
+
+    textLabelDeltaVoltage = new QCPItemText(customPlot);
+    customPlot->addItem(textLabelDeltaVoltage);
+    textLabelDeltaVoltage->setColor(Qt::red);
+//    textLabel->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
+//    textLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
+    textLabelDeltaVoltage->position->setCoords(250, 0); // place position at center/top of axis rect
+    textLabelDeltaVoltage->setText("ΔV");
+    textLabelDeltaVoltage->setFont(QFont(font().family(), 8)); // make font a bit larger
+   // textLabelBit[i]->setPen(QPen(Qt::red)); // show black border around text
+
+    textLabelCH1 = new QCPItemText(customPlot);
+    customPlot->addItem(textLabelCH1);
+    textLabelCH1->setColor(Qt::red);
+//    textLabel->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
+//    textLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
+    textLabelCH1->position->setCoords(250, 0); // place position at center/top of axis rect
+    textLabelCH1->setText("CH1");
+    textLabelCH1->setFont(QFont(font().family(), 8)); // make font a bit larger
+   // textLabelBit[i]->setPen(QPen(Qt::red)); // show black border around text
+
+    textLabelCH2 = new QCPItemText(customPlot);
+    customPlot->addItem(textLabelCH2);
+    textLabelCH2->setColor(Qt::red);
+//    textLabel->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
+//    textLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
+    textLabelCH2->position->setCoords(250, 0); // place position at center/top of axis rect
+    textLabelCH2->setText("CH1");
+    textLabelCH2->setFont(QFont(font().family(), 8)); // make font a bit larger
+   // textLabelBit[i]->setPen(QPen(Qt::red)); // show black border around text
+
+
+
 
     hCursorA = customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));    // red line
     hCursorA->setPen(QPen(Qt::red, 1, Qt::DashLine));
@@ -134,15 +200,19 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
 
 
 
-//   customPlot->axisRect()->axis(QCPAxis::atBottom)->setTickLabels(true);
-//   customPlot->axisRect()->axis(QCPAxis::atBottom)->setAutoTickStep(false);
-//   customPlot->axisRect()->axis(QCPAxis::atBottom)->setRange(0,128);
-//   customPlot->axisRect()->axis(QCPAxis::atBottom)->setTickStep(128/8);
+   customPlot->axisRect()->axis(QCPAxis::atBottom)->setTickLabels(false);
+   customPlot->axisRect()->axis(QCPAxis::atBottom)->setAutoTickStep(false);
+   customPlot->axisRect()->axis(QCPAxis::atBottom)->setRange(0,400);
+   customPlot->axisRect()->axis(QCPAxis::atBottom)->setTickStep(400/20);
 
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setAutoTickLabels(true);
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setAutoTickStep(false);
+   customPlot->axisRect()->axis(QCPAxis::atRight)->setAutoTickLabels(true);
+   customPlot->axisRect()->axis(QCPAxis::atRight)->setAutoTickStep(false);
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setRange(0,rangeMax);
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setTickStep(rangeMax/8);
+   customPlot->axisRect()->axis(QCPAxis::atRight)->setRange(-rangeMax/2,rangeMax/2);
+   customPlot->axisRect()->axis(QCPAxis::atRight)->setTickStep(rangeMax/8);
  //  customPlot->axisRect()->axis(QCPAxis::atLeft)->setOffset(1);
    customPlot->axisRect()->setupFullAxesBox();
    customPlot->axisRect()->setRangeDrag(Qt::Horizontal);
@@ -189,8 +259,8 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
 
    //customPlot->axisRect()->setMaximumSize(,512);
     // make left and bottom axes transfer their ranges to right and top axes:
-   connect(customPlot->axisRect()->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), customPlot->axisRect()->axis(QCPAxis::atTop), SLOT(setRange(QCPRange)));
-   connect(customPlot->axisRect()->axis(QCPAxis::atLeft), SIGNAL(rangeChanged(QCPRange)), customPlot->axisRect()->axis(QCPAxis::atRight), SLOT(setRange(QCPRange)));
+   //connect(customPlot->axisRect()->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), customPlot->axisRect()->axis(QCPAxis::atTop), SLOT(setRange(QCPRange)));
+   //connect(customPlot->axisRect()->axis(QCPAxis::atLeft), SIGNAL(rangeChanged(QCPRange)), customPlot->axisRect()->axis(QCPAxis::atRight), SLOT(setRange(QCPRange)));
 
    //customPlot->add
 //   customPlot->legend->setFont(QFont("Helvetica",9));
@@ -206,17 +276,10 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
 
 void XprotolabInterface::plotData()
 {
-    static double firstFrame = 0;
-    static int frameCount = 0;
-    if(!usbDevice.dataAvailable)
+   if(!usbDevice.dataAvailable)
     {
         return;
     }
-#if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
-    double lastFrame = 0;
-#else
-    double lastFrame = QDateTime::currentDateTime().toMSecsSinceEpoch()/1000.0;
-#endif
     QVector<double> key,hCursorPos[2],vCursorPos[2], vCursorKey;
     double ch1,ch2,minV,maxV,aTrack,bTrack;
     QVector<double> ch1Buffer,ch2Buffer,fft1,fft2;
@@ -267,10 +330,6 @@ void XprotolabInterface::plotData()
                 minV = ch1;
             else if(maxV<ch1)
                 maxV = ch1;
-            if(xtime==vCursorAPos)
-                aTrack = ch1;
-            else if(xtime==vCursorBPos)
-                bTrack = ch1;
         }
         else if(ui->radioButtonCursorCH2->isChecked())
         {
@@ -283,23 +342,28 @@ void XprotolabInterface::plotData()
                 minV = ch2;
             else if(maxV<ch2)
                 maxV = ch2;
-            if(xtime==(int)vCursorAPos)
-                aTrack = ch2;
-            else if(xtime==(int)vCursorBPos)
-                bTrack = ch2;
         }
 
 
 
         if(ui->checkBoxCHDTrace->isChecked())
         {
+            double pos;
             for(int m=0;m<8;m++)
             {
                 byte data = usbDevice.chData[i+512];
                 if((data & (byte)(1 << m)) != 0)
-                    bit[m].push_back(20+(m*20)+ui->chdPositionSlider->value()*50);
+                {
+                    pos = 20+(m*20)+ui->chdPositionSlider->value()*50;
+                    bit[m].push_back(pos);
+                    textLabelBit[m]->position->setCoords(262, pos-5);
+
+                }
                 else
+                {
+                    pos = 10+(m*20)+ui->chdPositionSlider->value()*50;
                     bit[m].push_back(10+(m*20)+ui->chdPositionSlider->value()*50);
+                }
 
             }
 
@@ -340,12 +404,14 @@ void XprotolabInterface::plotData()
         {
             if(!ui->checkBoxPersistence->isChecked())
                 ui->plotterWidget->graph(k+2)->clearData();
+            textLabelBit[k]->setVisible(false);
             if(ui->checkBoxCHDTrace->isChecked()&&bitChecked[k])
             {
                 if(!ui->checkBoxPersistence->isChecked())
                     ui->plotterWidget->graph(k+2)->setData(key, bit[k]);
                 else
                     ui->plotterWidget->graph(k+2)->addData(key, bit[k]);
+                textLabelBit[k]->setVisible(true);
               // qDebug()<<bit[k];
                //ui->plotterWidget->graph(1)->rescaleValueAxis(true);
             }
@@ -479,7 +545,7 @@ void XprotolabInterface::plotData()
        // ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->setTickStep(rangeMax/8);
        // ui->plotterWidget->graph(1)->rescaleValueAxis(true);
 
-        ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(0, 256);
+        ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(0, 270);
     }
 
     for(int j=0;j<rangeMax;j++)
@@ -511,6 +577,29 @@ void XprotolabInterface::plotData()
         }
         else if(ui->checkBoxCursorTrack->isChecked())
         {
+            if(ui->radioButtonCursorCH1->isChecked())
+            {
+                phaseTracerAA->setGraphKey(vCursorAPos);
+                phaseTracerAB->setGraphKey(vCursorBPos);
+                phaseTracerAA->setVisible(true);
+                phaseTracerAB->setVisible(true);
+                phaseTracerAA->updatePosition();
+                phaseTracerAB->updatePosition();
+                aTrack = phaseTracerAA->position->value();
+                bTrack = phaseTracerAB->position->value();
+            }
+            else if(ui->radioButtonCursorCH2->isChecked())
+            {
+                phaseTracerBA->setGraphKey(vCursorAPos);
+                phaseTracerBB->setGraphKey(vCursorBPos);
+                phaseTracerBA->setVisible(true);
+                phaseTracerBB->setVisible(true);
+                phaseTracerBA->updatePosition();
+                phaseTracerBB->updatePosition();
+                aTrack = phaseTracerBA->position->value();
+                bTrack = phaseTracerBB->position->value();
+
+            }
             hCursorPos[0].clear();
             hCursorPos[1].clear();
             for(int j=0;j<256;j++)
@@ -524,20 +613,7 @@ void XprotolabInterface::plotData()
             hCursorAHead->end->setCoords(10,hCursorAPos);
             hCursorBHead->start->setCoords(0,hCursorBPos);
             hCursorBHead->end->setCoords(10,hCursorBPos);
-            if(ui->radioButtonCursorCH1->isChecked())
-            {
-                phaseTracerAA->setGraphKey(vCursorAPos);
-                phaseTracerAB->setGraphKey(vCursorBPos);
-                phaseTracerAA->setVisible(true);
-                phaseTracerAB->setVisible(true);
-            }
-            else if(ui->radioButtonCursorCH2->isChecked())
-            {
-                phaseTracerBA->setGraphKey(vCursorAPos);
-                phaseTracerBB->setGraphKey(vCursorBPos);
-                phaseTracerBA->setVisible(true);
-                phaseTracerBB->setVisible(true);
-            }
+
 
         }
         hCursorA->setData(key,hCursorPos[0]);
@@ -554,14 +630,14 @@ void XprotolabInterface::plotData()
 
     ui->plotterWidget->replot();
     usbDevice.dataAvailable = false;
-    ++frameCount;
-    if (lastFrame-firstFrame > 2) // average fps over 2 seconds
-    {
-        int fps = frameCount/(lastFrame-firstFrame);
-        ui->statusBar->showMessage( QString::number(fps)+" "+tr("FPS") );
-        firstFrame = lastFrame;
-        frameCount = 0;
-    }
+//    ++frameCount;
+//    if (lastFrame-firstFrame > 2) // average fps over 2 seconds
+//    {
+//        int fps = frameCount/(lastFrame-firstFrame);
+//        ui->statusBar->showMessage( QString::number(fps)+" "+tr("FPS") );
+//        firstFrame = lastFrame;
+//        frameCount = 0;
+//    }
 }
 
 void XprotolabInterface::moveCursor(QMouseEvent *event)
@@ -1111,9 +1187,10 @@ void XprotolabInterface::readDeviceSettings()
 //        return;
 //    }
     updateSweepCursors();
-//    labelSRate.Text = ratetxt[trackBarSampling.Value];
-//    labelCH1Gain.Text = gaintxt[trackBarCH1Gain.Value];
-//    labelCH2Gain.Text = gaintxt[trackBarCH2Gain.Value];
+   // timeLabel->setText(QString::fromUtf8("Δ")+"T = "+rateText[ui->samplingSlider->value()]);
+    ui->timeLabel->setText("Time = "+rateText[ui->samplingSlider->value()]);
+    ui->ch1Label->setText("CH1 = "+gainText[ui->ch1GainSlider->value()]);
+    ui->ch2Label->setText("CH2 = "+gainText[ui->ch2GainSlider->value()]);
     if(freq < 1)
         freq = 1;
     if(freq > 100000)
