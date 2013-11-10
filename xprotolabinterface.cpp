@@ -346,7 +346,7 @@ void XprotolabInterface::plotData()
     }
 
     QVector<double> key,hCursorPos[2];
-    double ch1,ch2,minV,maxV,aTrack,bTrack;
+    double ch1,ch2,minV,maxV, minX1, minX2,aTrack,bTrack;
     QVector<double> ch1Buffer,ch2Buffer,fft1,fft2;
     QVector<double> bit[8];
     complex pSignal1[256],pSignal2[256];
@@ -392,7 +392,11 @@ void XprotolabInterface::plotData()
                 maxV = ch1;
             }
             if(minV>ch1)
+            {
                 minV = ch1;
+                if(xtime<100)
+                  minX1 = xtime;
+            }
             else if(maxV<ch1)
                 maxV = ch1;
         }
@@ -703,6 +707,7 @@ void XprotolabInterface::plotData()
             hCursorBPos = maxV;
             hCursorAHead->topLeft->setCoords(-3,hCursorAPos+14);
             hCursorBHead->topLeft->setCoords(-3,hCursorBPos+14);
+            vCursorAHead->topLeft->setCoords(minX1,rangeMax+3);
         }
         else if(ui->checkBoxCursorTrack->isChecked())
         {
@@ -792,16 +797,15 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
         }
         else if(triggerPixmap->selected())
         {
-            int tlevel;
-            tlevel = ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->pixelToCoord(event->posF().ry());
+            triggerLevel = ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->pixelToCoord(event->posF().ry());
             triggerPost = ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(event->posF().rx());
-            if(tlevel<6)
-                tlevel = 6;
-            else if(tlevel>504)
-               tlevel = 504;
-            triggerLevel = (byte)tlevel/2;
+            if(triggerLevel<6)
+              triggerLevel = 6;
+            else if(triggerLevel>504)
+              triggerLevel = 504;
+           // triggerLevel = tlevel/2;
             setTriggerLevelPosition();
-            setTriggerLevel(triggerLevel);
+            setTriggerLevel(triggerLevel/2);
             setTriggerPost(triggerPost);
         }
 
@@ -833,7 +837,11 @@ void XprotolabInterface::setTriggerLevelPosition()
         value = 0;
     }
 
-    tlevel = ((rangeMax/8+min - value) +(double)tlevel)*2;
+    tlevel = min - value +(double)tlevel;
+    if(tlevel<6)
+      tlevel = 6;
+    else if(tlevel>504)
+      tlevel = 504;
     triggerPixmap->topLeft->setCoords(triggerPost,tlevel);
 }
 
@@ -1498,7 +1506,7 @@ void XprotolabInterface::readDeviceSettings()
     // M 27 Window Trigger level 2
     // M 28 Trigger Timeout
     data = usbDevice.inBuffer[28];
-    ui->doubleSpinBoxTrigAuto->setValue(((double)data + 1) * 40.96);
+    ui->doubleSpinBoxTrigAuto->setValue(((double)data + 1) * 0.04096);
 
     // M 29 Channel 1 position
     data = (byte)(ui->ch1PositionSlider->minimum() - (char)usbDevice.inBuffer[29]);
@@ -2525,11 +2533,12 @@ void XprotolabInterface::setTriggerPost(uint16_t value)
 //    qDebug()<<barray[0];
 //    qDebug()<<barray[1];
    // return;
-    value = 256 - value;
-    byte data = ((byte *)(&value))[0];
-    usbDevice.controlWriteTransfer(22, data);
-    data = ((byte *)(&value))[1];
-    usbDevice.controlWriteTransfer(23, data);
+//    value = 256 - value;
+//    byte data = ((byte *)(&value))[0];
+//    usbDevice.controlWriteTransfer(22, data);
+//    data = ((byte *)(&value))[1];
+//    usbDevice.controlWriteTransfer(23, data);
+    usbDevice.controlReadTransfer('j',128-value/2);
 }
 
 // M 24 Trigger source
@@ -2544,7 +2553,8 @@ void XprotolabInterface::on_comboBoxTrigSource_currentIndexChanged(int index)
 
 void XprotolabInterface::setTriggerLevel(byte value)
 {
-    usbDevice.controlWriteTransfer(25, value);  // 3 - 252
+    qDebug()<<256 - value/2 ;
+    usbDevice.controlWriteTransfer(25, 256- value/2);  // 3 - 252
 }
 
 // M 26 Window Trigger level 1
@@ -2554,8 +2564,8 @@ void XprotolabInterface::setTriggerLevel(byte value)
 void XprotolabInterface::on_doubleSpinBoxTrigAuto_valueChanged(double value)
 {
     byte data;
-    data = (byte)(value / 40.96 - 1);
-    ui->doubleSpinBoxTrigAuto->setValue(((double)data + 1) * 40.96);
+    data = (byte)((value / 0.04096) - 1);
+   // ui->doubleSpinBoxTrigAuto->setValue(((double)data + 1) * 40.96);
     usbDevice.controlWriteTransfer(28, data);
 }
 

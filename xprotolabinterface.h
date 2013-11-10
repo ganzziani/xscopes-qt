@@ -362,8 +362,8 @@ private:
     QCPItemPixmap *triggerPixmap, *vCursorAHead, *vCursorBHead;
     QCPItemText *textLabelBit[8], *textLabelDeltaTime, *textLabelDeltaVoltage;
     QCPItemText *textLabelVoltageA, *textLabelVoltageB, *textLabelFrequency;
-    byte sniffBuffer[1289], triggerLevel;
-    uint16_t triggerPost;
+    byte sniffBuffer[1289];
+    uint16_t triggerPost,triggerLevel;
    // QLabel *ch1Label, *ch2Label, *timeLabel;
 
    // QCPLegend *legend;
