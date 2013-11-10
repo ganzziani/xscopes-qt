@@ -360,7 +360,8 @@ private:
     QCPItemStraightLine *hCursorA, *hCursorB, *vCursorA, *vCursorB;
     QCPItemPixmap *hCursorAHead, *hCursorBHead;
     QCPItemPixmap *triggerPixmap, *vCursorAHead, *vCursorBHead;
-    QCPItemText *textLabelBit[8], *textLabelDeltaTime, *textLabelDeltaVoltage, *textLabelVoltage, *textLabelFrequency;
+    QCPItemText *textLabelBit[8], *textLabelDeltaTime, *textLabelDeltaVoltage;
+    QCPItemText *textLabelVoltageA, *textLabelVoltageB, *textLabelFrequency;
     byte sniffBuffer[1289], triggerLevel;
     uint16_t triggerPost;
    // QLabel *ch1Label, *ch2Label, *timeLabel;

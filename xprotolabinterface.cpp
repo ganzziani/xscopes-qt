@@ -126,14 +126,15 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
    customPlot->axisRect()->axis(QCPAxis::atBottom)->setRange(0,400);
    customPlot->axisRect()->axis(QCPAxis::atBottom)->setTickStep(400/20);
 
-   customPlot->axisRect()->axis(QCPAxis::atLeft)->setAutoTickLabels(true);
+   customPlot->axisRect()->axis(QCPAxis::atLeft)->setAutoTickLabels(false);
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setAutoTickStep(false);
-   customPlot->axisRect()->axis(QCPAxis::atRight)->setAutoTickLabels(true);
+   customPlot->axisRect()->axis(QCPAxis::atRight)->setAutoTickLabels(false);
    customPlot->axisRect()->axis(QCPAxis::atRight)->setAutoTickStep(false);
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setRange(0,rangeMax);
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setTickStep(rangeMax/8);
    customPlot->axisRect()->axis(QCPAxis::atRight)->setRange(-rangeMax/2,rangeMax/2);
    customPlot->axisRect()->axis(QCPAxis::atRight)->setTickStep(rangeMax/8);
+   customPlot->axisRect()->axis(QCPAxis::atLeft)->setTickLabels(false);
  //  customPlot->axisRect()->axis(QCPAxis::atLeft)->setOffset(1);
    customPlot->axisRect()->setupFullAxesBox();
    customPlot->axisRect()->setRangeDrag(Qt::Horizontal);
@@ -166,7 +167,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     customPlot->addItem(hCursorA);
     hCursorA->point1->setCoords(0,hCursorAPos);
     hCursorA->point2->setCoords(10, hCursorAPos); // point to (4, 1.6) in x-y-plot coordinates
-    hCursorA->setPen(QPen(Qt::blue, 1, Qt::DashLine));
+    hCursorA->setPen(QPen(QColor("#1681de"), 1, Qt::DashLine));
     hCursorA->setSelectable(false);
 
     hCursorAHead = new QCPItemPixmap(customPlot);
@@ -182,7 +183,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     hCursorB->point1->setCoords(0,hCursorBPos);
     hCursorB->point2->setCoords(10, hCursorBPos); // point to (4, 1.6) in x-y-plot coordinates
     //hCursorA->setHead(QCPLineEnding::esFlatArrow);
-    hCursorB->setPen(QPen(Qt::blue, 1, Qt::DashLine));
+    hCursorB->setPen(QPen(QColor("#1681de"), 1, Qt::DashLine));
     hCursorB->setSelectable(false);
 
     hCursorBHead = new QCPItemPixmap(customPlot);
@@ -276,55 +277,53 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
         textLabelBit[i] = new QCPItemText(customPlot);
         customPlot->addItem(textLabelBit[i]);
         textLabelBit[i]->setColor(Qt::red);
-    //    textLabel->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
-    //    textLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
-        textLabelBit[i]->position->setCoords(270, 250); // place position at center/top of axis rect
+        textLabelBit[i]->position->setCoords(270, 250);
         textLabelBit[i]->setText("Bit "+QString::number(i));
-        textLabelBit[i]->setFont(QFont(font().family(), 8, QFont::DemiBold)); // make font a bit large
+        textLabelBit[i]->setFont(QFont(font().family(), 8, QFont::DemiBold));
+        textLabelBit[i]->setSelectable(false);
        // textLabelBit[i]->setPen(QPen(Qt::red)); // show black border around text
     }
     textLabelDeltaTime = new QCPItemText(customPlot);
     customPlot->addItem(textLabelDeltaTime);
     textLabelDeltaTime->setColor("#4be51c");
-//    textLabel->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
-//    textLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
-    textLabelDeltaTime->position->setCoords(235, rangeMax - 10); // place position at center/top of axis rect
-    textLabelDeltaTime->setText(QString::fromUtf8("ΔT = 0.00574 ms"));
-    textLabelDeltaTime->setTextAlignment(Qt::AlignLeft);
-    textLabelDeltaTime->setFont(QFont(font().family(), 8,QFont::DemiBold)); // make font a bit larger
-  //  textLabelDeltaTime->setPen(QPen(Qt::white)); // show black border around text
-
-    textLabelDeltaVoltage = new QCPItemText(customPlot);
-    customPlot->addItem(textLabelDeltaVoltage);
-    textLabelDeltaVoltage->setColor(Qt::white);
-//    textLabel->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
-//    textLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
-    textLabelDeltaVoltage->position->setCoords(230, 25); // place position at center/top of axis rect
-    textLabelDeltaVoltage->setText("ΔV = 2.5 V    ");
-    textLabelDeltaVoltage->setTextAlignment(Qt::AlignLeft);
-    textLabelDeltaVoltage->setFont(QFont(font().family(), 8)); // make font a bit larger
-    textLabelDeltaVoltage->setPen(QPen(Qt::white)); // show black border around text
-
-    textLabelVoltage = new QCPItemText(customPlot);
-    customPlot->addItem( textLabelVoltage);
-     textLabelVoltage->setColor(Qt::green);
-//    textLabel->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
-//    textLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
-     textLabelVoltage->position->setCoords(230, 40); // place position at center/top of axis rect
-     textLabelVoltage->setText("V = 2.452 V");
-    textLabelVoltage->setFont(QFont(font().family(), 8)); // make font a bit larger
-    textLabelVoltage->setPen(QPen(Qt::white)); // show black border around text
+    textLabelDeltaTime->position->setCoords(235, rangeMax - 10);
+    textLabelDeltaTime->setText(QString::fromUtf8("ΔT = 0 ms"));
+    textLabelDeltaTime->setFont(QFont(font().family(), 8,QFont::DemiBold));
+    textLabelDeltaTime->setSelectable(false);
 
     textLabelFrequency = new QCPItemText(customPlot);
     customPlot->addItem(textLabelFrequency);
     textLabelFrequency->setColor("#4be51c");
-//    textLabel->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
-//    textLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
-    textLabelFrequency->position->setCoords(235, rangeMax - 25); // place position at center/top of axis rect
-    textLabelFrequency->setText(QString::fromUtf8(" 1/ΔT = 0.00574 ms "));
-    textLabelFrequency->setTextAlignment(Qt::AlignLeft);
-    textLabelFrequency->setFont(QFont(font().family(), 8,QFont::DemiBold)); // make font a bit larger
-    //textLabelFrequency->setBrush(QBrush(QColor("#4be51c"))); // show black border around text
+    textLabelFrequency->position->setCoords(235, rangeMax - 25);
+    textLabelFrequency->setText(QString::fromUtf8(" 1/ΔT = 0 ms "));
+    textLabelFrequency->setFont(QFont(font().family(), 8,QFont::DemiBold));
+    textLabelFrequency->setSelectable(false);
+
+    textLabelDeltaVoltage = new QCPItemText(customPlot);
+    customPlot->addItem(textLabelDeltaVoltage);
+    textLabelDeltaVoltage->setColor("#4be51c");
+    textLabelDeltaVoltage->position->setCoords(235, 10);
+    textLabelDeltaVoltage->setText("ΔV = 0 V");
+    textLabelDeltaVoltage->setFont(QFont(font().family(), 8,QFont::DemiBold));
+    textLabelDeltaVoltage->setSelectable(false);
+
+    textLabelVoltageB = new QCPItemText(customPlot);
+    customPlot->addItem( textLabelVoltageA);
+    textLabelVoltageB->setColor("#4be51c");
+    textLabelVoltageB->position->setCoords(235, 25);
+    textLabelVoltageB->setText("VB = 0 V");
+    textLabelVoltageB->setFont(QFont(font().family(), 8, QFont::DemiBold));
+    textLabelVoltageB->setSelectable(false);
+
+    textLabelVoltageA = new QCPItemText(customPlot);
+    customPlot->addItem( textLabelVoltageA);
+    textLabelVoltageA->setColor("#4be51c");
+    textLabelVoltageA->position->setCoords(235, 40);
+    textLabelVoltageA->setText("VA = 0 V");
+    textLabelVoltageA->setFont(QFont(font().family(), 8, QFont::DemiBold));
+    textLabelVoltageA->setSelectable(false);
+
+
 
     triggerPixmap = new QCPItemPixmap(customPlot);
     customPlot->addItem(triggerPixmap);
@@ -346,7 +345,7 @@ void XprotolabInterface::plotData()
         return;
     }
 
-    QVector<double> key,hCursorPos[2],vCursorPos[2], vCursorKey;
+    QVector<double> key,hCursorPos[2];
     double ch1,ch2,minV,maxV,aTrack,bTrack;
     QVector<double> ch1Buffer,ch2Buffer,fft1,fft2;
     QVector<double> bit[8];
@@ -614,6 +613,8 @@ void XprotolabInterface::plotData()
        // ui->plotterWidget->graph(1)->rescaleValueAxis(true);
 
         ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(0, 270);
+        //ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setTickStep(270/9);
+
     }
 
     if(ui->checkBoxCursorVertical->isChecked())
@@ -623,7 +624,7 @@ void XprotolabInterface::plotData()
         deltaTime = ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(vCursorBHead->bottom->pixelPoint().rx());
        // qDebug()<<deltaTime;
         deltaTime = deltaTime - ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(vCursorAHead->bottom->pixelPoint().rx());
-        deltaTime = qCeil(deltaTime);
+        //deltaTime = qCeil(deltaTime);
         if(deltaTime<0)
             deltaTime = deltaTime*-1;
 
@@ -662,6 +663,40 @@ void XprotolabInterface::plotData()
 
     if(!ui->radioButtonCursorNone->isChecked())
     {
+        double deltaVolt, voltA, voltB ,value = 0;
+        QString unit;
+        voltA = ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->pixelToCoord(hCursorAHead->right->pixelPoint().ry());
+        voltB = ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->pixelToCoord(hCursorBHead->right->pixelPoint().ry());
+        deltaVolt = voltA - voltB;
+        if(ui->radioButtonCursorCH1->isChecked())
+             unit = gainText[ui->ch1GainSlider->value()];
+        else if(ui->radioButtonCursorCH2->isChecked())
+             unit = gainText[ui->ch2GainSlider->value()];
+
+        for(int i = 0; i<unit.length();i++)
+        {
+            if(unit[i]=='m'||unit[i]=='V')
+            {
+                value = unit.left(i).toDouble();
+                unit = unit.remove(unit.left(i));
+                break;
+            }
+        }
+
+
+        unit = unit.replace("/div","");
+        deltaVolt = deltaVolt*value/64;
+        voltA = voltA - (minV+maxV)/2;
+        voltB = voltB - (minV+maxV)/2;
+        voltA = voltA*value/64;
+        voltB = voltB*value/64;
+        textLabelDeltaVoltage->setVisible(true);
+        textLabelVoltageA->setVisible(true);
+        textLabelVoltageB->setVisible(true);
+        textLabelDeltaVoltage->setText(("ΔV = "+QString::number(deltaVolt, 'g', 4)+" "+unit));
+        textLabelVoltageA->setText(("Va = "+QString::number(voltA, 'g', 4)+" "+unit));
+        textLabelVoltageB->setText(("Vb = "+QString::number(voltB, 'g', 4)+" "+unit));
+
         if(ui->checkBoxCursorAuto->isChecked())
         {
             hCursorAPos = minV;
@@ -1208,6 +1243,10 @@ void XprotolabInterface::readDeviceSettings()
         hCursorBHead->setVisible(true);
         hCursorA->setVisible(true);
         hCursorB->setVisible(true);
+        textLabelDeltaVoltage->setVisible(true);
+        textLabelVoltageA->setVisible(true);
+        textLabelVoltageB->setVisible(true);
+
 
     }
     else if ((data & (byte)(1 << 4)) != 0)
@@ -1217,6 +1256,9 @@ void XprotolabInterface::readDeviceSettings()
         hCursorBHead->setVisible(true);
         hCursorA->setVisible(true);
         hCursorB->setVisible(true);
+        textLabelDeltaVoltage->setVisible(true);
+        textLabelVoltageA->setVisible(true);
+        textLabelVoltageB->setVisible(true);
 
     }
     else
@@ -1230,6 +1272,9 @@ void XprotolabInterface::readDeviceSettings()
         hCursorA->point2->setCoords(10, 0);
         hCursorB->point1->setCoords(0,0);
         hCursorB->point2->setCoords(10, 0);
+        textLabelDeltaVoltage->setVisible(false);
+        textLabelVoltageA->setVisible(false);
+        textLabelVoltageB->setVisible(false);
     }
     if ((data & (byte)(1 << 5)) != 0)
     {
@@ -1950,6 +1995,9 @@ void XprotolabInterface::sendCursorControls()
         hCursorBHead->setVisible(true);
         hCursorA->setVisible(true);
         hCursorB->setVisible(true);
+        textLabelDeltaVoltage->setVisible(true);
+        textLabelVoltageA->setVisible(true);
+        textLabelVoltageB->setVisible(true);
     }
     else if(ui->radioButtonCursorCH2->isChecked())
     {
@@ -1958,6 +2006,9 @@ void XprotolabInterface::sendCursorControls()
         hCursorBHead->setVisible(true);
         hCursorA->setVisible(true);
         hCursorB->setVisible(true);
+        textLabelDeltaVoltage->setVisible(true);
+        textLabelVoltageA->setVisible(true);
+        textLabelVoltageB->setVisible(true);
 
     }
     else
@@ -1966,6 +2017,9 @@ void XprotolabInterface::sendCursorControls()
         hCursorBHead->setVisible(false);
         hCursorA->setVisible(false);
         hCursorB->setVisible(false);
+        textLabelDeltaVoltage->setVisible(false);
+        textLabelVoltageA->setVisible(false);
+        textLabelVoltageB->setVisible(false);
     }
     if(ui->checkBoxCursorVertical->isChecked())
     {
@@ -2422,13 +2476,15 @@ void XprotolabInterface::sendHorizontalCursorCH1A()
 {
     byte value;
     value = 128*hCursorAPos/rangeMax;
+    value = 128-value;
     usbDevice.controlWriteTransfer(17, value);
 }
 // M 18 CH1 Horizontal cursor B
 void XprotolabInterface::sendHorizontalCursorCH1B()
 {
     byte value;
-    value = 128*hCursorBPos/rangeMax;
+    value = 64*hCursorBPos/rangeMax;
+    value = 64-value;
     usbDevice.controlWriteTransfer(18, value);
 }
 // M 19 CH2 Horizontal cursor A
@@ -2436,13 +2492,16 @@ void XprotolabInterface::sendHorizontalCursorCH2A()
 {
     byte value;
     value = 128*hCursorAPos/rangeMax;
+    value = 128-value;
+    value = 128*hCursorAPos/rangeMax;
     usbDevice.controlWriteTransfer(19, value);
 }
 // M 20 CH2 Horizontal cursor B
 void XprotolabInterface::sendHorizontalCursorCH2B()
 {
     byte value;
-    value = 128*hCursorBPos/rangeMax;
+    value = 64*hCursorBPos/rangeMax;
+    value = 64-value;
     usbDevice.controlWriteTransfer(20, value);
 }
 // M 21 Trigger Hold

@@ -474,7 +474,7 @@
                    <string/>
                   </property>
                   <property name="currentIndex">
-                   <number>4</number>
+                   <number>0</number>
                   </property>
                   <widget class="QWidget" name="ch1Tab">
                    <attribute name="title">
