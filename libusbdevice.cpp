@@ -51,6 +51,7 @@ extern "C" void LIBUSB_CALL asyncBulkReadTransferCallback(struct libusb_transfer
     cthis->dataAvailable = true;
     if(cthis->enableEventThread)
     {
+        cthis->dataLength = transfer->actual_length;
         libusb_submit_transfer(transfer);
     }
 

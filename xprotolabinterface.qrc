@@ -26,5 +26,7 @@
         <file>Bitmaps/xy.png</file>
         <file>Bitmaps/zoom-in.png</file>
         <file>Bitmaps/zoom-out.png</file>
+        <file>Bitmaps/vcursorA.png</file>
+        <file>Bitmaps/hcursorA.png</file>
     </qresource>
 </RCC>

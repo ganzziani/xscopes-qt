@@ -31,15 +31,30 @@
 #include <QTimer>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QtEndian>
 #include "qcustomplot.h"
 #include "libusbdevice.h"
 #include "fft.h"
+#include "sniffer.h"
 
 enum WindowFunction {
     Rectangular,
     Hamming,
     Hann,
     Blackman
+};
+
+enum Protocol {
+    SPI,
+    I2C,
+    RS232
+};
+
+enum Mode {
+    OSCILLOSCOPE,
+    SNIFFER,
+    METER,
+    NONE
 };
 
 namespace Ui {
@@ -56,6 +71,9 @@ public:
 
 private:
     void setupGrid(QCustomPlot *);
+    void setupTracers(QCustomPlot *);
+    void setupCursors(QCustomPlot *);
+    void setupItemLabels(QCustomPlot *);
     void closeEvent(QCloseEvent *);
     void selectWaveForm(uint8_t);
     void readDeviceSettings();
@@ -77,13 +95,20 @@ private:
     void sendSweepControls();
     void sendSnifferSettings();
     void sendDisplayControls();
+    void sendMStatusControls();
     void updateFrequency();
     void setupValues();
     void setFFTWindow(int);
+    void setDecodeProtocol(int);
+    void setTriggerLevel(byte);
+    void setTriggerPost(unsigned short);
+    void setTriggerLevelPosition();
+
     
 private slots:
     void on_playButton_clicked();
     void plotData();
+    void sniffProtocol();
     void moveCursor(QMouseEvent*);
     void on_autoButton_clicked();
 
@@ -310,19 +335,34 @@ private slots:
 
     void on_radioButtonCursorNone_clicked();
 
+    void on_startSnifferButton_clicked();
+
+    void on_protocolTabWidget_currentChanged(int index);
+
+    void on_ch2CaptureSlider_valueChanged(int value);
+
+    void on_ch1CaptureSlider_valueChanged(int value);
+
+    void on_chdCaptureSelector_valueChanged(int value);
+
 private:
     Ui::XprotolabInterface *ui;
     QTimer dataTimer;
     LibUsbDevice usbDevice;
+    Sniffer *sniffLogic;
     bool isScrolling;
     double rangeMax,fftWindow[256],hCursorAPos ,hCursorBPos ,vCursorAPos ,vCursorBPos;
     QStringList rateText,gainText;
-    int freqValue[23],xmax;
+    int freqValue[23],xmax,mode;
     bool bitChecked[8],itemIsSelected;
-    QCPGraph *bars1,*bars2,*hCursorA, *hCursorB, *vCursorA, *vCursorB;
+    QCPGraph *bars1,*bars2;
     QCPItemTracer *phaseTracerAA, *phaseTracerAB, *phaseTracerBA, *phaseTracerBB;
-    QCPItemLine *hCursorAHead, *hCursorBHead, *vCursorAHead, *vCursorBHead;
-    QCPItemText *textLabelBit[8], *textLabelDeltaTime, *textLabelDeltaVoltage, *textLabelCH1, *textLabelCH2;
+    QCPItemStraightLine *hCursorA, *hCursorB, *vCursorA, *vCursorB;
+    QCPItemPixmap *hCursorAHead, *hCursorBHead;
+    QCPItemPixmap *triggerPixmap, *vCursorAHead, *vCursorBHead;
+    QCPItemText *textLabelBit[8], *textLabelDeltaTime, *textLabelDeltaVoltage, *textLabelVoltage, *textLabelFrequency;
+    byte sniffBuffer[1289], triggerLevel;
+    uint16_t triggerPost;
    // QLabel *ch1Label, *ch2Label, *timeLabel;
 
    // QCPLegend *legend;

@@ -25,7 +25,8 @@ HEADERS  += xprotolabinterface.h \
     libusbdevice.h \
     libusbdeviceinfo.h \
     fft.h \
-    complex.h
+    complex.h \
+    sniffer.h
 
 FORMS    += xprotolabinterface.ui
 

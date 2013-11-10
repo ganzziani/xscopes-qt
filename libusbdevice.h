@@ -50,7 +50,7 @@ public:
     struct libusb_transfer *pcToUsbDeviceTransfer;
     struct libusb_transfer *usbDeviceToPcTransfer;
     bool dataAvailable;
-    int count;
+    int count, dataLength;
     uint8_t chData[LEN_BULK_IN_BUFFER];
     byte inBuffer[LEN_CONTROL_BUFFER];
     byte awgBuffer[256];
