@@ -28,9 +28,9 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
 //    ui->statusBar->addWidget(ch1Label,0);
 //    ui->statusBar->addWidget(ch2Label,0);
 //    ui->statusBar->addWidget(timeLabel,0);
-
-    setupGrid(ui->plotterWidget);
     setupValues();
+    setupGrid(ui->plotterWidget);
+
     //connect(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), this, SLOT(xAxisChanged(QCPRange)));
     //connect(ui->plotterWidget, SIGNAL(), this, SLOT(xAxisChanged(QCPRange)));
     connect(ui->plotterWidget, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(moveCursor(QMouseEvent*)));
@@ -99,14 +99,14 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
         customPlot->graph(i+2)->setLineStyle(QCPGraph::lsStepCenter);
     }
     bars1 = customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));    // red line
-    customPlot->graph(10)->setPen(QPen(Qt::red, 2));
-    customPlot->graph(10)->setAntialiasedFill(false);
+    bars1 ->setPen(QPen(Qt::red, 2));
+    bars1 ->setAntialiasedFill(false);
    // customPlot->graph(10)->setName("Bit "+QString::number(i));
     customPlot->graph(10)->setLineStyle(QCPGraph::lsImpulse);
 
     bars2 = customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atRight));    // red line
-    customPlot->graph(11)->setPen(QPen(Qt::blue, 2));
-    customPlot->graph(11)->setLineStyle(QCPGraph::lsImpulse);
+   bars2->setPen(QPen(Qt::blue, 2));
+    bars2->setLineStyle(QCPGraph::lsImpulse);
    // customPlot->graph(11)->setName("Bit "+QString::number(i));
 
     //bars1->setBrush(QBrush(QColor(240, 255, 200)));
@@ -272,6 +272,7 @@ void XprotolabInterface::setupTracers(QCustomPlot *customPlot)
 
 void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
 {
+
     for(int i =0;i<8;i++)
     {
         textLabelBit[i] = new QCPItemText(customPlot);
@@ -283,6 +284,7 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
         textLabelBit[i]->setSelectable(false);
        // textLabelBit[i]->setPen(QPen(Qt::red)); // show black border around text
     }
+
     textLabelDeltaTime = new QCPItemText(customPlot);
     customPlot->addItem(textLabelDeltaTime);
     textLabelDeltaTime->setColor("#4be51c");
@@ -308,7 +310,7 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
     textLabelDeltaVoltage->setSelectable(false);
 
     textLabelVoltageB = new QCPItemText(customPlot);
-    customPlot->addItem( textLabelVoltageA);
+    customPlot->addItem( textLabelVoltageB);
     textLabelVoltageB->setColor("#4be51c");
     textLabelVoltageB->position->setCoords(235, 25);
     textLabelVoltageB->setText("VB = 0 V");
@@ -322,7 +324,6 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
     textLabelVoltageA->setText("VA = 0 V");
     textLabelVoltageA->setFont(QFont(font().family(), 8, QFont::DemiBold));
     textLabelVoltageA->setSelectable(false);
-
 
 
     triggerPixmap = new QCPItemPixmap(customPlot);
@@ -707,7 +708,7 @@ void XprotolabInterface::plotData()
             hCursorBPos = maxV;
             hCursorAHead->topLeft->setCoords(-3,hCursorAPos+14);
             hCursorBHead->topLeft->setCoords(-3,hCursorBPos+14);
-            vCursorAHead->topLeft->setCoords(minX1,rangeMax+3);
+            //vCursorAHead->topLeft->setCoords(minX1,rangeMax+3);
         }
         else if(ui->checkBoxCursorTrack->isChecked())
         {
@@ -1476,7 +1477,7 @@ void XprotolabInterface::readDeviceSettings()
         hCursorA->point2->setCoords(10,0);
     }
     // M 20 CH2 Horizontal cursor B
-    data = usbDevice.inBuffer[120];
+    data = usbDevice.inBuffer[20];
     if((byte)data>=0 && (byte)data<128 && ui->radioButtonCursorCH2->isChecked())
     {
         hCursorBPos = rangeMax*data/128;
@@ -1650,7 +1651,7 @@ void XprotolabInterface::closeEvent(QCloseEvent *event)
 
 void XprotolabInterface::on_zoomSlider_valueChanged(int value)
 {
-    //rangeMax = value;
+    rangeMax = value;
     ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->setRange(0,value);
     ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->setTickStep(value/8);
 }
@@ -2934,10 +2935,9 @@ void XprotolabInterface::setupValues()
              << "1s/div" << "2s/div" << "5s/div" << "10s/div" << "20s/div" << "50s/div";
     // Gain Text with x1 probe
     gainText << "5.12V/div" << "2.56V/div" << "1.28V/div" << "0.64V/div" << "0.32V/div" << "0.16V/div" << "80mV/div" << "----";
-
     freqValue[0] = 10;
-    int temp = 2000000;
-    for(int i=1;i<7;i++) // Kilo Hertz
+    int temp = 2000000,i=1;
+    for(i=1;i<7;i++) // Kilo Hertz
     {
          freqValue[i] = temp;
          temp = temp/2;
@@ -2946,7 +2946,7 @@ void XprotolabInterface::setupValues()
     freqValue[8] = 16000000;
     freqValue[9] = 8000000;
     temp = 3200000;
-    for(int i=10;i<13;i++) // Hertz
+    for(i=10;i<13;i++) // Hertz
     {
          freqValue[i] = temp;
          temp = temp/2;
@@ -2958,7 +2958,7 @@ void XprotolabInterface::setupValues()
     freqValue[17] = 16000;
     freqValue[18] = 8000;
     temp = 3200;
-    for(int i=19;i<22;i++) // Hertz
+    for(i=19;i<22;i++) // Hertz
     {
          freqValue[i] = temp;
          temp = temp/2;

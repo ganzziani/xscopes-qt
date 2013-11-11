@@ -12,7 +12,7 @@
 #include "libusbdeviceinfo.h"
 #include <QDebug>
 
-
+typedef uint8_t byte;
 
 
 class LibUsbDevice : public QObject
