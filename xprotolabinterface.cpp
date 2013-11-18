@@ -34,6 +34,8 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     //connect(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), this, SLOT(xAxisChanged(QCPRange)));
     //connect(ui->plotterWidget, SIGNAL(), this, SLOT(xAxisChanged(QCPRange)));
     connect(ui->plotterWidget, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(moveCursor(QMouseEvent*)));
+    connect(ui->plotterWidget, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(selectItem(QMouseEvent*)));
+    connect(ui->plotterWidget, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(deselectItem(QMouseEvent*)));
     usbDevice.initializeDevice();
     on_connectButton_clicked();
 }
@@ -123,18 +125,24 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
 
    customPlot->axisRect()->axis(QCPAxis::atBottom)->setTickLabels(false);
    customPlot->axisRect()->axis(QCPAxis::atBottom)->setAutoTickStep(false);
-   customPlot->axisRect()->axis(QCPAxis::atBottom)->setRange(0,400);
-   customPlot->axisRect()->axis(QCPAxis::atBottom)->setTickStep(400/20);
+   customPlot->axisRect()->axis(QCPAxis::atBottom)->setRange(0,xmax);
+   customPlot->axisRect()->axis(QCPAxis::atBottom)->setTickStep(xmax/8);
 
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setAutoTickLabels(false);
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setAutoTickStep(false);
    customPlot->axisRect()->axis(QCPAxis::atRight)->setAutoTickLabels(false);
    customPlot->axisRect()->axis(QCPAxis::atRight)->setAutoTickStep(false);
+   customPlot->axisRect()->setAutoMargins(QCP::msRight);
+//   customPlot->axisRect()->setAutoMargins(QCP::msLeft);
+//   customPlot->axisRect()->setAutoMargins(QCP::msTop);
+//   customPlot->axisRect()->setAutoMargins(QCP::msBottom);
+   customPlot->axisRect()->axis(QCPAxis::atRight)->setPadding(30);
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setRange(0,rangeMax);
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setTickStep(rangeMax/8);
    customPlot->axisRect()->axis(QCPAxis::atRight)->setRange(-rangeMax/2,rangeMax/2);
    customPlot->axisRect()->axis(QCPAxis::atRight)->setTickStep(rangeMax/8);
    customPlot->axisRect()->axis(QCPAxis::atLeft)->setTickLabels(false);
+   customPlot->axisRect()->axis(QCPAxis::atLeft)->setPadding(20);
  //  customPlot->axisRect()->axis(QCPAxis::atLeft)->setOffset(1);
    customPlot->axisRect()->setupFullAxesBox();
    customPlot->axisRect()->setRangeDrag(Qt::Horizontal);
@@ -154,7 +162,7 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
 //   customPlot->legend->addItem((QCPAbstractLegendItem *)textLabelCH1);
     // set locale to english, so we get english decimal separator:
   //  customPlot->setLocale(QLocale(QLocale::English, QLocale::UnitedKingdom));
-   customPlot->setInteractions(QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iSelectItems);
+   customPlot->setInteractions(QCP::iRangeZoom | QCP::iSelectPlottables);
    connect(&dataTimer, SIGNAL(timeout()), this, SLOT(plotData()));
    dataTimer.start(0); // Interval 0 means to refresh as fast as possible
 
@@ -167,7 +175,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     customPlot->addItem(hCursorA);
     hCursorA->point1->setCoords(0,hCursorAPos);
     hCursorA->point2->setCoords(10, hCursorAPos); // point to (4, 1.6) in x-y-plot coordinates
-    hCursorA->setPen(QPen(QColor("#1681de"), 1, Qt::DashLine));
+    hCursorA->setPen(QPen(QColor("#1692e5"), 1, Qt::DashLine));
     hCursorA->setSelectable(false);
 
     hCursorAHead = new QCPItemPixmap(customPlot);
@@ -183,7 +191,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     hCursorB->point1->setCoords(0,hCursorBPos);
     hCursorB->point2->setCoords(10, hCursorBPos); // point to (4, 1.6) in x-y-plot coordinates
     //hCursorA->setHead(QCPLineEnding::esFlatArrow);
-    hCursorB->setPen(QPen(QColor("#1681de"), 1, Qt::DashLine));
+    hCursorB->setPen(QPen(QColor("#1692e5"), 1, Qt::CustomDashLine));
     hCursorB->setSelectable(false);
 
     hCursorBHead = new QCPItemPixmap(customPlot);
@@ -198,7 +206,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     vCursorA->point1->setCoords(0,0);
     vCursorA->point2->setCoords(0,10); // point to (4, 1.6) in x-y-plot coordinates
     //hCursorA->setHead(QCPLineEnding::esFlatArrow);
-    vCursorA->setPen(QPen(Qt::red, 1, Qt::DashLine));
+    vCursorA->setPen(QPen(QColor("#e04e4e"), 1, Qt::DotLine));
     vCursorA->setSelectable(false);
 
     vCursorB = new QCPItemStraightLine(customPlot);
@@ -206,7 +214,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     vCursorB->point1->setCoords(vCursorBPos,rangeMax);
     vCursorB->point2->setCoords(vCursorBPos,rangeMax-10); // point to (4, 1.6) in x-y-plot coordinates
     //hCursorA->setHead(QCPLineEnding::esFlatArrow);
-    vCursorB->setPen(QPen(Qt::red, 1, Qt::DashLine));
+    vCursorB->setPen(QPen(QColor("#e04e4e"), 1, Qt::DashDotLine));
     vCursorB->setSelectable(false);
 
     vCursorAHead = new QCPItemPixmap(customPlot);
@@ -278,10 +286,13 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
         textLabelBit[i] = new QCPItemText(customPlot);
         customPlot->addItem(textLabelBit[i]);
         textLabelBit[i]->setColor(Qt::red);
-        textLabelBit[i]->position->setCoords(270, 250);
+        qDebug()<<customPlot->axisRect()->topRight();
+        textLabelBit[i]->position->setCoords(QPointF(customPlot->axisRect()->topRight()));
         textLabelBit[i]->setText("Bit "+QString::number(i));
         textLabelBit[i]->setFont(QFont(font().family(), 8, QFont::DemiBold));
         textLabelBit[i]->setSelectable(false);
+        textLabelBit[i]->setClipToAxisRect(false);
+       // textLabelBit[i]->position->setType(QCPItemPosition::ptAbsolute);
        // textLabelBit[i]->setPen(QPen(Qt::red)); // show black border around text
     }
 
@@ -371,7 +382,7 @@ void XprotolabInterface::plotData()
             i=0;
         if (ui->xyMode->isChecked())
         {
-            key.push_back((double)(usbDevice.chData[i]));
+            key.push_back((double)(255-usbDevice.chData[i]));
         }
         else
         {
@@ -748,9 +759,11 @@ void XprotolabInterface::plotData()
 
 void XprotolabInterface::moveCursor(QMouseEvent *event)
 {
-   if(event->type()== QMouseEvent::MouseMove)
+    if(!(event->buttons() & Qt::LeftButton) || currentSelected == isNone)
+        return;
+    if(event->type()== QMouseEvent::MouseMove)
     {
-        if(hCursorAHead->selected())
+        if(currentSelected == isHCursorAHead)
         {
             hCursorAPos = ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->pixelToCoord(event->posF().ry());
             if(hCursorAPos>=rangeMax)
@@ -763,7 +776,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
             else if(ui->radioButtonCursorCH2->isChecked())
                 sendHorizontalCursorCH2A();
         }
-        else if(hCursorBHead->selected())
+        else if(currentSelected == isHCursorBHead)
         {
             hCursorBPos = ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->pixelToCoord(event->posF().ry());
             if(hCursorBPos>=rangeMax)
@@ -776,7 +789,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
             else if(ui->radioButtonCursorCH2->isChecked())
                 sendHorizontalCursorCH2B();
         }
-        else if(vCursorAHead->selected())
+        else if(currentSelected == isVCursorAHead)
         {
             vCursorAPos = ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(event->posF().rx());
             if(vCursorAPos>=xmax)
@@ -786,7 +799,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
             vCursorAHead->topLeft->setCoords(vCursorAPos,rangeMax+3);
             sendVerticalCursorA();
         }
-        else if(vCursorBHead->selected())
+        else if(currentSelected == isVCursorBHead)
         {
             vCursorBPos = ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(event->posF().rx());
             if(vCursorBPos>=xmax)
@@ -796,7 +809,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
             vCursorBHead->topLeft->setCoords(vCursorBPos,rangeMax+3);
             sendVerticalCursorB();
         }
-        else if(triggerPixmap->selected())
+        else if(currentSelected == isTriggerPixmap)
         {
             triggerLevel = ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->pixelToCoord(event->posF().ry());
             triggerPost = ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(event->posF().rx());
@@ -811,6 +824,50 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
         }
 
     }
+}
+
+void XprotolabInterface::selectItem(QMouseEvent *event)
+{
+    if(!(event->buttons() & Qt::LeftButton))
+        return;
+    if(hCursorAHead->selectTest(event->posF(),false)>=0 && hCursorAHead->selectTest(event->posF(),false)<8.0)
+    {
+        currentSelected = isHCursorAHead;
+        hCursorAHead->setPen(QPen(QColor("#1692e5")));
+    }
+    else if(hCursorBHead->selectTest(event->posF(),false)>=0 && hCursorBHead->selectTest(event->posF(),false)<8.0)
+    {
+        currentSelected = isHCursorBHead;
+        hCursorBHead->setPen(QPen(QColor("#1692e5")));
+    }
+    else if(vCursorAHead->selectTest(event->posF(),false)>=0 && vCursorAHead->selectTest(event->posF(),false)<8.0)
+    {
+        currentSelected = isVCursorAHead;
+        vCursorAHead->setPen(QPen(QColor("#e04e4e")));
+    }
+    else if(vCursorBHead->selectTest(event->posF(),false)>=0 && vCursorBHead->selectTest(event->posF(),false)<8.0)
+    {
+        currentSelected = isVCursorBHead;
+        vCursorBHead->setPen(QPen(QColor("#e04e4e")));
+    }
+    else if(triggerPixmap->selectTest(event->posF(),false)>=0 && triggerPixmap->selectTest(event->posF(),false)<8.0)
+    {
+        currentSelected = isTriggerPixmap;
+    }
+    else
+    {
+        currentSelected = isNone;
+    }
+
+}
+
+void XprotolabInterface::deselectItem(QMouseEvent *)
+{
+    currentSelected = isNone;
+    hCursorAHead->setPen(QPen(Qt::NoPen));
+    hCursorBHead->setPen(QPen(Qt::NoPen));
+    vCursorAHead->setPen(QPen(Qt::NoPen));
+    vCursorBHead->setPen(QPen(Qt::NoPen));
 }
 
 void XprotolabInterface::setTriggerLevelPosition()

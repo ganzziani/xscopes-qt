@@ -57,6 +57,15 @@ enum Mode {
     NONE
 };
 
+enum Selected {
+    isHCursorAHead,
+    isHCursorBHead,
+    isVCursorAHead,
+    isVCursorBHead,
+    isTriggerPixmap,
+    isNone
+};
+
 namespace Ui {
 class XprotolabInterface;
 }
@@ -110,6 +119,8 @@ private slots:
     void plotData();
     void sniffProtocol();
     void moveCursor(QMouseEvent*);
+    void selectItem(QMouseEvent*);
+    void deselectItem(QMouseEvent*);
     void on_autoButton_clicked();
 
     void on_connectButton_clicked();
@@ -364,6 +375,7 @@ private:
     QCPItemText *textLabelVoltageA, *textLabelVoltageB, *textLabelFrequency;
     byte sniffBuffer[1289];
     uint16_t triggerPost,triggerLevel;
+    int currentSelected;
    // QLabel *ch1Label, *ch2Label, *timeLabel;
 
    // QCPLegend *legend;

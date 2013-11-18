@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>960</width>
-    <height>664</height>
+    <height>644</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -53,7 +53,7 @@
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>0</height>
+              <height>400</height>
              </size>
             </property>
            </widget>
@@ -99,7 +99,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>TextLabel</string>
+                 <string>CH1 = 0V/div</string>
                 </property>
                 <property name="scaledContents">
                  <bool>true</bool>
@@ -150,7 +150,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>TextLabel</string>
+                 <string>CH2 = 0V/div</string>
                 </property>
                 <property name="scaledContents">
                  <bool>true</bool>
@@ -177,7 +177,7 @@
                </font>
               </property>
               <property name="text">
-               <string>TextLabel</string>
+               <string>Time = 0ms/div</string>
               </property>
               <property name="scaledContents">
                <bool>true</bool>
@@ -657,22 +657,22 @@
                             <item>
                              <layout class="QVBoxLayout" name="verticalLayout_7">
                               <item>
-                               <widget class="QCheckBox" name="checkBoxCH1Average">
-                                <property name="toolTip">
-                                 <string>The channel samples will be averaged to reduce aliasing</string>
-                                </property>
-                                <property name="text">
-                                 <string>Average</string>
-                                </property>
-                               </widget>
-                              </item>
-                              <item>
                                <widget class="QCheckBox" name="checkBoxCH1Trace">
                                 <property name="toolTip">
                                  <string>Display CH1 trace</string>
                                 </property>
                                 <property name="text">
                                  <string>Trace</string>
+                                </property>
+                               </widget>
+                              </item>
+                              <item>
+                               <widget class="QCheckBox" name="checkBoxCH1Average">
+                                <property name="toolTip">
+                                 <string>The channel samples will be averaged to reduce aliasing</string>
+                                </property>
+                                <property name="text">
+                                 <string>Average</string>
                                 </property>
                                </widget>
                               </item>
@@ -1019,22 +1019,22 @@
                             <item>
                              <layout class="QVBoxLayout" name="verticalLayout_14">
                               <item>
-                               <widget class="QCheckBox" name="checkBoxCH2Average">
-                                <property name="toolTip">
-                                 <string>The channel samples will be averaged to reduce aliasing</string>
-                                </property>
-                                <property name="text">
-                                 <string>Average</string>
-                                </property>
-                               </widget>
-                              </item>
-                              <item>
                                <widget class="QCheckBox" name="checkBoxCH2Trace">
                                 <property name="toolTip">
                                  <string>Display CH2 trace</string>
                                 </property>
                                 <property name="text">
                                  <string>Trace</string>
+                                </property>
+                               </widget>
+                              </item>
+                              <item>
+                               <widget class="QCheckBox" name="checkBoxCH2Average">
+                                <property name="toolTip">
+                                 <string>The channel samples will be averaged to reduce aliasing</string>
+                                </property>
+                                <property name="text">
+                                 <string>Average</string>
                                 </property>
                                </widget>
                               </item>
@@ -1776,16 +1776,16 @@
                           <item>
                            <layout class="QHBoxLayout" name="horizontalLayout_21">
                             <item>
-                             <widget class="QCheckBox" name="checkBoxLogY">
+                             <widget class="QCheckBox" name="checkBoxFFTTrace">
                               <property name="text">
-                               <string>Log Y</string>
+                               <string>Trace</string>
                               </property>
                              </widget>
                             </item>
                             <item>
-                             <widget class="QCheckBox" name="checkBoxFFTTrace">
+                             <widget class="QCheckBox" name="checkBoxLogY">
                               <property name="text">
-                               <string>Trace</string>
+                               <string>Log Y</string>
                               </property>
                              </widget>
                             </item>
