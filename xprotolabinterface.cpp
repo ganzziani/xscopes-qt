@@ -19,15 +19,7 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     mode = OSCILLOSCOPE;
     ui->ch1ColorLabel->setStyleSheet("QLabel { background-color : green; }");
     ui->ch2ColorLabel->setStyleSheet("QLabel { background-color : red; }");
-//    ch1Label = new QLabel(ui->statusBar);
-//    ch2Label = new QLabel(ui->statusBar);
-//    timeLabel = new QLabel(ui->statusBar);
-//    ch1Label->setMinimumWidth(120);
-//    ch2Label->setMinimumWidth(120);
-//    timeLabel->setMinimumWidth(120);
-//    ui->statusBar->addWidget(ch1Label,0);
-//    ui->statusBar->addWidget(ch2Label,0);
-//    ui->statusBar->addWidget(timeLabel,0);
+
     setupValues();
     setupGrid(ui->plotterWidget);
 
@@ -46,127 +38,142 @@ XprotolabInterface::~XprotolabInterface()
 }
 
 void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
-{ 
-    //customPlot->plotLayout()->clear();
-   // customPlot->plotLayout()->addElement(0, 0, new QCPAxisRect(customPlot));
-   // legend = customPlot->legend;
-   // customPlot->legend = new QCPLegend();
-//    QLinearGradient plotGradient;
-//    plotGradient.setStart(0, 0);
-//    plotGradient.setFinalStop(0, 350);
-//    plotGradient.setColorAt(0, QColor(0, 50, 200));
-//    plotGradient.setColorAt(1, QColor(50, 0, 100));
-    customPlot->setBackground(QBrush(Qt::black));
-    customPlot->xAxis->setTickPen(QPen(Qt::white, 1));
-      customPlot->yAxis->setTickPen(QPen(Qt::white, 1));
-      customPlot->xAxis->setSubTickPen(QPen(Qt::white, 1));
-      customPlot->yAxis->setSubTickPen(QPen(Qt::white, 1));
-      customPlot->xAxis2->setTickPen(QPen(Qt::white, 1));
-        customPlot->yAxis2->setTickPen(QPen(Qt::white, 1));
-        customPlot->xAxis2->setSubTickPen(QPen(Qt::white, 1));
-        customPlot->yAxis2->setSubTickPen(QPen(Qt::white, 1));
-      customPlot->xAxis->setTickLabelColor(Qt::white);
-      customPlot->yAxis->setTickLabelColor(Qt::white);
-      customPlot->xAxis->setBasePen(QPen(Qt::white, 1));
-      customPlot->yAxis->setBasePen(QPen(Qt::white, 1));
-      customPlot->xAxis2->setBasePen(QPen(Qt::white, 1));
-      customPlot->yAxis2->setBasePen(QPen(Qt::white, 1));
-      customPlot->yAxis->setTickLabelColor(Qt::white);
-      customPlot->xAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1));
-      customPlot->yAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1));
-
-      customPlot->xAxis->grid()->setZeroLinePen(QPen(Qt::white, 2));
-      customPlot->yAxis->grid()->setZeroLinePen(QPen(Qt::white, 2));
-    customPlot->addGraph(customPlot->axisRect(0)->axis(QCPAxis::atBottom),customPlot->axisRect(0)->axis(QCPAxis::atLeft)); // blue line
-    customPlot->graph(0)->setPen(QPen(QColor("#4be51c"), 2));
-  //  customPlot->graph(0)->setBrush(QBrush(QColor(240, 255, 200)));
- //   customPlot->graph(0)->setScatterStyle(QCPScatterStyle::ssStar);
-  //  customPlot->graph(0)->setLineStyle(QCPGraph::lsStepCenter);
-  //  customPlot->graph(0)->setAntialiasedFill(false);
-
-    customPlot->graph(0)->setName("CH1");
-
-    customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));    // red line
-    customPlot->graph(1)->setPen(QPen(Qt::red, 2));
- //   customPlot->graph(1)->setBrush(QBrush(QColor(240, 255, 200)));
-    customPlot->graph(1)->setAntialiasedFill(false);
-    customPlot->graph(1)->setName("CH2");
-
-    for(int i=0;i<8;i++)
-    {
-        customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));    // red line
-        customPlot->graph(i+2)->setPen(QPen(Qt::red, 1.5));
-        customPlot->graph(i+2)->setAntialiasedFill(false);
-        customPlot->graph(i+2)->setName("Bit "+QString::number(i));
-        customPlot->graph(i+2)->setLineStyle(QCPGraph::lsStepCenter);
-    }
-    bars1 = customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atLeft));    // red line
-    bars1 ->setPen(QPen(Qt::red, 2));
-    bars1 ->setAntialiasedFill(false);
-   // customPlot->graph(10)->setName("Bit "+QString::number(i));
-    customPlot->graph(10)->setLineStyle(QCPGraph::lsImpulse);
-
-    bars2 = customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->axisRect()->axis(QCPAxis::atRight));    // red line
-   bars2->setPen(QPen(Qt::blue, 2));
-    bars2->setLineStyle(QCPGraph::lsImpulse);
-   // customPlot->graph(11)->setName("Bit "+QString::number(i));
-
-    //bars1->setBrush(QBrush(QColor(240, 255, 200)));
-
-
-   // customPlot->graph(0)->setChannelFillGraph(customPlot->graph(1));
-
-
-
+{
+    setupGraphs(customPlot);
     setupItemLabels(customPlot);
     setupCursors(customPlot);
     setupTracers(customPlot);
+    setTheme(ui->comboBoxTheme->currentIndex());
 
+    customPlot->xAxis->setTickLabels(false);
+    customPlot->xAxis->setAutoTickStep(false);
+    customPlot->xAxis->setRange(0,xmax);
+    customPlot->xAxis->setTickStep(xmax/8);
 
-   customPlot->axisRect()->axis(QCPAxis::atBottom)->setTickLabels(false);
-   customPlot->axisRect()->axis(QCPAxis::atBottom)->setAutoTickStep(false);
-   customPlot->axisRect()->axis(QCPAxis::atBottom)->setRange(0,xmax);
-   customPlot->axisRect()->axis(QCPAxis::atBottom)->setTickStep(xmax/8);
+    customPlot->yAxis->setTickLabels(false);
+    customPlot->yAxis->setAutoTickStep(false);
+    customPlot->yAxis2->setTickLabels(false);
+    customPlot->yAxis2->setAutoTickStep(false);
+ //   customPlot->axisRect()->setAutoMargins(QCP::msRight);
+ //   customPlot->axisRect()->setAutoMargins(QCP::msLeft);
+ //   customPlot->axisRect()->setAutoMargins(QCP::msTop);
+ //   customPlot->axisRect()->setAutoMargins(QCP::msBottom);
+ //   customPlot->yAxis2->setPadding(30);
+    customPlot->yAxis->setRange(0,rangeMax);
+    customPlot->yAxis->setTickStep(rangeMax/8);
+    customPlot->yAxis2->setRange(-rangeMax/2,rangeMax/2);
+    customPlot->yAxis2->setTickStep(rangeMax/8);
 
-   customPlot->axisRect()->axis(QCPAxis::atLeft)->setAutoTickLabels(false);
-   customPlot->axisRect()->axis(QCPAxis::atLeft)->setAutoTickStep(false);
-   customPlot->axisRect()->axis(QCPAxis::atRight)->setAutoTickLabels(false);
-   customPlot->axisRect()->axis(QCPAxis::atRight)->setAutoTickStep(false);
-   customPlot->axisRect()->setAutoMargins(QCP::msRight);
-//   customPlot->axisRect()->setAutoMargins(QCP::msLeft);
-//   customPlot->axisRect()->setAutoMargins(QCP::msTop);
-//   customPlot->axisRect()->setAutoMargins(QCP::msBottom);
-   customPlot->axisRect()->axis(QCPAxis::atRight)->setPadding(30);
-   customPlot->axisRect()->axis(QCPAxis::atLeft)->setRange(0,rangeMax);
-   customPlot->axisRect()->axis(QCPAxis::atLeft)->setTickStep(rangeMax/8);
-   customPlot->axisRect()->axis(QCPAxis::atRight)->setRange(-rangeMax/2,rangeMax/2);
-   customPlot->axisRect()->axis(QCPAxis::atRight)->setTickStep(rangeMax/8);
-   customPlot->axisRect()->axis(QCPAxis::atLeft)->setTickLabels(false);
-   customPlot->axisRect()->axis(QCPAxis::atLeft)->setPadding(20);
- //  customPlot->axisRect()->axis(QCPAxis::atLeft)->setOffset(1);
-   customPlot->axisRect()->setupFullAxesBox();
-   customPlot->axisRect()->setRangeDrag(Qt::Horizontal);
+    customPlot->axisRect()->setupFullAxesBox();
+    customPlot->axisRect()->setRangeDrag(Qt::Horizontal);
 
 
 
-   //customPlot->axisRect()->setMaximumSize(,512);
-    // make left and bottom axes transfer their ranges to right and top axes:
-   connect(customPlot->axisRect()->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), customPlot->axisRect()->axis(QCPAxis::atTop), SLOT(setRange(QCPRange)));
-   //connect(customPlot->axisRect()->axis(QCPAxis::atLeft), SIGNAL(rangeChanged(QCPRange)), customPlot->axisRect()->axis(QCPAxis::atRight), SLOT(setRange(QCPRange)));
+   // make left and bottom axes transfer their ranges to right and top axes:
+   connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
+   //connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
 
-   //customPlot->add
-//   customPlot->legend->setFont(QFont("Helvetica",9));
-//   customPlot->legend->setVisible(true);
-//   while(customPlot->legend->itemCount()>0)
-//     customPlot->legend->removeItem(0);
-//   customPlot->legend->addItem((QCPAbstractLegendItem *)textLabelCH1);
-    // set locale to english, so we get english decimal separator:
-  //  customPlot->setLocale(QLocale(QLocale::English, QLocale::UnitedKingdom));
    customPlot->setInteractions(QCP::iRangeZoom | QCP::iSelectPlottables);
    connect(&dataTimer, SIGNAL(timeout()), this, SLOT(plotData()));
    dataTimer.start(0); // Interval 0 means to refresh as fast as possible
+}
 
+void XprotolabInterface::setTheme(int theme)
+{
+    if(theme == Dark||1)
+    {
+        /************** Graph Pens **********/
+        ch1Pen = QPen(QColor("#4be51c"), 2);
+        ch1Graph->setPen(ch1Pen);
 
+        ch2Pen = QPen(Qt::red, 2);
+        ch2Graph->setPen(ch2Pen);
+
+        ch1RefPen = QPen(Qt::red, 2);
+        ch1RefGraph->setPen(ch1RefPen);
+
+        ch2RefPen = QPen(QColor("#4be51c"), 2);
+        ch2RefGraph->setPen(ch2RefPen);
+
+        for(int i=0;i<8;i++)
+        {
+            chdPen[i] = QPen(Qt::red, 1.5);
+            chdGraph[i]->setPen(chdPen[i]);
+
+            chdRefPen[i] = QPen(Qt::blue, 1.5);
+            chdRefGraph[i]->setPen(chdRefPen[i]);
+        }
+
+        ch1BarPen = QPen(QColor("#4be51c"), 2);
+        ch1BarGraph->setPen(ch1BarPen);
+
+        ch2BarPen = QPen(Qt::red, 2);
+        ch2BarGraph->setPen(ch2BarPen);
+
+        /************** Grid Pens **********/
+        gridPen = QPen(QColor(140, 140, 140), 1);
+        ui->plotterWidget->xAxis->grid()->setPen(gridPen);
+        ui->plotterWidget->yAxis->grid()->setPen(gridPen);
+
+//        customPlot->xAxis->grid()->setZeroLinePen(QPen(Qt::white, 2));
+//        customPlot->yAxis->grid()->setZeroLinePen(QPen(Qt::white, 2));
+
+        axesPen = QPen(Qt::white, 1);
+        ui->plotterWidget->xAxis->setTickPen(axesPen);
+        ui->plotterWidget->yAxis->setTickPen(axesPen);
+        ui->plotterWidget->xAxis->setSubTickPen(axesPen);
+        ui->plotterWidget->yAxis->setSubTickPen(axesPen);
+        ui->plotterWidget->xAxis2->setTickPen(axesPen);
+        ui->plotterWidget->yAxis2->setTickPen(axesPen);
+        ui->plotterWidget->xAxis2->setSubTickPen(axesPen);
+        ui->plotterWidget->yAxis2->setSubTickPen(axesPen);
+        ui->plotterWidget->xAxis->setBasePen(axesPen);
+        ui->plotterWidget->yAxis->setBasePen(axesPen);
+        ui->plotterWidget->xAxis2->setBasePen(axesPen);
+        ui->plotterWidget->yAxis2->setBasePen(axesPen);
+
+        backgroundBrush = QBrush(Qt::black);
+        ui->plotterWidget->setBackground(QBrush(Qt::black));
+        //    QLinearGradient plotGradient;
+        //    plotGradient.setStart(0, 0);
+        //    plotGradient.setFinalStop(0, 350);
+        //    plotGradient.setColorAt(0, QColor(0, 50, 200));
+        //    plotGradient.setColorAt(1, QColor(50, 0, 100));
+
+    }
+    else if(theme == Light)
+    {
+
+    }
+    else if(theme == Custom)
+    {
+
+    }
+}
+
+void XprotolabInterface::setupGraphs(QCustomPlot *customPlot)
+{
+    ch1Graph = customPlot->addGraph();
+
+    ch1RefGraph = customPlot->addGraph();
+
+    ch2Graph = customPlot->addGraph();
+
+    ch2RefGraph = customPlot->addGraph();
+
+    for(int i=0;i<8;i++)
+    {
+        chdGraph[i] = customPlot->addGraph();
+        chdGraph[i]->setLineStyle(QCPGraph::lsStepCenter);
+
+        chdRefGraph[i] = customPlot->addGraph();
+        chdRefGraph[i]->setLineStyle(QCPGraph::lsStepCenter);
+    }
+    ch1BarGraph = customPlot->addGraph();
+    ch1BarGraph->setLineStyle(QCPGraph::lsImpulse);
+
+    ch2BarGraph = customPlot->addGraph();
+    ch2BarGraph->setLineStyle(QCPGraph::lsImpulse);
 }
 
 void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
@@ -175,7 +182,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     customPlot->addItem(hCursorA);
     hCursorA->point1->setCoords(0,hCursorAPos);
     hCursorA->point2->setCoords(10, hCursorAPos); // point to (4, 1.6) in x-y-plot coordinates
-    hCursorA->setPen(QPen(QColor("#1692e5"), 1, Qt::DashLine));
+    hCursorA->setPen(QPen(QColor("#1692e5"), 1, Qt::DotLine));
     hCursorA->setSelectable(false);
 
     hCursorAHead = new QCPItemPixmap(customPlot);
@@ -191,7 +198,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     hCursorB->point1->setCoords(0,hCursorBPos);
     hCursorB->point2->setCoords(10, hCursorBPos); // point to (4, 1.6) in x-y-plot coordinates
     //hCursorA->setHead(QCPLineEnding::esFlatArrow);
-    hCursorB->setPen(QPen(QColor("#1692e5"), 1, Qt::CustomDashLine));
+    hCursorB->setPen(QPen(QColor("#1692e5"), 1, Qt::DotLine));
     hCursorB->setSelectable(false);
 
     hCursorBHead = new QCPItemPixmap(customPlot);
@@ -214,7 +221,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     vCursorB->point1->setCoords(vCursorBPos,rangeMax);
     vCursorB->point2->setCoords(vCursorBPos,rangeMax-10); // point to (4, 1.6) in x-y-plot coordinates
     //hCursorA->setHead(QCPLineEnding::esFlatArrow);
-    vCursorB->setPen(QPen(QColor("#e04e4e"), 1, Qt::DashDotLine));
+    vCursorB->setPen(QPen(QColor("#e04e4e"), 1, Qt::DotLine));
     vCursorB->setSelectable(false);
 
     vCursorAHead = new QCPItemPixmap(customPlot);
@@ -299,7 +306,7 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
     textLabelDeltaTime = new QCPItemText(customPlot);
     customPlot->addItem(textLabelDeltaTime);
     textLabelDeltaTime->setColor("#4be51c");
-    textLabelDeltaTime->position->setCoords(235, rangeMax - 10);
+    textLabelDeltaTime->position->setCoords(225, rangeMax - 10);
     textLabelDeltaTime->setText(QString::fromUtf8("ΔT = 0 ms"));
     textLabelDeltaTime->setFont(QFont(font().family(), 8,QFont::DemiBold));
     textLabelDeltaTime->setSelectable(false);
@@ -307,7 +314,7 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
     textLabelFrequency = new QCPItemText(customPlot);
     customPlot->addItem(textLabelFrequency);
     textLabelFrequency->setColor("#4be51c");
-    textLabelFrequency->position->setCoords(235, rangeMax - 25);
+    textLabelFrequency->position->setCoords(225, rangeMax - 25);
     textLabelFrequency->setText(QString::fromUtf8(" 1/ΔT = 0 ms "));
     textLabelFrequency->setFont(QFont(font().family(), 8,QFont::DemiBold));
     textLabelFrequency->setSelectable(false);
@@ -315,7 +322,7 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
     textLabelDeltaVoltage = new QCPItemText(customPlot);
     customPlot->addItem(textLabelDeltaVoltage);
     textLabelDeltaVoltage->setColor("#4be51c");
-    textLabelDeltaVoltage->position->setCoords(235, 10);
+    textLabelDeltaVoltage->position->setCoords(225, 10);
     textLabelDeltaVoltage->setText("ΔV = 0 V");
     textLabelDeltaVoltage->setFont(QFont(font().family(), 8,QFont::DemiBold));
     textLabelDeltaVoltage->setSelectable(false);
@@ -323,7 +330,7 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
     textLabelVoltageB = new QCPItemText(customPlot);
     customPlot->addItem( textLabelVoltageB);
     textLabelVoltageB->setColor("#4be51c");
-    textLabelVoltageB->position->setCoords(235, 25);
+    textLabelVoltageB->position->setCoords(225, 25);
     textLabelVoltageB->setText("VB = 0 V");
     textLabelVoltageB->setFont(QFont(font().family(), 8, QFont::DemiBold));
     textLabelVoltageB->setSelectable(false);
@@ -331,11 +338,10 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
     textLabelVoltageA = new QCPItemText(customPlot);
     customPlot->addItem( textLabelVoltageA);
     textLabelVoltageA->setColor("#4be51c");
-    textLabelVoltageA->position->setCoords(235, 40);
+    textLabelVoltageA->position->setCoords(225, 40);
     textLabelVoltageA->setText("VA = 0 V");
     textLabelVoltageA->setFont(QFont(font().family(), 8, QFont::DemiBold));
     textLabelVoltageA->setSelectable(false);
-
 
     triggerPixmap = new QCPItemPixmap(customPlot);
     customPlot->addItem(triggerPixmap);
@@ -347,20 +353,22 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
 
 void XprotolabInterface::plotData()
 {
-    if(!usbDevice.dataAvailable)// || mode != OSCILLOSCOPE)
+    if(!usbDevice.dataAvailable)
     {
         return;
     }
-    else if(mode==SNIFFER)//||!usbDevice.dataAvailable)
+    else if(mode==SNIFFER)
     {
         sniffProtocol();
         return;
     }
+    else if(mode!=OSCILLOSCOPE)
+        return;
 
     QVector<double> key,hCursorPos[2];
     double ch1,ch2,minV,maxV, minX1, minX2,aTrack,bTrack;
-    QVector<double> ch1Buffer,ch2Buffer,fft1,fft2;
-    QVector<double> bit[8];
+    QVector<double> ch1Buffer,ch2Buffer,fft1,fft2,ch1RefBuff,ch2RefBuff;
+    QVector<double> bit[8],bitRefBuff[8];
     complex pSignal1[256],pSignal2[256];
     phaseTracerAA->setVisible(false);
     phaseTracerAB->setVisible(false);
@@ -450,60 +458,126 @@ void XprotolabInterface::plotData()
 
             }
 
+
         }
+    }
+
+    if(ui->refCH1->isChecked())
+    {
+        if(ch1RefBuffer.isEmpty())
+        {
+            ch1RefBuffer = ch1Buffer;
+        }
+        else
+        {
+            for(int k=0;k<ch1RefBuffer.size();k++)
+            {
+                ch1RefBuff.push_back(ch1RefBuffer[k]+ui->ch1CaptureSlider->value());
+            }
+        }
+    }
+    if(ui->refCH2->isChecked())
+    {
+        if(ch2RefBuffer.isEmpty())
+        {
+            ch2RefBuffer = ch2Buffer;
+        }
+        else
+        {
+            for(int k=0;k<ch2RefBuffer.size();k++)
+            {
+                ch2RefBuff.push_back(ch2RefBuffer[k]+ui->ch2CaptureSlider->value());
+            }
+        }
+    }
+    if(ui->refLogic->isChecked())
+    {
+        for(int k = 0; k<8; k++)
+        {
+            if(bitRef[k].isEmpty())
+            {
+                bitRef[k] = bit[k];
+            }
+            else
+            {
+                for(int m=0;m<bitRef[k].size();m++)
+                {
+                    bitRefBuff[k].push_back(bitRef[k].at(m)+ui->chdCaptureSlider->value());
+                }
+            }
+        }
+
     }
 
     if(ui->xyMode->isChecked())
     {
-        ui->plotterWidget->graph(0)->clearData();
-        ui->plotterWidget->graph(1)->clearData();
-        ui->plotterWidget->graph(0)->setData(key, ch2Buffer);
-        ui->plotterWidget->graph(0)->rescaleValueAxis(true);
+        ch1Graph->clearData();
+        ch2Graph->clearData();
+        ch1Graph->setData(key, ch2Buffer);
+        ch1Graph->rescaleValueAxis(true);
        //ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(key.first(), key.last());
     }
     else
     {
         if(!ui->checkBoxPersistence->isChecked())
-             ui->plotterWidget->graph(0)->clearData();
+             ch1Graph->clearData();
         if(ui->checkBoxCH1Trace->isChecked())
         {
             if(!ui->checkBoxPersistence->isChecked())
-                ui->plotterWidget->graph(0)->setData(key, ch1Buffer);
+                ch1Graph->setData(key, ch1Buffer);
             else
-                ui->plotterWidget->graph(0)->addData(key, ch1Buffer);
-            //ui->plotterWidget->graph(0)->rescaleValueAxis(true);
+                ch1Graph->addData(key, ch1Buffer);
+            if(ui->refCH1->isChecked())
+                ch1RefGraph->setData(key,ch1RefBuff);
+            else
+            {
+                ch1RefGraph->clearData();
+                ch1RefBuffer.clear();
+            }
         }
         if(!ui->checkBoxPersistence->isChecked())
-             ui->plotterWidget->graph(1)->clearData();
+             ch2Graph->clearData();
         if(ui->checkBoxCH2Trace->isChecked()&&ui->samplingSlider->value()>0)
         {
             if(!ui->checkBoxPersistence->isChecked())
-                ui->plotterWidget->graph(1)->setData(key, ch2Buffer);
+                 ch2Graph->setData(key, ch2Buffer);
             else
-                ui->plotterWidget->graph(1)->addData(key, ch2Buffer);
-            //ui->plotterWidget->graph(1)->rescaleValueAxis(true);
+                 ch2Graph->addData(key, ch2Buffer);
+            if(ui->refCH2->isChecked())
+                ch2RefGraph->setData(key,ch2RefBuff);
+            else
+            {
+                ch2RefGraph->clearData();
+                ch2RefBuffer.clear();
+            }
         }
         for(int k=0;k<8;k++)
         {
             if(!ui->checkBoxPersistence->isChecked())
-                ui->plotterWidget->graph(k+2)->clearData();
+                chdGraph[k]->clearData();
             textLabelBit[k]->setVisible(false);
             if(ui->checkBoxCHDTrace->isChecked()&&bitChecked[k])
             {
                 if(!ui->checkBoxPersistence->isChecked())
-                    ui->plotterWidget->graph(k+2)->setData(key, bit[k]);
+                    chdGraph[k]->setData(key, bit[k]);
                 else
-                    ui->plotterWidget->graph(k+2)->addData(key, bit[k]);
+                    chdGraph[k]->addData(key, bit[k]);
+                if(ui->refLogic->isChecked())
+                    chdRefGraph[k]->setData(key,bitRefBuff[k]);
+
                 textLabelBit[k]->setVisible(true);
-              // qDebug()<<bit[k];
-               //ui->plotterWidget->graph(1)->rescaleValueAxis(true);
+            }
+            if(!ui->refLogic->isChecked())
+            {
+                chdRefGraph[k]->clearData();
+                bitRef[k].clear();
             }
 
         }
         if(!ui->checkBoxPersistence->isChecked())
         {
-           bars1->clearData();
-           bars2->clearData();
+           ch1BarGraph->clearData();
+           ch2BarGraph->clearData();
         }
 
         if(ui->checkBoxFFTTrace->isChecked())
@@ -565,7 +639,7 @@ void XprotolabInterface::plotData()
                         fft2.push_back(magnitude2);
 //                    if(ui->checkBoxFFTCH1->isChecked()&&ui->checkBoxFFTCH2->isChecked())
 //                    {
-//                        bars1->moveAbove(bars2);
+//                        ch1BarGraph->moveAbove(ch2BarGraph);
 //                    }
                 }
                 else
@@ -587,48 +661,48 @@ void XprotolabInterface::plotData()
 //                if(key.size()>fft1.size())
 //                {
 //                    qDebug()<<"key: "<<key.size();
-//                    bars1->setWidth(2);
+//                    ch1BarGraph->setWidth(2);
 //                }
                 if(!ui->checkBoxIQFFT->isChecked())
                 {
-                    bars1->clearData();
+                    ch1BarGraph->clearData();
                     if(ui->checkBoxFFTCH1->isChecked())
-                        bars1->setData(key, fft1);
-                    bars2->clearData();
+                        ch1BarGraph->setData(key, fft1);
+                    ch2BarGraph->clearData();
                     if(ui->checkBoxFFTCH2->isChecked())
-                        bars2->setData(key, fft2);
+                        ch2BarGraph->setData(key, fft2);
                 }
                 else
                 {
-                    bars1->clearData();
-                    bars1->setData(key, fft1);
+                    ch1BarGraph->clearData();
+                    ch1BarGraph->setData(key, fft1);
                 }
 
-               // bars1->rescaleKeyAxis(true);
+               // ch1BarGraph->rescaleKeyAxis(true);
             }
             else
             {
                 if(!ui->checkBoxIQFFT->isChecked())
                 {
                     if(ui->checkBoxFFTCH1->isChecked())
-                        bars1->addData(key, fft1);
+                        ch1BarGraph->addData(key, fft1);
                     if(ui->checkBoxFFTCH2->isChecked())
-                        bars2->addData(key, fft2);
+                        ch2BarGraph->addData(key, fft2);
                 }
                 else
                 {
-                    bars1->addData(key, fft1);
+                    ch1BarGraph->addData(key, fft1);
                 }
 
 
             }
         }
 
-        //ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->setRange(0,rangeMax);
-       // ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->setTickStep(rangeMax/8);
+        //ui->plotterWidget->yAxis->setRange(0,rangeMax);
+       // ui->plotterWidget->yAxis->setTickStep(rangeMax/8);
        // ui->plotterWidget->graph(1)->rescaleValueAxis(true);
 
-        ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(0, 270);
+        //ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(0, 270);
         //ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setTickStep(270/9);
 
     }
@@ -637,9 +711,9 @@ void XprotolabInterface::plotData()
     {
         double deltaTime,freq, value = 0;
         QString unit;
-        deltaTime = ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(vCursorBHead->bottom->pixelPoint().rx());
+        deltaTime = ui->plotterWidget->xAxis->pixelToCoord(vCursorBHead->bottom->pixelPoint().rx());
        // qDebug()<<deltaTime;
-        deltaTime = deltaTime - ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(vCursorAHead->bottom->pixelPoint().rx());
+        deltaTime = deltaTime - ui->plotterWidget->xAxis->pixelToCoord(vCursorAHead->bottom->pixelPoint().rx());
         //deltaTime = qCeil(deltaTime);
         if(deltaTime<0)
             deltaTime = deltaTime*-1;
@@ -681,8 +755,8 @@ void XprotolabInterface::plotData()
     {
         double deltaVolt, voltA, voltB ,value = 0;
         QString unit;
-        voltA = ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->pixelToCoord(hCursorAHead->right->pixelPoint().ry());
-        voltB = ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->pixelToCoord(hCursorBHead->right->pixelPoint().ry());
+        voltA = ui->plotterWidget->yAxis->pixelToCoord(hCursorAHead->right->pixelPoint().ry());
+        voltB = ui->plotterWidget->yAxis->pixelToCoord(hCursorBHead->right->pixelPoint().ry());
         deltaVolt = voltA - voltB;
         if(ui->radioButtonCursorCH1->isChecked())
              unit = gainText[ui->ch1GainSlider->value()];
@@ -725,8 +799,8 @@ void XprotolabInterface::plotData()
         {
             if(ui->radioButtonCursorCH1->isChecked())
             {
-                phaseTracerAA->setGraphKey(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(vCursorAHead->bottom->pixelPoint().rx()));
-                phaseTracerAB->setGraphKey(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(vCursorBHead->bottom->pixelPoint().rx()));
+                phaseTracerAA->setGraphKey(ui->plotterWidget->xAxis->pixelToCoord(vCursorAHead->bottom->pixelPoint().rx()));
+                phaseTracerAB->setGraphKey(ui->plotterWidget->xAxis->pixelToCoord(vCursorBHead->bottom->pixelPoint().rx()));
                 phaseTracerAA->setVisible(true);
                 phaseTracerAB->setVisible(true);
                 phaseTracerAA->updatePosition();
@@ -736,8 +810,8 @@ void XprotolabInterface::plotData()
             }
             else if(ui->radioButtonCursorCH2->isChecked())
             {
-                phaseTracerBA->setGraphKey(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(vCursorAHead->bottom->pixelPoint().rx()));
-                phaseTracerBB->setGraphKey(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(vCursorBHead->bottom->pixelPoint().rx()));
+                phaseTracerBA->setGraphKey(ui->plotterWidget->xAxis->pixelToCoord(vCursorAHead->bottom->pixelPoint().rx()));
+                phaseTracerBB->setGraphKey(ui->plotterWidget->xAxis->pixelToCoord(vCursorBHead->bottom->pixelPoint().rx()));
                 phaseTracerBA->setVisible(true);
                 phaseTracerBB->setVisible(true);
                 phaseTracerBA->updatePosition();
@@ -761,16 +835,23 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
 {
     if(!(event->buttons() & Qt::LeftButton) || currentSelected == isNone)
         return;
+    double curPos;
     if(event->type()== QMouseEvent::MouseMove)
     {
         if(currentSelected == isHCursorAHead)
         {
-            hCursorAPos = ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->pixelToCoord(event->posF().ry());
+            hCursorAPos = ui->plotterWidget->yAxis->pixelToCoord(event->posF().ry());
+            curPos = event->posF().ry()-16;
+
+            if(curPos>ui->plotterWidget->visibleRegion().boundingRect().bottom()-32)
+                curPos = ui->plotterWidget->visibleRegion().boundingRect().bottom()-32;
+            else if(curPos<0)
+                curPos=0;
             if(hCursorAPos>=rangeMax)
                 hCursorAPos = rangeMax-5;
             else if(hCursorAPos<5)
                 hCursorAPos = 5;
-            hCursorAHead->topLeft->setCoords(-3,hCursorAPos);
+            hCursorAHead->topLeft->setPixelPoint(QPointF(14,curPos));
             if(ui->radioButtonCursorCH1->isChecked())
                 sendHorizontalCursorCH1A();
             else if(ui->radioButtonCursorCH2->isChecked())
@@ -778,12 +859,18 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
         }
         else if(currentSelected == isHCursorBHead)
         {
-            hCursorBPos = ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->pixelToCoord(event->posF().ry());
+            hCursorBPos = ui->plotterWidget->yAxis->pixelToCoord(event->posF().ry());
+            curPos = event->posF().ry()-16;
+
+            if(curPos>ui->plotterWidget->visibleRegion().boundingRect().bottom()-32)
+                curPos = ui->plotterWidget->visibleRegion().boundingRect().bottom()-32;
+            else if(curPos<0)
+                curPos=0;
             if(hCursorBPos>=rangeMax)
                 hCursorBPos = rangeMax-5;
             else if(hCursorBPos<5)
                 hCursorBPos = 5;
-            hCursorBHead->topLeft->setCoords(-3,hCursorBPos);
+            hCursorBHead->topLeft->setPixelPoint(QPointF(14,curPos));
             if(ui->radioButtonCursorCH1->isChecked())
                 sendHorizontalCursorCH1B();
             else if(ui->radioButtonCursorCH2->isChecked())
@@ -791,28 +878,38 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
         }
         else if(currentSelected == isVCursorAHead)
         {
-            vCursorAPos = ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(event->posF().rx());
+            vCursorAPos = ui->plotterWidget->xAxis->pixelToCoord(event->posF().rx());
+            curPos = event->posF().rx()-16;
+            if(curPos<5)
+                curPos=5;
+            else if(curPos>ui->plotterWidget->visibleRegion().boundingRect().right()-32)
+                curPos = ui->plotterWidget->visibleRegion().boundingRect().right()-32;
             if(vCursorAPos>=xmax)
                 vCursorAPos = xmax-5;
             else if(vCursorAPos<5)
                 vCursorAPos = 5;
-            vCursorAHead->topLeft->setCoords(vCursorAPos,rangeMax+3);
+            vCursorAHead->topLeft->setPixelPoint(QPointF(curPos,10));
             sendVerticalCursorA();
         }
         else if(currentSelected == isVCursorBHead)
         {
-            vCursorBPos = ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(event->posF().rx());
+            vCursorBPos = ui->plotterWidget->xAxis->pixelToCoord(event->posF().rx());
+            curPos = event->posF().rx()-16;
+            if(curPos<5)
+                curPos=5;
+            else if(curPos>ui->plotterWidget->visibleRegion().boundingRect().right()-32)
+                curPos = ui->plotterWidget->visibleRegion().boundingRect().right()-32;
             if(vCursorBPos>=xmax)
                 vCursorBPos = xmax-5;
             else if(vCursorBPos<5)
                 vCursorBPos = 5;
-            vCursorBHead->topLeft->setCoords(vCursorBPos,rangeMax+3);
+            vCursorBHead->topLeft->setPixelPoint(QPointF(curPos,10));
             sendVerticalCursorB();
         }
         else if(currentSelected == isTriggerPixmap)
         {
-            triggerLevel = ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->pixelToCoord(event->posF().ry());
-            triggerPost = ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->pixelToCoord(event->posF().rx());
+            triggerLevel = ui->plotterWidget->yAxis->pixelToCoord(event->posF().ry());
+            triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->posF().rx());
             if(triggerLevel<6)
               triggerLevel = 6;
             else if(triggerLevel>504)
@@ -1709,8 +1806,8 @@ void XprotolabInterface::closeEvent(QCloseEvent *event)
 void XprotolabInterface::on_zoomSlider_valueChanged(int value)
 {
     rangeMax = value;
-    ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->setRange(0,value);
-    ui->plotterWidget->axisRect()->axis(QCPAxis::atLeft)->setTickStep(value/8);
+    ui->plotterWidget->yAxis->setRange(0,value);
+    ui->plotterWidget->yAxis->setTickStep(value/8);
 }
 
 
@@ -2677,43 +2774,7 @@ void XprotolabInterface::on_chdPositionSlider_valueChanged(int value)
     usbDevice.controlWriteTransfer(31, chPos);
 }
 
-void XprotolabInterface::on_ch2CaptureSlider_valueChanged(int value)
-{
-    usbDevice.controlWriteTransfer(30, (byte)(ui->ch2CaptureSlider->minimum() - value));
-}
 
-void XprotolabInterface::on_ch1CaptureSlider_valueChanged(int value)
-{
-    usbDevice.controlWriteTransfer(29, (byte)(ui->ch1CaptureSlider->minimum() - value));
-}
-
-void XprotolabInterface::on_chdCaptureSelector_valueChanged(int value)
-{
-    byte count, temp, chPos;
-    count = 0;
-    if(ui->checkBoxCHD0->isChecked())  // CHD Mask
-        count++;
-    if(ui->checkBoxCHD1->isChecked())
-        count++;
-    if(ui->checkBoxCHD2->isChecked())
-        count++;
-    if(ui->checkBoxCHD3->isChecked())
-        count++;
-    if(ui->checkBoxCHD4->isChecked())
-        count++;
-    if(ui->checkBoxCHD5->isChecked())
-        count++;
-    if(ui->checkBoxCHD6->isChecked())
-        count++;
-    if(ui->checkBoxCHD7->isChecked())
-        count++;
-    // Count CHD enabled pins
-    chPos = (byte)((ui->chdCaptureSelector->maximum() - value) * 8);
-    temp = (byte)((8 - count) * 8);    // Max position
-    if(chPos > temp)
-        chPos = temp;
-    usbDevice.controlWriteTransfer(31, chPos);
-}
 
 void XprotolabInterface::updateSweepCursors()
 {
@@ -3027,9 +3088,15 @@ void XprotolabInterface::setupValues()
 
 
 
+//    customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->yAxis);    // red line
 
 
 
 
 
 
+
+void XprotolabInterface::on_comboBoxTheme_currentIndexChanged(int theme)
+{
+    setTheme(theme);
+}

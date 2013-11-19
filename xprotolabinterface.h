@@ -66,6 +66,12 @@ enum Selected {
     isNone
 };
 
+enum Theme {
+    Dark,
+    Light,
+    Custom
+};
+
 namespace Ui {
 class XprotolabInterface;
 }
@@ -80,9 +86,11 @@ public:
 
 private:
     void setupGrid(QCustomPlot *);
+    void setupGraphs(QCustomPlot *);
     void setupTracers(QCustomPlot *);
     void setupCursors(QCustomPlot *);
     void setupItemLabels(QCustomPlot *);
+    void setTheme(int);
     void closeEvent(QCloseEvent *);
     void selectWaveForm(uint8_t);
     void readDeviceSettings();
@@ -350,11 +358,7 @@ private slots:
 
     void on_protocolTabWidget_currentChanged(int index);
 
-    void on_ch2CaptureSlider_valueChanged(int value);
-
-    void on_ch1CaptureSlider_valueChanged(int value);
-
-    void on_chdCaptureSelector_valueChanged(int value);
+    void on_comboBoxTheme_currentIndexChanged(int index);
 
 private:
     Ui::XprotolabInterface *ui;
@@ -366,7 +370,6 @@ private:
     QStringList rateText,gainText;
     int freqValue[23],xmax,mode;
     bool bitChecked[8],itemIsSelected;
-    QCPGraph *bars1,*bars2;
     QCPItemTracer *phaseTracerAA, *phaseTracerAB, *phaseTracerBA, *phaseTracerBB;
     QCPItemStraightLine *hCursorA, *hCursorB, *vCursorA, *vCursorB;
     QCPItemPixmap *hCursorAHead, *hCursorBHead;
@@ -376,10 +379,23 @@ private:
     byte sniffBuffer[1289];
     uint16_t triggerPost,triggerLevel;
     int currentSelected;
-   // QLabel *ch1Label, *ch2Label, *timeLabel;
 
-   // QCPLegend *legend;
-   // double xtime;
+    QVector<double> ch1RefBuffer,ch2RefBuffer;
+    QVector<double> bitRef[8];
+
+    /************** Graphs **************/
+    QCPGraph *ch1BarGraph,*ch2BarGraph;
+    QCPGraph *ch1Graph, *ch2Graph, *ch1RefGraph, *ch2RefGraph;
+    QCPGraph *chdGraph[8], *chdRefGraph[8];
+
+    /************** Graph Pens **********/
+    QPen  ch1BarPen, ch2BarPen;
+    QPen  ch1Pen, ch2Pen, ch1RefPen, ch2RefPen;
+    QPen  chdPen[8], chdRefPen[8];
+
+    /************** Grid Pens **********/
+    QPen  gridPen, axesPen;
+    QBrush  backgroundBrush;
 };
 
 #endif // XPROTOLABINTERFACE_H
