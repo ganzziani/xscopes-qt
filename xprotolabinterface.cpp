@@ -16,6 +16,8 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     vCursorAPos = 50;
     vCursorBPos = 150;
     itemIsSelected = false;
+    captureRef = false;
+    saveWave = false;
     mode = OSCILLOSCOPE;
     ui->ch1ColorLabel->setStyleSheet("QLabel { background-color : green; }");
     ui->ch2ColorLabel->setStyleSheet("QLabel { background-color : red; }");
@@ -445,14 +447,14 @@ void XprotolabInterface::plotData()
                 byte data = usbDevice.chData[i+512];
                 if((data & (byte)(1 << m)) != 0)
                 {
-                    pos = 20+(m*20)+ui->chdPositionSlider->value()*50;
+                    pos = 20+(m*20)+ui->chdPositionSlider->value()*50+ui->chdSizeSlider->value();
                     bit[m].push_back(pos);
                     textLabelBit[m]->position->setCoords(262, pos-5);
 
                 }
                 else
                 {
-                    pos = 10+(m*20)+ui->chdPositionSlider->value()*50;
+                    pos = 10+(m*20)+ui->chdPositionSlider->value()*50-ui->chdSizeSlider->value();
                     bit[m].push_back(10+(m*20)+ui->chdPositionSlider->value()*50);
                 }
 
@@ -462,33 +464,49 @@ void XprotolabInterface::plotData()
         }
     }
 
-    if(ui->refCH1->isChecked())
+    if(captureRef)
     {
-        if(ch1RefBuffer.isEmpty())
+        captureRef = false;
+        ch1RefBuffer.clear();
+        ch1RefBuffer = ch1Buffer;
+        ch2RefBuffer.clear();
+        ch2RefBuffer = ch2Buffer;
+        for(int k = 0; k<8; k++)
         {
-            ch1RefBuffer = ch1Buffer;
-        }
-        else
-        {
-            for(int k=0;k<ch1RefBuffer.size();k++)
-            {
-                ch1RefBuff.push_back(ch1RefBuffer[k]+ui->ch1CaptureSlider->value());
-            }
+            bitRef[k].clear();
+            bitRef[k] = bit[k];
         }
     }
-    if(ui->refCH2->isChecked())
+    if(saveWave)
     {
-        if(ch2RefBuffer.isEmpty())
+        saveWave = false;
+        ch1SaveBuffer.clear();
+        ch1SaveBuffer = ch1Buffer;
+        ch2SaveBuffer.clear();
+        ch2SaveBuffer = ch2Buffer;
+        for(int k = 0; k<8; k++)
         {
-            ch2RefBuffer = ch2Buffer;
+            bitSaveBuffer[k].clear();
+            bitSaveBuffer[k] = bit[k];
         }
-        else
+        saveWavetoFile();
+    }
+
+    if(ui->refCH1->isChecked() && !ch1RefBuffer.isEmpty())
+    {
+        for(int k=0;k<ch1RefBuffer.size();k++)
         {
-            for(int k=0;k<ch2RefBuffer.size();k++)
-            {
-                ch2RefBuff.push_back(ch2RefBuffer[k]+ui->ch2CaptureSlider->value());
-            }
+            ch1RefBuff.push_back(ch1RefBuffer[k]+ui->ch1CaptureSlider->value());
         }
+
+    }
+    if(ui->refCH2->isChecked() && !ch2RefBuffer.isEmpty())
+    {
+        for(int k=0;k<ch2RefBuffer.size();k++)
+        {
+            ch2RefBuff.push_back(ch2RefBuffer[k]+ui->ch2CaptureSlider->value());
+        }
+
     }
     if(ui->refLogic->isChecked())
     {
@@ -496,7 +514,7 @@ void XprotolabInterface::plotData()
         {
             if(bitRef[k].isEmpty())
             {
-                bitRef[k] = bit[k];
+                continue;
             }
             else
             {
@@ -532,7 +550,6 @@ void XprotolabInterface::plotData()
             else
             {
                 ch1RefGraph->clearData();
-                ch1RefBuffer.clear();
             }
         }
         if(!ui->checkBoxPersistence->isChecked())
@@ -548,7 +565,6 @@ void XprotolabInterface::plotData()
             else
             {
                 ch2RefGraph->clearData();
-                ch2RefBuffer.clear();
             }
         }
         for(int k=0;k<8;k++)
@@ -570,7 +586,6 @@ void XprotolabInterface::plotData()
             if(!ui->refLogic->isChecked())
             {
                 chdRefGraph[k]->clearData();
-                bitRef[k].clear();
             }
 
         }
@@ -1030,23 +1045,28 @@ void XprotolabInterface::setFFTWindow(int type)
 
 void XprotolabInterface::sniffProtocol()
 {
-    if(usbDevice.dataLength == 640)
+    static int size = 0;
+
+    if(usbDevice.dataLength == 770)
     {
-        for(int k = 0; k< 640; k++)
+        for(int k = 0; k< 770; k++)
         {
             sniffBuffer[k] = usbDevice.chData[k];
         }
-        qDebug()<<"1 transfer";
+        size = 770;
         return;
     }
-    else
+    else if(usbDevice.dataLength == 519)
     {
-        for(int k = 640; k< 1289; k++)
+        for(int k = 770 ; k< 1289; k++)
         {
             sniffBuffer[k] = usbDevice.chData[k-640];
         }
-        qDebug()<<usbDevice.dataLength;
+        size = size+519;
     }
+    if(size!=1289)
+        return;
+    size = 0;
     sniffLogic = (Sniffer*)sniffBuffer;
 
     sniffLogic = (Sniffer*)usbDevice.chData;
@@ -1556,13 +1576,17 @@ void XprotolabInterface::readDeviceSettings()
     // GPIOB MStatus
     data = usbDevice.inBuffer[11];
     if((data & (byte)(1 << 3)) != 0)
-       ui->startSnifferButton->setText(tr("START"));
-    else
+    {
        ui->startSnifferButton->setText(tr("STOP"));
+       mode = SNIFFER;
+       ui->mainTabWidget->setCurrentIndex(2);
+    }
+    else
+       ui->startSnifferButton->setText(tr("START"));
     if((data & (byte)(1 << 4)) != 0)
        mode = OSCILLOSCOPE;
-    else
-       ui->stopButton->setText(tr("STOP"));
+    else if(mode!=OSCILLOSCOPE||mode!=SNIFFER)
+       ui->stopButton->setText(tr("START"));
     // M 12 Gain CH1
     data = usbDevice.inBuffer[12];
     if((byte)data >= ui->ch1GainSlider->minimum() && (byte)data <= ui->ch1GainSlider->maximum())
@@ -3099,4 +3123,64 @@ void XprotolabInterface::setupValues()
 void XprotolabInterface::on_comboBoxTheme_currentIndexChanged(int theme)
 {
     setTheme(theme);
+}
+
+void XprotolabInterface::on_chdSizeSlider_valueChanged(int value)
+{
+
+}
+
+void XprotolabInterface::on_captureButton_clicked()
+{
+    captureRef = true;
+}
+
+void XprotolabInterface::on_screenShotButton_clicked()
+{
+    QPixmap sshot = QPixmap::grabWidget(ui->widget,0,0,-1,ui->widget->height()-20);
+    QString fileName = "sshot"+QTime::currentTime().toString()+".png";
+    fileName.replace(":", "");
+    if(filePath.isEmpty())
+    {
+        filePath=QFileDialog::getExistingDirectory(this);
+    }
+
+    if(filePath.isEmpty())
+        return;
+    sshot.save(filePath+QDir::separator()+fileName);
+}
+
+void XprotolabInterface::on_saveWave_clicked()
+{
+    saveWave = true;
+}
+
+void XprotolabInterface::saveWavetoFile()
+{
+    QString fileName = "waveFile"+QTime::currentTime().toString()+".csv";
+    fileName.replace(":", "");
+    if(filePath.isEmpty())
+    {
+        filePath=QFileDialog::getExistingDirectory(this);
+    }
+
+    if(filePath.isEmpty())
+        return;
+    QFile waveData(filePath+QDir::separator()+fileName);
+    if (waveData.open(QFile::WriteOnly | QFile::Truncate))
+    {
+        QTextStream out(&waveData);
+        out << "CH1, " << "CH2, " <<"Bit0, " <<"Bit1, " <<"Bit2, " <<"Bit3, " <<"Bit4, " <<"Bit5, " <<"Bit6, " <<"Bit7, " <<"Bit8, ";
+        for(int i=0;i<ch1SaveBuffer.size();i++)
+        {
+            //out << ch1SaveBuffer[i] +", "<< ch2SaveBuffer[i] +", "<< bitSaveBuffer[0]. +", "<<
+        }
+    }
+    waveData.close();
+    ch1SaveBuffer.clear();
+    ch2SaveBuffer.clear();
+    for(int k=0;k<8;k++)
+    {
+        bitSaveBuffer[k].clear();
+    }
 }

@@ -91,6 +91,7 @@ private:
     void setupCursors(QCustomPlot *);
     void setupItemLabels(QCustomPlot *);
     void setTheme(int);
+    void saveWavetoFile();
     void closeEvent(QCloseEvent *);
     void selectWaveForm(uint8_t);
     void readDeviceSettings();
@@ -360,16 +361,25 @@ private slots:
 
     void on_comboBoxTheme_currentIndexChanged(int index);
 
+    void on_chdSizeSlider_valueChanged(int value);
+
+    void on_captureButton_clicked();
+
+    void on_screenShotButton_clicked();
+
+    void on_saveWave_clicked();
+
 private:
     Ui::XprotolabInterface *ui;
     QTimer dataTimer;
     LibUsbDevice usbDevice;
     Sniffer *sniffLogic;
     bool isScrolling;
+    QString filePath;
     double rangeMax,fftWindow[256],hCursorAPos ,hCursorBPos ,vCursorAPos ,vCursorBPos;
     QStringList rateText,gainText;
     int freqValue[23],xmax,mode;
-    bool bitChecked[8],itemIsSelected;
+    bool bitChecked[8],itemIsSelected,captureRef,saveWave;
     QCPItemTracer *phaseTracerAA, *phaseTracerAB, *phaseTracerBA, *phaseTracerBB;
     QCPItemStraightLine *hCursorA, *hCursorB, *vCursorA, *vCursorB;
     QCPItemPixmap *hCursorAHead, *hCursorBHead;
@@ -380,8 +390,8 @@ private:
     uint16_t triggerPost,triggerLevel;
     int currentSelected;
 
-    QVector<double> ch1RefBuffer,ch2RefBuffer;
-    QVector<double> bitRef[8];
+    QVector<double> ch1RefBuffer, ch2RefBuffer, ch1SaveBuffer, ch2SaveBuffer;
+    QVector<double> bitRef[8], bitSaveBuffer[8];
 
     /************** Graphs **************/
     QCPGraph *ch1BarGraph,*ch2BarGraph;
