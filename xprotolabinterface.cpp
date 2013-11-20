@@ -1060,7 +1060,7 @@ void XprotolabInterface::sniffProtocol()
     {
         for(int k = 770 ; k< 1289; k++)
         {
-            sniffBuffer[k] = usbDevice.chData[k-640];
+            sniffBuffer[k] = usbDevice.chData[k-770];
         }
         size = size+519;
     }
@@ -1068,16 +1068,8 @@ void XprotolabInterface::sniffProtocol()
         return;
     size = 0;
     sniffLogic = (Sniffer*)sniffBuffer;
-
-    sniffLogic = (Sniffer*)usbDevice.chData;
     int n=0,i=0,j=0;
 
-    if(ui->checkBoxCircular->isChecked())
-    {
-        i=sniffLogic->indrx;
-        if(i>=640)
-            i-=640;
-    }
     ui->rxTextEdit->clear();
     ui->txTextEdit->clear();
     ui->misoTextEdit->clear();
@@ -1089,32 +1081,32 @@ void XprotolabInterface::sniffProtocol()
 
     if(protocol==SPI||protocol==RS232)
     {
-        for(n=i; j<640; n++,j++)
+        if(ui->checkBoxCircular->isChecked())
+        {
+            i=sniffLogic->indrx;
+            if(i>=640)
+                i-=640;
+        }
+        for(n=i,j=0; j<640; n++,j++)
         {
             if(ui->checkBoxCircular->isChecked())
             {
                 if(n>639)
                     n=0;
             }
-//            if(!testbit(Trigger, round))
-//            {
 
-//                if(i>=Temp.LOGIC.indrx)
-//                    break;
+            data = sniffLogic->data.Serial.RX[n];
+            if(ui->checkBoxASCII->isChecked())
+            {
+                if(data<0x20)
+                    rxData.append("_");    // Special character
 
-//            }
-              data = sniffLogic->data.Serial.RX[n];
-              if(ui->checkBoxASCII->isChecked())
-              {
-                  if(data<0x20)
-                      rxData.append("_");    // Special character
+                else
+                    rxData.append(data);
 
-                  else
-                      rxData.append(data);
-
-              }
-              else
-                  rxData.append(data);
+            }
+            else
+                rxData.append(data);
 
 
         }
@@ -1139,7 +1131,7 @@ void XprotolabInterface::sniffProtocol()
             }
         }
 
-
+        i=0;
         if(ui->checkBoxCircular->isChecked())
         {
             i=sniffLogic->indtx;
@@ -1147,8 +1139,8 @@ void XprotolabInterface::sniffProtocol()
                 i-=640;
         }
 
-        j = 0;
-        for(n=i; j<640; n++,j++)
+
+        for(n=i,j=0; j<640; n++,j++)
         {
              if(ui->checkBoxCircular->isChecked())
              {
@@ -3167,14 +3159,69 @@ void XprotolabInterface::saveWavetoFile()
     if(filePath.isEmpty())
         return;
     QFile waveData(filePath+QDir::separator()+fileName);
-    if (waveData.open(QFile::WriteOnly | QFile::Truncate))
+    if (waveData.open(QIODevice::Text))
     {
         QTextStream out(&waveData);
-        out << "CH1, " << "CH2, " <<"Bit0, " <<"Bit1, " <<"Bit2, " <<"Bit3, " <<"Bit4, " <<"Bit5, " <<"Bit6, " <<"Bit7, " <<"Bit8, ";
+        out << "CH1,";
         for(int i=0;i<ch1SaveBuffer.size();i++)
         {
-            //out << ch1SaveBuffer[i] +", "<< ch2SaveBuffer[i] +", "<< bitSaveBuffer[0]. +", "<<
+            out << ch1SaveBuffer[i] << ", ";//<< ch2SaveBuffer[i] +", "<< bitSaveBuffer[0]. +", "<<
         }
+        out << "<*>, "<<endl;
+        out << "CH2, ";
+        for(int i=0;i<ch2SaveBuffer.size();i++)
+        {
+            out << ch2SaveBuffer[i] << ", ";
+        }
+        out << "<*>, "<<endl;
+        out << "Bit0, ";
+        for(int i=0;i<bitSaveBuffer[0].size();i++)
+        {
+            out << bitSaveBuffer[0].at(i) << ", ";
+        }
+        out << "<*>, "<<endl;
+        out << "Bit1, ";
+        for(int i=0;i<bitSaveBuffer[1].size();i++)
+        {
+            out << bitSaveBuffer[1].at(i) << ", ";
+        }
+        out << "<*>, "<<endl;
+        out << "Bit2, ";
+        for(int i=0;i<bitSaveBuffer[2].size();i++)
+        {
+            out << bitSaveBuffer[2].at(i) << ", ";
+        }
+        out << "<*>, "<<endl;
+        out << "Bit3, ";
+        for(int i=0;i<bitSaveBuffer[3].size();i++)
+        {
+            out << bitSaveBuffer[3].at(i) << ", ";
+        }
+        out << "<*>, "<<endl;
+        out << "Bit4, ";
+        for(int i=0;i<bitSaveBuffer[4].size();i++)
+        {
+            out << bitSaveBuffer[4].at(i) << ", ";
+        }
+        out << "<*>, "<<endl;
+        out << "Bit5, ";
+        for(int i=0;i<bitSaveBuffer[5].size();i++)
+        {
+            out << bitSaveBuffer[5].at(i) << ", ";
+        }
+        out << "<*>, "<<endl;
+        out << "Bit6, ";
+        for(int i=0;i<bitSaveBuffer[6].size();i++)
+        {
+            out << bitSaveBuffer[6].at(i) << ", ";
+        }
+        out << "<*>, "<<endl;
+        out << "Bit7, ";
+        for(int i=0;i<bitSaveBuffer[7].size();i++)
+        {
+            out << bitSaveBuffer[7].at(i) << ", ";
+        }
+
     }
     waveData.close();
     ch1SaveBuffer.clear();
