@@ -188,12 +188,14 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     hCursorA->setPen(QPen(QColor("#1692e5"), 1, Qt::DotLine));
     hCursorA->setSelectable(false);
 
+
     hCursorAHead = new QCPItemPixmap(customPlot);
     customPlot->addItem(hCursorAHead);
     hCursorAHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/hcursorA.png"));
     hCursorAHead->topLeft->setCoords(-3,hCursorAPos);
     hCursorA->point1->setParentAnchor(hCursorAHead->right);
     hCursorA->point2->setParentAnchor(hCursorAHead->right);
+    hCursorAHead->setVisible(false);
 
 
     hCursorB = new QCPItemStraightLine(customPlot);
@@ -210,6 +212,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     hCursorBHead->topLeft->setCoords(-3,hCursorBPos);
     hCursorB->point1->setParentAnchor(hCursorBHead->right);
     hCursorB->point2->setParentAnchor(hCursorBHead->right);
+    hCursorBHead->setVisible(false);
 
     vCursorA = new QCPItemStraightLine(customPlot);
     customPlot->addItem(vCursorA);
@@ -233,6 +236,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     vCursorAHead->topLeft->setCoords(150,rangeMax+3);
     vCursorA->point1->setParentAnchor(vCursorAHead->bottom);
     vCursorA->point2->setParentAnchor(vCursorAHead->bottom);
+    vCursorAHead->setVisible(false);
 
 
     vCursorBHead = new QCPItemPixmap(customPlot);
@@ -241,6 +245,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     vCursorBHead->topLeft->setCoords(150,rangeMax+3);
     vCursorB->point1->setParentAnchor(vCursorBHead->bottom);
     vCursorB->point2->setParentAnchor(vCursorBHead->bottom);
+    vCursorBHead->setVisible(false);
 
 
 }
@@ -297,11 +302,12 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
         customPlot->addItem(textLabelBit[i]);
         textLabelBit[i]->setColor(Qt::red);
         qDebug()<<customPlot->axisRect()->topRight();
-        textLabelBit[i]->position->setCoords(QPointF(customPlot->axisRect()->topRight()));
+        textLabelBit[i]->position->setCoords(0,0);
         textLabelBit[i]->setText("Bit "+QString::number(i));
         textLabelBit[i]->setFont(QFont(font().family(), 8, QFont::DemiBold));
         textLabelBit[i]->setSelectable(false);
         textLabelBit[i]->setClipToAxisRect(false);
+        textLabelBit[i]->setVisible(false);
        // textLabelBit[i]->position->setType(QCPItemPosition::ptAbsolute);
        // textLabelBit[i]->setPen(QPen(Qt::red)); // show black border around text
     }
@@ -313,6 +319,7 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
     textLabelDeltaTime->setText(QString::fromUtf8("ΔT = 0 ms"));
     textLabelDeltaTime->setFont(QFont(font().family(), 8,QFont::DemiBold));
     textLabelDeltaTime->setSelectable(false);
+    textLabelDeltaTime->setVisible(false);
 
     textLabelFrequency = new QCPItemText(customPlot);
     customPlot->addItem(textLabelFrequency);
@@ -321,6 +328,7 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
     textLabelFrequency->setText(QString::fromUtf8(" 1/ΔT = 0 ms "));
     textLabelFrequency->setFont(QFont(font().family(), 8,QFont::DemiBold));
     textLabelFrequency->setSelectable(false);
+    textLabelFrequency->setVisible(false);
 
     textLabelDeltaVoltage = new QCPItemText(customPlot);
     customPlot->addItem(textLabelDeltaVoltage);
@@ -329,6 +337,7 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
     textLabelDeltaVoltage->setText("ΔV = 0 V");
     textLabelDeltaVoltage->setFont(QFont(font().family(), 8,QFont::DemiBold));
     textLabelDeltaVoltage->setSelectable(false);
+    textLabelDeltaVoltage->setVisible(false);
 
     textLabelVoltageB = new QCPItemText(customPlot);
     customPlot->addItem( textLabelVoltageB);
@@ -337,6 +346,7 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
     textLabelVoltageB->setText("VB = 0 V");
     textLabelVoltageB->setFont(QFont(font().family(), 8, QFont::DemiBold));
     textLabelVoltageB->setSelectable(false);
+    textLabelVoltageB->setVisible(false);
 
     textLabelVoltageA = new QCPItemText(customPlot);
     customPlot->addItem( textLabelVoltageA);
@@ -345,6 +355,7 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
     textLabelVoltageA->setText("VA = 0 V");
     textLabelVoltageA->setFont(QFont(font().family(), 8, QFont::DemiBold));
     textLabelVoltageA->setSelectable(false);
+    textLabelVoltageA->setVisible(false);
 
     triggerPixmap = new QCPItemPixmap(customPlot);
     customPlot->addItem(triggerPixmap);
@@ -450,7 +461,7 @@ void XprotolabInterface::plotData()
                 {
                     pos = 20+(m*20)+ui->chdPositionSlider->value()*50+ui->chdSizeSlider->value();
                     bit[m].push_back(pos);
-                    textLabelBit[m]->position->setCoords(262, pos-5);
+                    textLabelBit[m]->position->setCoords(246, pos-5);
 
                 }
                 else
@@ -476,6 +487,18 @@ void XprotolabInterface::plotData()
         {
             bitRef[k].clear();
             bitRef[k] = bit[k];
+        }
+    }
+    if(displayLoadedWave)
+    {
+        ch1Buffer.clear();
+        ch1Buffer = ch1SaveBuffer;
+        ch2Buffer.clear();
+        ch2Buffer = ch2SaveBuffer;
+        for(int k = 0; k<8; k++)
+        {
+            bit[k].clear();
+            bit[k] = bitSaveBuffer[k];
         }
     }
     if(saveWave)
@@ -1058,7 +1081,7 @@ void XprotolabInterface::sniffProtocol()
     QByteArray rxData, txData, i2cData;
     int protocol = ui->protocolTabWidget->currentIndex();
     int max = 640;
-    //qDebug()<<qFromBigEndian(sniffLogic->indtx);
+    qDebug()<<qFromBigEndian(sniffLogic->indtx);
     if(protocol==SPI||protocol==RS232)
     {
         if(ui->checkBoxCircular->isChecked())
@@ -3250,13 +3273,13 @@ void XprotolabInterface::on_loadWave_clicked()
         rawParsedData.removeAll("\n");
         rawParsedData.removeAll("\r");
         QStringList parsedData = rawParsedData[0].split(",");
-        for(int i=1;i<parsedData.length();i++)
+        for(int i=1;i<parsedData.length()-1;i++)
         {
             ch1SaveBuffer.push_back(parsedData[i].toDouble());
         }
         parsedData.clear();
         parsedData = rawParsedData[1].split(",");
-        for(int i=1;i<parsedData.length();i++)
+        for(int i=1;i<parsedData.length()-1;i++)
         {
             ch2SaveBuffer.push_back(parsedData[i].toDouble());
         }
@@ -3264,7 +3287,7 @@ void XprotolabInterface::on_loadWave_clicked()
         {
             parsedData.clear();
             parsedData = rawParsedData[k+2].split(",");
-            for(int i=1;i<parsedData.length();i++)
+            for(int i=1;i<parsedData.length()-1;i++)
             {
                 bitSaveBuffer[k].push_back(parsedData[i].toDouble());
             }

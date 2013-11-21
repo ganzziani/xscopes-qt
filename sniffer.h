@@ -1,10 +1,8 @@
 #ifndef SNIFFER_H
 #define SNIFFER_H
 
-class Sniffer
+struct Sniffer
 {
-    public:
-
     union
     {
         struct
