@@ -18,6 +18,7 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     itemIsSelected = false;
     captureRef = false;
     saveWave = false;
+    displayLoadedWave = false;
     mode = OSCILLOSCOPE;
     ui->ch1ColorLabel->setStyleSheet("QLabel { background-color : green; }");
     ui->ch2ColorLabel->setStyleSheet("QLabel { background-color : red; }");
@@ -1045,29 +1046,7 @@ void XprotolabInterface::setFFTWindow(int type)
 
 void XprotolabInterface::sniffProtocol()
 {
-    static int size = 0;
-
-    if(usbDevice.dataLength == 770)
-    {
-        for(int k = 0; k< 770; k++)
-        {
-            sniffBuffer[k] = usbDevice.chData[k];
-        }
-        size = 770;
-        return;
-    }
-    else if(usbDevice.dataLength == 519)
-    {
-        for(int k = 770 ; k< 1289; k++)
-        {
-            sniffBuffer[k] = usbDevice.chData[k-770];
-        }
-        size = size+519;
-    }
-    if(size!=1289)
-        return;
-    size = 0;
-    sniffLogic = (Sniffer*)sniffBuffer;
+    sniffLogic = (Sniffer*)usbDevice.chData;
     int n=0,i=0,j=0;
 
     ui->rxTextEdit->clear();
@@ -1078,16 +1057,24 @@ void XprotolabInterface::sniffProtocol()
     unsigned char data, addrData;
     QByteArray rxData, txData, i2cData;
     int protocol = ui->protocolTabWidget->currentIndex();
-
+    int max = 640;
+    //qDebug()<<qFromBigEndian(sniffLogic->indtx);
     if(protocol==SPI||protocol==RS232)
     {
         if(ui->checkBoxCircular->isChecked())
         {
-            i=sniffLogic->indrx;
+            i=qFromBigEndian(sniffLogic->indrx);
             if(i>=640)
                 i-=640;
+            max = 640;
         }
-        for(n=i,j=0; j<640; n++,j++)
+        else
+        {
+            max = qFromBigEndian(sniffLogic->indrx);
+            if(max>640)
+                max=640;
+        }
+        for(n=i,j=0; j<max; n++,j++)
         {
             if(ui->checkBoxCircular->isChecked())
             {
@@ -1134,13 +1121,20 @@ void XprotolabInterface::sniffProtocol()
         i=0;
         if(ui->checkBoxCircular->isChecked())
         {
-            i=sniffLogic->indtx;
+            i=qFromBigEndian(sniffLogic->indtx);
             if(i>=640)
                 i-=640;
+            max = 640;
+        }
+        else
+        {
+            max = qFromBigEndian(sniffLogic->indtx);
+            if(max>640)
+                max=640;
         }
 
 
-        for(n=i,j=0; j<640; n++,j++)
+        for(n=i,j=0; j<max; n++,j++)
         {
              if(ui->checkBoxCircular->isChecked())
              {
@@ -1192,11 +1186,18 @@ void XprotolabInterface::sniffProtocol()
         i = 0;j = 0;
         if(ui->checkBoxCircular->isChecked())
         {
-            i=sniffLogic->indrx;
+            i=qFromBigEndian(sniffLogic->indrx);
             if(i>=1024)
                 i-=1024;
+            max = 1024;
         }
-        for(n=i; j<1024; n++,j++)
+        else
+        {
+            max = qFromBigEndian(sniffLogic->indtx);
+            if(max>1024)
+                max=1024;
+        }
+        for(n=i; j<max; n++,j++)
         {
             if(ui->checkBoxCircular->isChecked())
             {
@@ -1209,6 +1210,7 @@ void XprotolabInterface::sniffProtocol()
             shift = (i&0x0003)*2;
 
             data = sniffLogic->data.I2C.decoded[i];
+            qDebug()<<data;
 
             addrData = sniffLogic->data.I2C.addr_ack[i/4];
 
@@ -1216,7 +1218,7 @@ void XprotolabInterface::sniffProtocol()
 
             addrData = (addrData<<shift)&0x80;
 
-            if(0&&addrData)
+            if(addrData)
             {  // Address
 
                 i2cData.append((data>>1)); // hex
@@ -3149,7 +3151,7 @@ void XprotolabInterface::on_saveWave_clicked()
 
 void XprotolabInterface::saveWavetoFile()
 {
-    QString fileName = "waveFile"+QTime::currentTime().toString()+".csv";
+    QString fileName = "waveFile"+QTime::currentTime().toString()+".xsp";
     fileName.replace(":", "");
     if(filePath.isEmpty())
     {
@@ -3159,67 +3161,67 @@ void XprotolabInterface::saveWavetoFile()
     if(filePath.isEmpty())
         return;
     QFile waveData(filePath+QDir::separator()+fileName);
-    if (waveData.open(QIODevice::Text))
+    if (waveData.open(QFile::WriteOnly | QFile::Truncate | QIODevice::Text))
     {
         QTextStream out(&waveData);
         out << "CH1,";
         for(int i=0;i<ch1SaveBuffer.size();i++)
         {
-            out << ch1SaveBuffer[i] << ", ";//<< ch2SaveBuffer[i] +", "<< bitSaveBuffer[0]. +", "<<
+            out << ch1SaveBuffer[i] << ",";
         }
-        out << "<*>, "<<endl;
-        out << "CH2, ";
+        out << "<*>"<<endl;
+        out << "CH2,";
         for(int i=0;i<ch2SaveBuffer.size();i++)
         {
-            out << ch2SaveBuffer[i] << ", ";
+            out << ch2SaveBuffer[i] << ",";
         }
-        out << "<*>, "<<endl;
-        out << "Bit0, ";
+        out << "<*>"<<endl;
+        out << "Bit0,";
         for(int i=0;i<bitSaveBuffer[0].size();i++)
         {
-            out << bitSaveBuffer[0].at(i) << ", ";
+            out << bitSaveBuffer[0].at(i) << ",";
         }
-        out << "<*>, "<<endl;
-        out << "Bit1, ";
+        out << "<*>"<<endl;
+        out << "Bit1,";
         for(int i=0;i<bitSaveBuffer[1].size();i++)
         {
-            out << bitSaveBuffer[1].at(i) << ", ";
+            out << bitSaveBuffer[1].at(i) << ",";
         }
-        out << "<*>, "<<endl;
-        out << "Bit2, ";
+        out << "<*>"<<endl;
+        out << "Bit2,";
         for(int i=0;i<bitSaveBuffer[2].size();i++)
         {
-            out << bitSaveBuffer[2].at(i) << ", ";
+            out << bitSaveBuffer[2].at(i) << ",";
         }
-        out << "<*>, "<<endl;
-        out << "Bit3, ";
+        out << "<*>"<<endl;
+        out << "Bit3,";
         for(int i=0;i<bitSaveBuffer[3].size();i++)
         {
-            out << bitSaveBuffer[3].at(i) << ", ";
+            out << bitSaveBuffer[3].at(i) << ",";
         }
-        out << "<*>, "<<endl;
-        out << "Bit4, ";
+        out << "<*>"<<endl;
+        out << "Bit4,";
         for(int i=0;i<bitSaveBuffer[4].size();i++)
         {
-            out << bitSaveBuffer[4].at(i) << ", ";
+            out << bitSaveBuffer[4].at(i) << ",";
         }
-        out << "<*>, "<<endl;
-        out << "Bit5, ";
+        out << "<*>"<<endl;
+        out << "Bit5,";
         for(int i=0;i<bitSaveBuffer[5].size();i++)
         {
-            out << bitSaveBuffer[5].at(i) << ", ";
+            out << bitSaveBuffer[5].at(i) << ",";
         }
-        out << "<*>, "<<endl;
-        out << "Bit6, ";
+        out << "<*>"<<endl;
+        out << "Bit6,";
         for(int i=0;i<bitSaveBuffer[6].size();i++)
         {
-            out << bitSaveBuffer[6].at(i) << ", ";
+            out << bitSaveBuffer[6].at(i) << ",";
         }
-        out << "<*>, "<<endl;
-        out << "Bit7, ";
+        out << "<*>"<<endl;
+        out << "Bit7,";
         for(int i=0;i<bitSaveBuffer[7].size();i++)
         {
-            out << bitSaveBuffer[7].at(i) << ", ";
+            out << bitSaveBuffer[7].at(i) << ",";
         }
 
     }
@@ -3229,5 +3231,45 @@ void XprotolabInterface::saveWavetoFile()
     for(int k=0;k<8;k++)
     {
         bitSaveBuffer[k].clear();
+    }
+}
+
+void XprotolabInterface::on_loadWave_clicked()
+{
+    QString buffer;
+    QString fpath;
+    fpath=QFileDialog::getOpenFileName(this, tr("Open File"),
+                                       QDir::homePath(),"Xscope files (*.xsp)");
+    if(fpath.isEmpty())
+        return;
+    QFile waveData(fpath);
+    if (waveData.open(QFile::ReadOnly))
+    {
+        buffer = waveData.readAll();
+        QStringList rawParsedData = buffer.split("<*>");
+        rawParsedData.removeAll("\n");
+        rawParsedData.removeAll("\r");
+        QStringList parsedData = rawParsedData[0].split(",");
+        for(int i=1;i<parsedData.length();i++)
+        {
+            ch1SaveBuffer.push_back(parsedData[i].toDouble());
+        }
+        parsedData.clear();
+        parsedData = rawParsedData[1].split(",");
+        for(int i=1;i<parsedData.length();i++)
+        {
+            ch2SaveBuffer.push_back(parsedData[i].toDouble());
+        }
+        for(int k =0;k<8;k++)
+        {
+            parsedData.clear();
+            parsedData = rawParsedData[k+2].split(",");
+            for(int i=1;i<parsedData.length();i++)
+            {
+                bitSaveBuffer[k].push_back(parsedData[i].toDouble());
+            }
+        }
+        displayLoadedWave = true;
+
     }
 }

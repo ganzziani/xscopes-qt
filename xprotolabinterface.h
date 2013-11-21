@@ -54,6 +54,7 @@ enum Mode {
     OSCILLOSCOPE,
     SNIFFER,
     METER,
+    CUSTOM,
     NONE
 };
 
@@ -369,6 +370,8 @@ private slots:
 
     void on_saveWave_clicked();
 
+    void on_loadWave_clicked();
+
 private:
     Ui::XprotolabInterface *ui;
     QTimer dataTimer;
@@ -379,7 +382,7 @@ private:
     double rangeMax,fftWindow[256],hCursorAPos ,hCursorBPos ,vCursorAPos ,vCursorBPos;
     QStringList rateText,gainText;
     int freqValue[23],xmax,mode;
-    bool bitChecked[8],itemIsSelected,captureRef,saveWave;
+    bool bitChecked[8],itemIsSelected,captureRef,saveWave,displayLoadedWave;
     QCPItemTracer *phaseTracerAA, *phaseTracerAB, *phaseTracerBA, *phaseTracerBB;
     QCPItemStraightLine *hCursorA, *hCursorB, *vCursorA, *vCursorB;
     QCPItemPixmap *hCursorAHead, *hCursorBHead;
