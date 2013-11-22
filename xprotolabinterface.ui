@@ -215,7 +215,7 @@
       <widget class="QTabWidget" name="mainTabWidget">
        <property name="maximumSize">
         <size>
-         <width>686</width>
+         <width>468</width>
          <height>16777215</height>
         </size>
        </property>
@@ -225,7 +225,7 @@
         </font>
        </property>
        <property name="currentIndex">
-        <number>3</number>
+        <number>2</number>
        </property>
        <property name="elideMode">
         <enum>Qt::ElideNone</enum>

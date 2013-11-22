@@ -1069,33 +1069,40 @@ void XprotolabInterface::setFFTWindow(int type)
 
 void XprotolabInterface::sniffProtocol()
 {
+    if(usbDevice.dataLength<1289)
+        return;
     sniffLogic = (Sniffer*)usbDevice.chData;
-    int n=0,i=0,j=0;
+    int j=0;
+    uint16_t i =0,n=0;
 
     ui->rxTextEdit->clear();
     ui->txTextEdit->clear();
     ui->misoTextEdit->clear();
     ui->mosiTextEdit->clear();
     ui->i2cTextEdit->clear();
-    unsigned char data, addrData;
-    QByteArray rxData, txData, i2cData;
+    byte data, addrData;
+    QByteArray bdata;
+    QString rxData, txData,i2cData;
     int protocol = ui->protocolTabWidget->currentIndex();
     int max = 640;
-    qDebug()<<qFromBigEndian(sniffLogic->indtx);
-    qDebug()<<qFromBigEndian(sniffLogic->indrx);
-    qDebug()<<qFromBigEndian(sniffLogic->baud);
+    uint16_t indexrx = 0,indextx = 0;
+    indexrx = ((unsigned short)usbDevice.chData[1281]) * 256 + usbDevice.chData[1282];
+    indexrx = qFromBigEndian(indexrx);
+    indextx = ((unsigned short)usbDevice.chData[1283]) * 256 + usbDevice.chData[1284];
+    indextx = qFromBigEndian(indextx);
+
     if(protocol==SPI||protocol==RS232)
     {
         if(ui->checkBoxCircular->isChecked())
         {
-            i=qFromBigEndian(sniffLogic->indrx);
+            i=indexrx;
             if(i>=640)
                 i-=640;
             max = 640;
         }
         else
         {
-            max = qFromBigEndian(sniffLogic->indrx);
+            max = indexrx;
             if(max>640)
                 max=640;
         }
@@ -1115,45 +1122,35 @@ void XprotolabInterface::sniffProtocol()
 
                 else
                     rxData.append(data);
+                rxData.append(" ");
 
             }
             else
-                rxData.append(data);
+            {
+                bdata.append(data);
+                rxData.append(bdata.toHex());
+                rxData.append(" ");
+                bdata.clear();
+            }
 
 
         }
-        if(ui->checkBoxASCII->isChecked())
-        {
-            if(protocol == RS232)
-                ui->rxTextEdit->setPlainText(rxData);
-            else if(protocol == SPI)
-                ui->mosiTextEdit->setPlainText(rxData);
-        }
-        else
-        {
-            if(protocol == RS232)
-            {
-                ui->rxTextEdit->appendPlainText(rxData.toHex());
-                //ui->rxTextEdit->appendPlainText(" ");
-            }
-            else if(protocol == SPI)
-            {
-                ui->mosiTextEdit->appendPlainText(rxData.toHex());
-                //ui->mosiTextEdit->appendPlainText(" ");
-            }
-        }
+        if(protocol == RS232)
+            ui->rxTextEdit->setPlainText(rxData);
+        else if(protocol == SPI)
+            ui->mosiTextEdit->setPlainText(rxData);
 
         i=0;
         if(ui->checkBoxCircular->isChecked())
         {
-            i=qFromBigEndian(sniffLogic->indtx);
+            i=indextx;
             if(i>=640)
                 i-=640;
             max = 640;
         }
         else
         {
-            max = qFromBigEndian(sniffLogic->indtx);
+            max = indextx;
             if(max>640)
                 max=640;
         }
@@ -1174,35 +1171,22 @@ void XprotolabInterface::sniffProtocol()
 
                   else
                       txData.append(data);
+                  txData.append(" ");
 
               }
               else
               {
-                  txData.append(data);
+                  bdata.append(data);
+                  txData.append(bdata.toHex());
+                  txData.append(" ");
+                  bdata.clear();
               }
 
         }
-        if(ui->checkBoxASCII->isChecked())
-        {
-            if(protocol == RS232)
-                ui->txTextEdit->setPlainText(txData);
-            else if(protocol == SPI)
-                ui->misoTextEdit->setPlainText(txData);
-
-        }
-        else
-        {
-            if(protocol == RS232)
-            {
-                ui->txTextEdit->appendPlainText(txData.toHex());
-                //ui->txTextEdit->appendPlainText(" ");
-            }
-            else if(protocol == SPI)
-            {
-                ui->misoTextEdit->appendPlainText(txData.toHex());
-                //ui->misoTextEdit->appendPlainText(" ");
-            }
-        }
+        if(protocol == RS232)
+            ui->txTextEdit->setPlainText(txData);
+        else if(protocol == SPI)
+            ui->misoTextEdit->setPlainText(txData);
 
     }
     else if(ui->protocolTabWidget->currentIndex()==I2C)
@@ -1211,14 +1195,14 @@ void XprotolabInterface::sniffProtocol()
         i = 0;j = 0;
         if(ui->checkBoxCircular->isChecked())
         {
-            i=qFromBigEndian(sniffLogic->indrx);
+            i=indexrx;
             if(i>=1024)
                 i-=1024;
             max = 1024;
         }
         else
         {
-            max = qFromBigEndian(sniffLogic->indtx);
+            max = indexrx;
             if(max>1024)
                 max=1024;
         }
@@ -1232,12 +1216,10 @@ void XprotolabInterface::sniffProtocol()
 
             uint8_t shift, ack;
 
-            shift = (i&0x0003)*2;
+            shift = (n&0x0003)*2;
 
-            data = sniffLogic->data.i2c.decoded[i];
-            qDebug()<<data;
-
-            addrData = sniffLogic->data.i2c.addr_ack[i/4];
+            data = usbDevice.chData[n];
+            addrData = sniffLogic->data.i2c.addr_ack[n/4];
 
             ack = (addrData<<(shift+1))&0x80;
 
@@ -1245,24 +1227,25 @@ void XprotolabInterface::sniffProtocol()
 
             if(addrData)
             {  // Address
-
-                i2cData.append((data>>1)); // hex
+                bdata.append(data>>1);
+                i2cData.append(bdata.toHex());
+                bdata.clear();
 
                 if((data & (byte)(1)) != 0)
                 {   // Read
 
-                    if(ack) i2cData.append('<');  // Ack
+                    if(ack) i2cData.append("<");  // Ack
 
-                    else    i2cData.append('(');  // No Ack
+                    else    i2cData.append("(");  // No Ack
 
                 }
 
                 else
                 {                  // Write
 
-                    if(ack) i2cData.append('>');  // Ack
+                    if(ack) i2cData.append(">");  // Ack
 
-                    else    i2cData.append(')');  // No Ack
+                    else    i2cData.append(")");  // No Ack
 
                 }
 
@@ -1270,19 +1253,21 @@ void XprotolabInterface::sniffProtocol()
 
             else
             {          // Data
+                bdata.append(data);
+                i2cData.append(bdata.toHex());
+                bdata.clear();
+                if(ack)
+                    i2cData.append("+");  // Ack
 
-                i2cData.append(data);
-
-                if(ack) i2cData.append('+');  // Ack
-
-                else    i2cData.append('-');  // No Ack
+                else
+                    i2cData.append("-");  // No Ack
 
             }
 
-            i2cData.append(' ');
+            i2cData.append(" ");
 
         }
-        ui->i2cTextEdit->setPlainText(i2cData);
+        ui->i2cTextEdit->setPlainText((QString)i2cData);
     }
 }
 
@@ -2588,7 +2573,6 @@ void XprotolabInterface::on_startSnifferButton_clicked()
     if(ui->startSnifferButton->text()==(tr("STOP")))
     {
         mode = SNIFFER;
-        sniffProtocol();
     }
     else
     {

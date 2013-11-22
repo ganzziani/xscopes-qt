@@ -8,6 +8,8 @@ struct Serial
 
     uint8_t TX[640];
 
+    uint8_t dummy;
+
 };
 
 struct I2C
@@ -23,6 +25,7 @@ struct All
 {
 
     uint8_t decoded[1280];
+    uint8_t dummy;
 
 };
 
