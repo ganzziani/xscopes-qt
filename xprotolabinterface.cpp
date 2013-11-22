@@ -1121,7 +1121,11 @@ void XprotolabInterface::sniffProtocol()
                     rxData.append("_");    // Special character
 
                 else
-                    rxData.append(data);
+                {
+                    QChar eAscii;
+                    eAscii = eAscii.fromLatin1(data);
+                    rxData.append(eAscii);
+                }
                 rxData.append(" ");
 
             }
@@ -1170,7 +1174,11 @@ void XprotolabInterface::sniffProtocol()
                       txData.append("_");    // Special character
 
                   else
-                      txData.append(data);
+                  {
+                      QChar eAscii;
+                      eAscii = eAscii.fromLatin1(data);
+                      txData.append(eAscii);
+                  }
                   txData.append(" ");
 
               }
