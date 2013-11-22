@@ -19,7 +19,7 @@
 
    enum BUFFER_SIZE
    {
-       LEN_BULK_IN_BUFFER = 1289,                         //(256*3)+2 CH1+CH2+CHD+frame number
+       LEN_BULK_IN_BUFFER = 1290,                         //(256*3)+2 CH1+CH2+CHD+frame number
        LEN_CONTROL_BUFFER = 64
    };
 #endif // LIBUSBDEVICEINFO_H

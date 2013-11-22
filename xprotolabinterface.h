@@ -372,6 +372,8 @@ private slots:
 
     void on_loadWave_clicked();
 
+    void on_clearWaveButton_clicked();
+
 private:
     Ui::XprotolabInterface *ui;
     QTimer dataTimer;

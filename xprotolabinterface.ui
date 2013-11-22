@@ -3979,6 +3979,13 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
+                 <widget class="QPushButton" name="clearWaveButton">
+                  <property name="text">
+                   <string>Clear</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <widget class="QPushButton" name="screenShotButton">
                   <property name="text">
                    <string>Screenshot</string>

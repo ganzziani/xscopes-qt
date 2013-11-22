@@ -1,39 +1,45 @@
 #ifndef SNIFFER_H
 #define SNIFFER_H
 
+struct Serial
+{
+
+    uint8_t RX[640];
+
+    uint8_t TX[640];
+
+};
+
+struct I2C
+{
+
+    uint8_t decoded[1024];
+
+    uint8_t addr_ack[257];
+
+};
+
+struct All
+{
+
+    uint8_t decoded[1280];
+
+};
+
+union Data
+{
+    Serial serial;
+    I2C i2c;
+    All all;
+
+};
+
 struct Sniffer
 {
-    union
-    {
-        struct
-        {
+    Data data;
+    uint16_t indrx;    // RX index
 
-            uint8_t RX[640];
-
-            uint8_t TX[640];
-
-        } Serial;
-
-        struct
-        {
-
-            uint8_t decoded[1024];
-
-            uint8_t addr_ack[257];
-
-        } I2C;
-
-        struct
-        {
-
-            uint8_t decoded[1280];
-
-        } All;
-
-    } data;
-    volatile uint16_t indrx;    // RX index
-
-    volatile uint16_t indtx;    // TX index
+    uint16_t indtx;    // TX index
 
     uint8_t databits;           // UART Data bits
 

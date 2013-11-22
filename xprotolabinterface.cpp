@@ -1082,6 +1082,8 @@ void XprotolabInterface::sniffProtocol()
     int protocol = ui->protocolTabWidget->currentIndex();
     int max = 640;
     qDebug()<<qFromBigEndian(sniffLogic->indtx);
+    qDebug()<<qFromBigEndian(sniffLogic->indrx);
+    qDebug()<<qFromBigEndian(sniffLogic->baud);
     if(protocol==SPI||protocol==RS232)
     {
         if(ui->checkBoxCircular->isChecked())
@@ -1105,7 +1107,7 @@ void XprotolabInterface::sniffProtocol()
                     n=0;
             }
 
-            data = sniffLogic->data.Serial.RX[n];
+            data = sniffLogic->data.serial.RX[n];
             if(ui->checkBoxASCII->isChecked())
             {
                 if(data<0x20)
@@ -1164,7 +1166,7 @@ void XprotolabInterface::sniffProtocol()
                 if(n>639)
                     n=0;
              }
-              data = sniffLogic->data.Serial.TX[n];
+              data = sniffLogic->data.serial.TX[n];
               if(ui->checkBoxASCII->isChecked())
               {
                   if(data<0x20)
@@ -1232,10 +1234,10 @@ void XprotolabInterface::sniffProtocol()
 
             shift = (i&0x0003)*2;
 
-            data = sniffLogic->data.I2C.decoded[i];
+            data = sniffLogic->data.i2c.decoded[i];
             qDebug()<<data;
 
-            addrData = sniffLogic->data.I2C.addr_ack[i/4];
+            addrData = sniffLogic->data.i2c.addr_ack[i/4];
 
             ack = (addrData<<(shift+1))&0x80;
 
@@ -3294,5 +3296,16 @@ void XprotolabInterface::on_loadWave_clicked()
         }
         displayLoadedWave = true;
 
+    }
+}
+
+void XprotolabInterface::on_clearWaveButton_clicked()
+{
+    displayLoadedWave = false;
+    ch1SaveBuffer.clear();
+    ch2SaveBuffer.clear();
+    for(int k=0;k<8;k++)
+    {
+        bitSaveBuffer[k].clear();
     }
 }
