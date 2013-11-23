@@ -215,7 +215,7 @@
       <widget class="QTabWidget" name="mainTabWidget">
        <property name="maximumSize">
         <size>
-         <width>468</width>
+         <width>480</width>
          <height>16777215</height>
         </size>
        </property>
@@ -225,7 +225,7 @@
         </font>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <property name="elideMode">
         <enum>Qt::ElideNone</enum>
@@ -474,7 +474,7 @@
                    <string/>
                   </property>
                   <property name="currentIndex">
-                   <number>4</number>
+                   <number>0</number>
                   </property>
                   <widget class="QWidget" name="ch1Tab">
                    <attribute name="title">
@@ -2328,6 +2328,9 @@
                            <property name="text">
                             <string>Auto</string>
                            </property>
+                           <property name="checked">
+                            <bool>true</bool>
+                           </property>
                           </widget>
                          </item>
                          <item>
@@ -4038,7 +4041,19 @@ Frequency</string>
                        </widget>
                       </item>
                       <item>
-                       <widget class="QSlider" name="horizontalSlider_8">
+                       <widget class="QSlider" name="intensitySlider">
+                        <property name="minimum">
+                         <number>-255</number>
+                        </property>
+                        <property name="maximum">
+                         <number>255</number>
+                        </property>
+                        <property name="singleStep">
+                         <number>32</number>
+                        </property>
+                        <property name="pageStep">
+                         <number>32</number>
+                        </property>
                         <property name="orientation">
                          <enum>Qt::Horizontal</enum>
                         </property>
@@ -4046,7 +4061,7 @@ Frequency</string>
                          <enum>QSlider::TicksBelow</enum>
                         </property>
                         <property name="tickInterval">
-                         <number>12</number>
+                         <number>32</number>
                         </property>
                        </widget>
                       </item>
@@ -4101,7 +4116,13 @@ Frequency</string>
                        </widget>
                       </item>
                       <item>
-                       <widget class="QSlider" name="horizontalSlider_9">
+                       <widget class="QSlider" name="decaySlider">
+                        <property name="maximum">
+                         <number>8</number>
+                        </property>
+                        <property name="pageStep">
+                         <number>1</number>
+                        </property>
                         <property name="orientation">
                          <enum>Qt::Horizontal</enum>
                         </property>
@@ -4109,7 +4130,7 @@ Frequency</string>
                          <enum>QSlider::TicksBelow</enum>
                         </property>
                         <property name="tickInterval">
-                         <number>12</number>
+                         <number>1</number>
                         </property>
                        </widget>
                       </item>

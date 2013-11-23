@@ -28,5 +28,17 @@
         <file>Bitmaps/zoom-out.png</file>
         <file>Bitmaps/vcursorA.png</file>
         <file>Bitmaps/hcursorA.png</file>
+        <file>Bitmaps/dualg.png</file>
+        <file>Bitmaps/dualr.png</file>
+        <file>Bitmaps/fallingg.png</file>
+        <file>Bitmaps/fallingr.png</file>
+        <file>Bitmaps/negativeg.png</file>
+        <file>Bitmaps/negativer.png</file>
+        <file>Bitmaps/positiveg.png</file>
+        <file>Bitmaps/positiver.png</file>
+        <file>Bitmaps/risingg.png</file>
+        <file>Bitmaps/risingr.png</file>
+        <file>Bitmaps/windowg.png</file>
+        <file>Bitmaps/windowr.png</file>
     </qresource>
 </RCC>

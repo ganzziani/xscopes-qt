@@ -33,6 +33,7 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     connect(ui->plotterWidget, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(deselectItem(QMouseEvent*)));
     usbDevice.initializeDevice();
     on_connectButton_clicked();
+    triggerPixmap->setVisible(true);
 }
 
 XprotolabInterface::~XprotolabInterface()
@@ -86,7 +87,7 @@ void XprotolabInterface::setTheme(int theme)
     if(theme == Dark||1)
     {
         /************** Graph Pens **********/
-        ch1Pen = QPen(QColor("#4be51c"), 2);
+        ch1Pen = QPen(QColor(75,229,28), 2);
         ch1Graph->setPen(ch1Pen);
 
         ch2Pen = QPen(Qt::red, 2);
@@ -97,6 +98,14 @@ void XprotolabInterface::setTheme(int theme)
 
         ch2RefPen = QPen(QColor("#4be51c"), 2);
         ch2RefGraph->setPen(ch2RefPen);
+
+        for(int i =TG-1;i>=0;i--)
+        {
+            ch1PPen[i] = QPen(QColor(4+i*20,255-i*15,4+i*15), (i+1)/TG);
+            ch2PPen[i] = QPen(QColor(255-i*10,4+i*10,4), (i+1)/TG);
+            ch1PGraphs[i]->setPen(ch1PPen[i]);
+            ch2PGraphs[i]->setPen(ch2PPen[i]);
+        }
 
         for(int i=0;i<8;i++)
         {
@@ -163,6 +172,12 @@ void XprotolabInterface::setupGraphs(QCustomPlot *customPlot)
     ch2Graph = customPlot->addGraph();
 
     ch2RefGraph = customPlot->addGraph();
+
+    for(int i =0;i<TG;i++)
+    {
+        ch1PGraphs[i] = customPlot->addGraph();
+        ch2PGraphs[i] = customPlot->addGraph();
+    }
 
     for(int i=0;i<8;i++)
     {
@@ -238,7 +253,6 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     vCursorA->point2->setParentAnchor(vCursorAHead->bottom);
     vCursorAHead->setVisible(false);
 
-
     vCursorBHead = new QCPItemPixmap(customPlot);
     customPlot->addItem(vCursorBHead);
     vCursorBHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/vcursorA.png"));
@@ -247,7 +261,10 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     vCursorB->point2->setParentAnchor(vCursorBHead->bottom);
     vCursorBHead->setVisible(false);
 
-
+    triggerPixmap = new QCPItemPixmap(customPlot);
+    customPlot->addItem(triggerPixmap);
+    triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/dualr.png"));
+    triggerPixmap->topLeft->setCoords(150,250);
 }
 
 void XprotolabInterface::setupTracers(QCustomPlot *customPlot)
@@ -357,12 +374,6 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
     textLabelVoltageA->setSelectable(false);
     textLabelVoltageA->setVisible(false);
 
-    triggerPixmap = new QCPItemPixmap(customPlot);
-    customPlot->addItem(triggerPixmap);
-    triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/led-on.png"));
-    triggerPixmap->topLeft->setCoords(150,250);
-    triggerPixmap->bottomRight->setCoords(180,triggerLevel);
-
 }
 
 void XprotolabInterface::plotData()
@@ -378,7 +389,7 @@ void XprotolabInterface::plotData()
     }
     else if(mode!=OSCILLOSCOPE)
         return;
-
+    //static int index = 0;
     QVector<double> key,hCursorPos[2];
     double ch1,ch2,minV,maxV, minX1, minX2,aTrack,bTrack;
     QVector<double> ch1Buffer,ch2Buffer,fft1,fft2,ch1RefBuff,ch2RefBuff;
@@ -475,6 +486,27 @@ void XprotolabInterface::plotData()
 
         }
     }
+    if(ui->decaySlider->value()>0)
+    {
+        ch1PBuffer.push_back(ch1Buffer);
+        while(ch1PBuffer.size()>ui->decaySlider->value())
+            ch1PBuffer.pop_front();
+        ch2PBuffer.push_back(ch2Buffer);
+        while(ch2PBuffer.size()>ui->decaySlider->value())
+            ch2PBuffer.pop_front();
+        for(int k=ui->decaySlider->value();k<TG;k++)
+        {
+            ch1PGraphs[k]->clearData();
+            ch2PGraphs[k]->clearData();
+        }
+    }
+    else
+    {
+        ch1PGraphs[0]->clearData();
+        ch2PGraphs[0]->clearData();
+        ch1PBuffer.clear();
+        ch2PBuffer.clear();
+    }
 
     if(captureRef)
     {
@@ -550,7 +582,6 @@ void XprotolabInterface::plotData()
         }
 
     }
-
     if(ui->xyMode->isChecked())
     {
         ch1Graph->clearData();
@@ -562,11 +593,23 @@ void XprotolabInterface::plotData()
     else
     {
         if(!ui->checkBoxPersistence->isChecked())
+        {
              ch1Graph->clearData();
+             for(int k=0;k<TG;k++)
+             {
+                 ch1PGraphs[k]->clearData();
+             }
+        }
         if(ui->checkBoxCH1Trace->isChecked())
         {
             if(!ui->checkBoxPersistence->isChecked())
+            {
                 ch1Graph->setData(key, ch1Buffer);
+                for(int k=0;k<qMin(ch1PBuffer.size(),ui->decaySlider->value()+1);k++)
+                {
+                    ch1PGraphs[k]->setData(key, ch1PBuffer[k]);
+                }
+            }
             else
                 ch1Graph->addData(key, ch1Buffer);
             if(ui->refCH1->isChecked())
@@ -577,11 +620,23 @@ void XprotolabInterface::plotData()
             }
         }
         if(!ui->checkBoxPersistence->isChecked())
+        {
              ch2Graph->clearData();
+             for(int k=0;k<TG;k++)
+             {
+                 ch2PGraphs[k]->clearData();
+             }
+        }
         if(ui->checkBoxCH2Trace->isChecked()&&ui->samplingSlider->value()>0)
         {
             if(!ui->checkBoxPersistence->isChecked())
+            {
                  ch2Graph->setData(key, ch2Buffer);
+                 for(int k=0;k<qMin(ch2PBuffer.size(),ui->decaySlider->value()+1);k++)
+                 {
+                     ch2PGraphs[k]->setData(key, ch2PBuffer[k]);
+                 }
+            }
             else
                  ch2Graph->addData(key, ch2Buffer);
             if(ui->refCH2->isChecked())
@@ -949,14 +1004,26 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
         {
             triggerLevel = ui->plotterWidget->yAxis->pixelToCoord(event->posF().ry());
             triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->posF().rx());
+            //triggerPost+=ui->horizontalScrollBar->value();
+            if(triggerPost>255)
+                triggerPost = 255;
+            if(triggerPost<0)
+                triggerPost = 0;
             if(triggerLevel<6)
               triggerLevel = 6;
             else if(triggerLevel>504)
               triggerLevel = 504;
-           // triggerLevel = tlevel/2;
-            setTriggerLevelPosition();
-            setTriggerLevel(triggerLevel/2);
-            setTriggerPost(triggerPost);
+            setTriggerLevelPosition(event->posF());
+//            static int times = 0;
+
+//            if(times <10)
+//            {
+//                times++;
+//                return;
+//            }
+//            triggerPixmap->topLeft->setPixelPoint(QPointF(curPos,event->posF().ry()));
+
+//            times = 0;
         }
 
     }
@@ -989,6 +1056,7 @@ void XprotolabInterface::selectItem(QMouseEvent *event)
     else if(triggerPixmap->selectTest(event->posF(),false)>=0 && triggerPixmap->selectTest(event->posF(),false)<8.0)
     {
         currentSelected = isTriggerPixmap;
+        triggerPixmap->setPen(QPen(QColor("#e04e4e")));
     }
     else
     {
@@ -999,17 +1067,37 @@ void XprotolabInterface::selectItem(QMouseEvent *event)
 
 void XprotolabInterface::deselectItem(QMouseEvent *)
 {
+//    if(currentSelected==isTriggerPixmap)
+//    {
+//        setTriggerLevel(triggerLevel/2);
+//        setTriggerPost();
+//    }
     currentSelected = isNone;
     hCursorAHead->setPen(QPen(Qt::NoPen));
     hCursorBHead->setPen(QPen(Qt::NoPen));
     vCursorAHead->setPen(QPen(Qt::NoPen));
     vCursorBHead->setPen(QPen(Qt::NoPen));
+    triggerPixmap->setPen(QPen(Qt::NoPen));
 }
 
-void XprotolabInterface::setTriggerLevelPosition()
+void XprotolabInterface::setTriggerLevelPosition(QPointF pos)
 {
+    double curPosX = pos.rx()-16;
+    if(curPosX<5)
+        curPosX=5;
+    else if(curPosX>ui->plotterWidget->visibleRegion().boundingRect().right()-32)
+        curPosX = ui->plotterWidget->visibleRegion().boundingRect().right()-32;
+
+    double curPosY = pos.ry()-16;
+
+    if(curPosY>ui->plotterWidget->visibleRegion().boundingRect().bottom()-32)
+        curPosY = ui->plotterWidget->visibleRegion().boundingRect().bottom()-32;
+    else if(curPosY<0)
+        curPosY=0;
     int min, value,tlevel;
     tlevel = triggerLevel;
+    //ch1 = rangeMax-((rangeMax/8+ui->ch1PositionSlider->minimum() - ui->ch1PositionSlider->value()) +(double)usbDevice.chData[i])*2;
+
     if(ui->comboBoxTrigSource->currentIndex()==0)
     {
         min = ui->ch1PositionSlider->minimum();
@@ -1031,12 +1119,20 @@ void XprotolabInterface::setTriggerLevelPosition()
         value = 0;
     }
 
-    tlevel = min - value +(double)tlevel;
+    //tlevel = value +(double)tlevel;
+    tlevel = ((rangeMax/8 - value) +(double)tlevel)+64;
+    qDebug()<<tlevel;
     if(tlevel<6)
       tlevel = 6;
     else if(tlevel>504)
       tlevel = 504;
-    triggerPixmap->topLeft->setCoords(triggerPost,tlevel);
+    if(ui->samplingSlider->value()>=11)
+    {
+        curPosX = 10;
+    }
+    triggerPixmap->topLeft->setPixelPoint(QPointF(curPosX,curPosY));
+    setTriggerLevel(tlevel/2);
+    setTriggerPost();
 }
 
 void XprotolabInterface::setFFTWindow(int type)
@@ -1505,6 +1601,15 @@ void XprotolabInterface::readDeviceSettings()
     ui->checkBoxInvert->setChecked((data & (byte)(1 << 3)) != 0);
     ui->checkBoxFlip->setChecked((data & (byte)(1 << 4)) != 0);
     ui->checkBoxPersistence->setChecked((data & (byte)(1 << 5)) != 0);
+    byte width;
+    if(ui->checkBoxPersistence->isChecked())
+        width = 1;
+    else
+        width = 2;
+    ch1Pen.setWidth(width);
+    ch1Graph->setPen(ch1Pen);
+    ch2Pen.setWidth(width);
+    ch2Graph->setPen(ch2Pen);
     ui->checkBoxVectors->setChecked((data & (byte)(1 << 6)) != 0);
     ui->checkBoxShowSettings->setChecked((data & (byte)(1 << 6)) != 0);
 
@@ -1679,12 +1784,9 @@ void XprotolabInterface::readDeviceSettings()
     data = usbDevice.inBuffer[21];
     ui->doubleSpinBoxTrigHold->setValue(data);
     // M 22 23 Post Trigger
-    uint16_t *temp;
-    temp = (uint16_t*)(usbDevice.inBuffer+22);
-    triggerPost = *temp;
-    triggerPost = 32767 - triggerPost;
-    //triggerPost = qToLittleEndian(triggerPost);
-    qDebug()<<triggerPost;
+    uint16_t temp = ((unsigned short)usbDevice.inBuffer[22]) * 256 + usbDevice.inBuffer[23];
+    temp = qFromBigEndian(temp);
+    triggerPost = temp;
     // M 24 Trigger source
     data = usbDevice.inBuffer[24];   // Trigger source
     if (data <= 10)
@@ -1853,6 +1955,10 @@ void XprotolabInterface::on_samplingSlider_valueChanged(int value)
         return;
     usbDevice.controlWriteTransfer(0,(byte)value);
     ui->timeLabel->setText("Time = "+rateText[ui->samplingSlider->value()].toLatin1());
+    if(value>=11)
+        triggerPixmap->topLeft->setPixelPoint(QPointF(10,ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
+    else
+        triggerPixmap->topLeft->setPixelPoint(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
 }
 
 void XprotolabInterface::on_openCSVButton_clicked()
@@ -2124,31 +2230,55 @@ void XprotolabInterface::sendTriggerControls()
 void XprotolabInterface::on_radioButtonRising_clicked()
 {
     sendTriggerControls();
+    if(ui->comboBoxTrigSource->currentIndex()==0)
+        triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/risingg.png"));
+    else
+        triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/risingr.png"));
 }
 
 void XprotolabInterface::on_radioButtonFalling_clicked()
 {
     sendTriggerControls();
+    if(ui->comboBoxTrigSource->currentIndex()==0)
+        triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/fallingg.png"));
+    else
+        triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/fallingr.png"));
 }
 
 void XprotolabInterface::on_radioButtonDual_clicked()
 {
     sendTriggerControls();
+    if(ui->comboBoxTrigSource->currentIndex()==0)
+        triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/dualg.png"));
+    else
+        triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/dualr.png"));
 }
 
 void XprotolabInterface::on_radioButtonPositive_clicked()
 {
     sendTriggerControls();
+    if(ui->comboBoxTrigSource->currentIndex()==0)
+        triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/positiveg.png"));
+    else
+        triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/positiver.png"));
 }
 
 void XprotolabInterface::on_radioButtonNegative_clicked()
 {
     sendTriggerControls();
+    if(ui->comboBoxTrigSource->currentIndex()==0)
+        triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/negativeg.png"));
+    else
+        triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/negativer.png"));
 }
 
 void XprotolabInterface::on_radioButtonWindow_clicked()
 {
     sendTriggerControls();
+    if(ui->comboBoxTrigSource->currentIndex()==0)
+        triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/windowg.png"));
+    else
+        triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/windowr.png"));
 }
 
 void XprotolabInterface::on_radioButtonFree_clicked()
@@ -2302,6 +2432,15 @@ void XprotolabInterface::sendDisplayControls()
     if(ui->checkBoxShowSettings->isChecked())
         field += (1 << 7);   // Edge
     usbDevice.controlWriteTransfer(7, field);
+    byte width;
+    if(ui->checkBoxPersistence->isChecked())
+        width = 1;
+    else
+        width = 2;
+    ch1Pen.setWidth(width);
+    ch1Graph->setPen(ch1Pen);
+    ch2Pen.setWidth(width);
+    ch2Graph->setPen(ch2Pen);
 }
 
 void XprotolabInterface::on_checkBoxInvert_clicked()
@@ -2631,12 +2770,13 @@ void XprotolabInterface::on_ch2GainSlider_valueChanged(int value)
 
 // M 14 Horizontal Position
 
-void XprotolabInterface::on_horizontalScrollBar_sliderMoved(int position)
+void XprotolabInterface::on_horizontalScrollBar_valueChanged(int position)
 {
     if(!usbDevice.isDeviceConnected)
         return;
     usbDevice.controlWriteTransfer(14, (byte)(position));
     usbDevice.dataAvailable = true;
+    setTriggerLevelPosition(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
     plotData();
 //    if(checkBoxStop.Checked) {
 //        Invalidate(new Rectangle(0, 0, 512, 512));
@@ -2713,7 +2853,7 @@ void XprotolabInterface::on_doubleSpinBoxTrigHold_valueChanged(double value)
 
 // M 22 23 Post Trigger
 
-void XprotolabInterface::setTriggerPost(uint16_t value)
+void XprotolabInterface::setTriggerPost()
 {
     //return;
 //    const char *data = (char*)value;
@@ -2728,7 +2868,8 @@ void XprotolabInterface::setTriggerPost(uint16_t value)
 //    usbDevice.controlWriteTransfer(22, data);
 //    data = ((byte *)(&value))[1];
 //    usbDevice.controlWriteTransfer(23, data);
-    usbDevice.controlReadTransfer('j',128-value/2);
+    //qDebug()<<256-value;
+    usbDevice.controlReadTransfer('j',256 - (triggerPost/2+ui->horizontalScrollBar->value()));
 }
 
 // M 24 Trigger source
@@ -2736,7 +2877,7 @@ void XprotolabInterface::setTriggerPost(uint16_t value)
 void XprotolabInterface::on_comboBoxTrigSource_currentIndexChanged(int index)
 {
     usbDevice.controlWriteTransfer(24, (byte)(index));
-    setTriggerLevelPosition();
+    setTriggerLevelPosition(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
 }
 
 // M 25 Trigger Level
@@ -2764,6 +2905,10 @@ void XprotolabInterface::on_doubleSpinBoxTrigAuto_valueChanged(double value)
 void XprotolabInterface::on_ch1PositionSlider_valueChanged(int value)
 {
     usbDevice.controlWriteTransfer(29, (byte)(ui->ch1PositionSlider->minimum() - value));
+    if(ui->comboBoxTrigSource->currentIndex()==0)
+    {
+        setTriggerLevelPosition(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel+value)));
+    }
 //    if(checkBoxStop.Checked) {
 //        Invalidate(new Rectangle(0, 0, 512, 512));
 //    }
@@ -2777,6 +2922,10 @@ void XprotolabInterface::on_ch2PositionSlider_valueChanged(int value)
     //    if(checkBoxStop.Checked) {
     //        Invalidate(new Rectangle(0, 0, 512, 512));
     //    }
+    if(ui->comboBoxTrigSource->currentIndex()==1)
+    {
+        setTriggerLevelPosition(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel+value)));
+    }
 }
 
 // M 31 Channel position
@@ -2807,6 +2956,10 @@ void XprotolabInterface::on_chdPositionSlider_valueChanged(int value)
     if(chPos > temp)
         chPos = temp;
     usbDevice.controlWriteTransfer(31, chPos);
+    if(ui->comboBoxTrigSource->currentIndex()>1||ui->comboBoxTrigSource->currentIndex()<10)
+    {
+        setTriggerLevelPosition(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel+value)));
+    }
 }
 
 
@@ -3253,6 +3406,7 @@ void XprotolabInterface::saveWavetoFile()
 
 void XprotolabInterface::on_loadWave_clicked()
 {
+    on_clearWaveButton_clicked();
     QString buffer;
     QString fpath;
     fpath=QFileDialog::getOpenFileName(this, tr("Open File"),
@@ -3300,4 +3454,46 @@ void XprotolabInterface::on_clearWaveButton_clicked()
     {
         bitSaveBuffer[k].clear();
     }
+}
+
+void XprotolabInterface::on_intensitySlider_valueChanged(int value)
+{
+    int h1, h2, s1, s2, v1, v2;
+    QPen t1Pen, t2Pen;
+    t1Pen = ch1Pen;
+    t1Pen.color().getHsv(&h1, &s1, &v1);
+    t2Pen = ch2Pen;
+    t2Pen.color().getHsv(&h2, &s2, &v2);
+    t1Pen.setColor(QColor::fromHsv(h1, s1, qMin(255,v1+value)));
+    t2Pen.setColor(QColor::fromHsv(h2, s2, qMin(255,v2+value)));
+    ch1Graph->setPen(t1Pen);
+    ch2Graph->setPen(t2Pen);
+    for(int i=0;i<TG;i++)
+    {
+        t1Pen = ch1PPen[i];
+        t1Pen.color().getHsv(&h1, &s1, &v1);
+        t2Pen = ch2PPen[i];
+        t2Pen.color().getHsv(&h2, &s2, &v2);
+        t1Pen.setColor(QColor::fromHsv(h1, s1, qMin(255,v1+value)));
+        t2Pen.setColor(QColor::fromHsv(h2, s2, qMin(255,v2+value)));
+        ch1PGraphs[i]->setPen(t1Pen);
+        ch2PGraphs[i]->setPen(t2Pen);
+    }
+    for(int i=0;i<8;i++)
+    {
+        t1Pen = chdPen[i];
+        t1Pen.color().getHsv(&h1, &s1, &v1);
+        t1Pen.setColor(QColor::fromHsv(h1, s1, qMin(255,v1+value)));
+        chdGraph[i]->setPen(t1Pen);
+    }
+
+    t1Pen = ch1BarPen;
+    t1Pen.color().getHsv(&h1, &s1, &v1);
+    t1Pen.setColor(QColor::fromHsv(h1, s1, qMin(255,v1+value)));
+    ch1BarGraph->setPen(t1Pen);
+
+    t1Pen = ch2BarPen;
+    t1Pen.color().getHsv(&h1, &s1, &v1);
+    t1Pen.setColor(QColor::fromHsv(h1, s1, qMin(255,v1+value)));
+    ch2BarGraph->setPen(t2Pen);
 }

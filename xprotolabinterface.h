@@ -72,6 +72,8 @@ enum Theme {
     Light,
     Custom
 };
+#define TG 9
+typedef QVector<double> DataBuffer;
 
 namespace Ui {
 class XprotolabInterface;
@@ -120,8 +122,8 @@ private:
     void setFFTWindow(int);
     void setDecodeProtocol(int);
     void setTriggerLevel(byte);
-    void setTriggerPost(unsigned short);
-    void setTriggerLevelPosition();
+    void setTriggerPost();
+    void setTriggerLevelPosition(QPointF);
 
     
 private slots:
@@ -287,7 +289,7 @@ private slots:
 
     void on_ch2GainSlider_valueChanged(int value);
 
-    void on_horizontalScrollBar_sliderMoved(int position);
+    void on_horizontalScrollBar_valueChanged(int position);
 
     void on_doubleSpinBoxTrigHold_valueChanged(double arg1);
 
@@ -374,6 +376,8 @@ private slots:
 
     void on_clearWaveButton_clicked();
 
+    void on_intensitySlider_valueChanged(int value);
+
 private:
     Ui::XprotolabInterface *ui;
     QTimer dataTimer;
@@ -394,17 +398,18 @@ private:
     byte sniffBuffer[1289];
     uint16_t triggerPost,triggerLevel;
     int currentSelected;
-
     QVector<double> ch1RefBuffer, ch2RefBuffer, ch1SaveBuffer, ch2SaveBuffer;
+    QList<DataBuffer> ch1PBuffer,ch2PBuffer;
     QVector<double> bitRef[8], bitSaveBuffer[8];
+
 
     /************** Graphs **************/
     QCPGraph *ch1BarGraph,*ch2BarGraph;
-    QCPGraph *ch1Graph, *ch2Graph, *ch1RefGraph, *ch2RefGraph;
+    QCPGraph *ch1Graph, *ch2Graph, *ch1RefGraph, *ch2RefGraph, *ch1PGraphs[TG], *ch2PGraphs[TG];
     QCPGraph *chdGraph[8], *chdRefGraph[8];
 
     /************** Graph Pens **********/
-    QPen  ch1BarPen, ch2BarPen;
+    QPen  ch1BarPen, ch2BarPen, ch1PPen[TG], ch2PPen[TG];
     QPen  ch1Pen, ch2Pen, ch1RefPen, ch2RefPen;
     QPen  chdPen[8], chdRefPen[8];
 
