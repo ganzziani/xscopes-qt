@@ -40,5 +40,8 @@
         <file>Bitmaps/risingr.png</file>
         <file>Bitmaps/windowg.png</file>
         <file>Bitmaps/windowr.png</file>
+        <file>Bitmaps/zero1.png</file>
+        <file>Bitmaps/zero2.png</file>
+        <file>Bitmaps/zero3.png</file>
     </qresource>
 </RCC>

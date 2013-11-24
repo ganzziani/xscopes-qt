@@ -32,6 +32,7 @@ FORMS    += xprotolabinterface.ui
 
 RESOURCES += \
     xprotolabinterface.qrc
+RC_FILE = xprotolabinterface.rc
 
 win32: LIBS += -L$$PWD/libs/ -llibusb-1.0
 
@@ -43,3 +44,5 @@ win32: PRE_TARGETDEPS += $$PWD/libs/libusb-1.0.lib
 greaterThan(QT_MAJOR_VERSION, 4):LIBS += -lQt5Concurrent
 
 unix:!macx:!symbian: LIBS += -lusb-1.0
+
+OTHER_FILES +=

@@ -3504,7 +3504,7 @@ Frequency</string>
            <item>
             <widget class="QTabWidget" name="protocolTabWidget">
              <property name="currentIndex">
-              <number>2</number>
+              <number>0</number>
              </property>
              <widget class="QWidget" name="spiTab">
               <attribute name="title">
@@ -3964,34 +3964,60 @@ Frequency</string>
              <property name="title">
               <string>File</string>
              </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_78">
+             <layout class="QHBoxLayout" name="horizontalLayout_24">
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_77">
+               <layout class="QVBoxLayout" name="verticalLayout_37">
                 <item>
-                 <widget class="QPushButton" name="loadWave">
-                  <property name="text">
-                   <string>Load Wave</string>
-                  </property>
-                 </widget>
+                 <layout class="QHBoxLayout" name="horizontalLayout_77">
+                  <item>
+                   <widget class="QPushButton" name="loadWave">
+                    <property name="text">
+                     <string>Load Wave</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="saveWave">
+                    <property name="text">
+                     <string>Save Wave</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="clearWaveButton">
+                    <property name="text">
+                     <string>Clear</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="screenShotButton">
+                    <property name="text">
+                     <string>Screenshot</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="saveWave">
-                  <property name="text">
-                   <string>Save Wave</string>
+                 <widget class="QLabel" name="notifLabel">
+                  <property name="font">
+                   <font>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
                   </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="clearWaveButton">
                   <property name="text">
-                   <string>Clear</string>
+                   <string/>
                   </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="screenShotButton">
-                  <property name="text">
-                   <string>Screenshot</string>
+                  <property name="scaledContents">
+                   <bool>true</bool>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                  <property name="wordWrap">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>

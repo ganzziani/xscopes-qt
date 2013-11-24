@@ -32,6 +32,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QtEndian>
+#include <QSettings>
 #include "qcustomplot.h"
 #include "libusbdevice.h"
 #include "fft.h"
@@ -64,7 +65,18 @@ enum Selected {
     isVCursorAHead,
     isVCursorBHead,
     isTriggerPixmap,
+    isCH1Zero,
+    isCH2Zero,
     isNone
+};
+
+enum Trigger {
+    Rising,
+    Falling,
+    Dual,
+    Positive,
+    Negative,
+    Window
 };
 
 enum Theme {
@@ -73,6 +85,11 @@ enum Theme {
     Custom
 };
 #define TG 9
+#ifdef Q_OS_WIN
+#define DIRSEP "\\"
+#else
+#define DIRSEP "/"
+#endif
 typedef QVector<double> DataBuffer;
 
 namespace Ui {
@@ -124,6 +141,10 @@ private:
     void setTriggerLevel(byte);
     void setTriggerPost();
     void setTriggerLevelPosition(QPointF);
+    void readAppSettings();
+    void enableSnifferControls(bool);
+    void setTriggerIcon(int);
+
 
     
 private slots:
@@ -134,6 +155,7 @@ private slots:
     void selectItem(QMouseEvent*);
     void deselectItem(QMouseEvent*);
     void on_autoButton_clicked();
+    void writeAppSettings();
 
     void on_connectButton_clicked();
 
@@ -386,12 +408,13 @@ private:
     bool isScrolling;
     QString filePath;
     double rangeMax,fftWindow[256],hCursorAPos ,hCursorBPos ,vCursorAPos ,vCursorBPos;
+    double ch1ZeroPos, ch2ZeroPos;
     QStringList rateText,gainText;
     int freqValue[23],xmax,mode;
     bool bitChecked[8],itemIsSelected,captureRef,saveWave,displayLoadedWave;
     QCPItemTracer *phaseTracerAA, *phaseTracerAB, *phaseTracerBA, *phaseTracerBB;
-    QCPItemStraightLine *hCursorA, *hCursorB, *vCursorA, *vCursorB;
-    QCPItemPixmap *hCursorAHead, *hCursorBHead;
+    QCPItemStraightLine *hCursorA, *hCursorB, *vCursorA, *vCursorB, *ch1Zero, *ch2Zero;
+    QCPItemPixmap *hCursorAHead, *hCursorBHead, *ch1ZeroHead, *ch2ZeroHead;
     QCPItemPixmap *triggerPixmap, *vCursorAHead, *vCursorBHead;
     QCPItemText *textLabelBit[8], *textLabelDeltaTime, *textLabelDeltaVoltage;
     QCPItemText *textLabelVoltageA, *textLabelVoltageB, *textLabelFrequency;
@@ -401,7 +424,10 @@ private:
     QVector<double> ch1RefBuffer, ch2RefBuffer, ch1SaveBuffer, ch2SaveBuffer;
     QList<DataBuffer> ch1PBuffer,ch2PBuffer;
     QVector<double> bitRef[8], bitSaveBuffer[8];
-
+    bool initializing;
+    QString defaultDir;
+    QStringList triggerIconPathsG,triggerIconPathsR;
+    int trigIcon;
 
     /************** Graphs **************/
     QCPGraph *ch1BarGraph,*ch2BarGraph;

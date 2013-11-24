@@ -11,7 +11,11 @@ int main(int argc, char *argv[])
 #else
     QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
 #endif
-    w.show();
-    
+    QObject::connect(&a,SIGNAL(aboutToQuit()),&w,SLOT(writeAppSettings()));
+    QSettings settings("Gabotronics Xscope","Settings");
+    if(settings.value ("wasMaximized").toBool())
+        w.showMaximized();
+    else
+        w.show();
     return a.exec();
 }
