@@ -3504,7 +3504,7 @@ Frequency</string>
            <item>
             <widget class="QTabWidget" name="protocolTabWidget">
              <property name="currentIndex">
-              <number>0</number>
+              <number>2</number>
              </property>
              <widget class="QWidget" name="spiTab">
               <attribute name="title">
@@ -3654,6 +3654,9 @@ Frequency</string>
                        <family>Courier</family>
                       </font>
                      </property>
+                     <property name="verticalScrollBarPolicy">
+                      <enum>Qt::ScrollBarAlwaysOn</enum>
+                     </property>
                     </widget>
                    </item>
                    <item>
@@ -3662,6 +3665,9 @@ Frequency</string>
                       <font>
                        <family>Courier</family>
                       </font>
+                     </property>
+                     <property name="verticalScrollBarPolicy">
+                      <enum>Qt::ScrollBarAlwaysOn</enum>
                      </property>
                     </widget>
                    </item>
@@ -3751,6 +3757,12 @@ Frequency</string>
                     <font>
                      <family>Courier</family>
                     </font>
+                   </property>
+                   <property name="verticalScrollBarPolicy">
+                    <enum>Qt::ScrollBarAlwaysOn</enum>
+                   </property>
+                   <property name="horizontalScrollBarPolicy">
+                    <enum>Qt::ScrollBarAsNeeded</enum>
                    </property>
                   </widget>
                  </item>
@@ -3923,11 +3935,14 @@ Frequency</string>
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_70">
                    <item>
-                    <widget class="QPlainTextEdit" name="rxTextEdit">
+                    <widget class="QTextEdit" name="rxTextEdit">
                      <property name="font">
                       <font>
                        <family>Courier</family>
                       </font>
+                     </property>
+                     <property name="verticalScrollBarPolicy">
+                      <enum>Qt::ScrollBarAlwaysOff</enum>
                      </property>
                     </widget>
                    </item>
@@ -3937,6 +3952,9 @@ Frequency</string>
                       <font>
                        <family>Courier</family>
                       </font>
+                     </property>
+                     <property name="verticalScrollBarPolicy">
+                      <enum>Qt::ScrollBarAlwaysOn</enum>
                      </property>
                     </widget>
                    </item>

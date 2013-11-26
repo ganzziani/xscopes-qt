@@ -144,6 +144,7 @@ private:
     void readAppSettings();
     void enableSnifferControls(bool);
     void setTriggerIcon(int);
+    void moveTrigger(QPointF);
 
 
     

@@ -1072,6 +1072,31 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
     }
 }
 
+void XprotolabInterface::moveTrigger(QPointF pos)
+{
+    if(ui->radioButtonFree->isChecked()||ui->radioButtonSingle->isChecked())
+        return;
+    double curPosX = pos.rx()-9;
+    if(curPosX<5)
+        curPosX=5;
+    else if(curPosX>ui->plotterWidget->visibleRegion().boundingRect().right()-32)
+        curPosX = ui->plotterWidget->visibleRegion().boundingRect().right()-32;
+
+    double curPosY = pos.ry()-7;
+
+    if(curPosY>ui->plotterWidget->visibleRegion().boundingRect().bottom()-32)
+        curPosY = ui->plotterWidget->visibleRegion().boundingRect().bottom()-32;
+    else if(curPosY<0)
+        curPosY=0;
+    if(ui->samplingSlider->value()>=11)
+    {
+        curPosX = 10;
+    }
+    triggerPixmap->topLeft->setPixelPoint(QPointF(curPosX,curPosY));
+
+}
+
+
 void XprotolabInterface::selectItem(QMouseEvent *event)
 {
     if(!(event->buttons() & Qt::LeftButton))
@@ -1293,7 +1318,13 @@ void XprotolabInterface::sniffProtocol()
 
         }
         if(protocol == RS232)
+        {
+            double vsize;
+            vsize = ui->rxTextEdit->height()/ui->rxTextEdit->fontPointSize();
+            qDebug()<<vsize;
             ui->rxTextEdit->setPlainText(rxData);
+            ui->rxTextEdit->textCursor().movePosition(QTextCursor::Down);
+        }
         else if(protocol == SPI)
             ui->mosiTextEdit->setPlainText(rxData);
 
@@ -2019,7 +2050,8 @@ void XprotolabInterface::readDeviceSettings()
     {
 
     }
-    setTriggerLevelPosition(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
+    //setTriggerLevelPosition(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
+    triggerPixmap->topLeft->setCoords(triggerPost,triggerLevel);
     setTriggerIcon(trigIcon);
 
 }
@@ -2855,7 +2887,8 @@ void XprotolabInterface::on_horizontalScrollBar_valueChanged(int position)
         return;
     usbDevice.controlWriteTransfer(14, (byte)(position));
     usbDevice.dataAvailable = true;
-    setTriggerLevelPosition(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
+   // moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost-position*2+128),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
+    triggerPixmap->topLeft->setCoords(triggerPost-position*2,triggerLevel);
     plotData();
 //    if(checkBoxStop.Checked) {
 //        Invalidate(new Rectangle(0, 0, 512, 512));
@@ -2942,7 +2975,8 @@ void XprotolabInterface::setTriggerPost()
 void XprotolabInterface::on_comboBoxTrigSource_currentIndexChanged(int index)
 {
     usbDevice.controlWriteTransfer(24, (byte)(index));
-    setTriggerLevelPosition(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
+    if(!initializing)
+        setTriggerLevelPosition(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
     setTriggerIcon(trigIcon);
 }
 
@@ -2971,7 +3005,7 @@ void XprotolabInterface::on_ch1PositionSlider_valueChanged(int value)
 {
     usbDevice.controlWriteTransfer(29, (byte)(ui->ch1PositionSlider->minimum() - value));
     ch1ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
-    if(ui->comboBoxTrigSource->currentIndex()==0)
+    if(ui->comboBoxTrigSource->currentIndex()==0&&!initializing)
     {
         setTriggerLevelPosition(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel+value)));
     }
@@ -2989,7 +3023,7 @@ void XprotolabInterface::on_ch2PositionSlider_valueChanged(int value)
     //        Invalidate(new Rectangle(0, 0, 512, 512));
     //    }
     ch2ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
-    if(ui->comboBoxTrigSource->currentIndex()==1)
+    if(ui->comboBoxTrigSource->currentIndex()==1&&!initializing)
     {
         setTriggerLevelPosition(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel+value)));
     }
@@ -3023,7 +3057,7 @@ void XprotolabInterface::on_chdPositionSlider_valueChanged(int value)
     if(chPos > temp)
         chPos = temp;
     usbDevice.controlWriteTransfer(31, chPos);
-    if(ui->comboBoxTrigSource->currentIndex()>1||ui->comboBoxTrigSource->currentIndex()<10)
+    if(ui->comboBoxTrigSource->currentIndex()>1||ui->comboBoxTrigSource->currentIndex()<10&&!initializing)
     {
         setTriggerLevelPosition(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel+value)));
     }
