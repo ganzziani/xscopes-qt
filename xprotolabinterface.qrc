@@ -43,5 +43,6 @@
         <file>Bitmaps/zero1.png</file>
         <file>Bitmaps/zero2.png</file>
         <file>Bitmaps/zero3.png</file>
+        <file>Bitmaps/xscope.png</file>
     </qresource>
 </RCC>

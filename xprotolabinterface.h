@@ -32,7 +32,9 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QtEndian>
+#include <QInputDialog>
 #include <QSettings>
+#include "customtheme.h"
 #include "qcustomplot.h"
 #include "libusbdevice.h"
 #include "fft.h"
@@ -110,7 +112,6 @@ private:
     void setupTracers(QCustomPlot *);
     void setupCursors(QCustomPlot *);
     void setupItemLabels(QCustomPlot *);
-    void setTheme(int);
     void saveWavetoFile();
     void closeEvent(QCloseEvent *);
     void selectWaveForm(uint8_t);
@@ -138,13 +139,14 @@ private:
     void setupValues();
     void setFFTWindow(int);
     void setDecodeProtocol(int);
-    void setTriggerLevel(byte);
+    void setTriggerLevel(int);
     void setTriggerPost();
     void setTriggerLevelPosition(QPointF);
     void readAppSettings();
     void enableSnifferControls(bool);
     void setTriggerIcon(int);
     void moveTrigger(QPointF);
+    int mapRange(int value, int oldMax, int oldMin, int newMax, int newMin);
 
 
     
@@ -157,6 +159,10 @@ private slots:
     void deselectItem(QMouseEvent*);
     void on_autoButton_clicked();
     void writeAppSettings();
+    void itemDoubleClick(QCPAbstractItem*,QMouseEvent*);
+    void zoom(QWheelEvent*);
+    void setTheme(int, CustomColors* customColors = NULL);
+
 
     void on_connectButton_clicked();
 
@@ -175,8 +181,6 @@ private slots:
     void on_radioButtonNoise_clicked();
 
     void on_radioButtonCustom_clicked();
-
-    void on_zoomSlider_valueChanged(int value);
 
     void on_samplingSlider_valueChanged(int value);
 
@@ -428,7 +432,8 @@ private:
     bool initializing;
     QString defaultDir;
     QStringList triggerIconPathsG,triggerIconPathsR;
-    int trigIcon;
+    int trigIcon, offset;
+    CustomTheme customThemeDialog;
 
     /************** Graphs **************/
     QCPGraph *ch1BarGraph,*ch2BarGraph;

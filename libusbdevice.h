@@ -24,9 +24,6 @@ public:
     void openDevice();
     void closeDevice();
     void eventThread();
-  //  static void LIBUSB_CALL asyncBulkReadTransferCallback(struct libusb_transfer *);
-   // static int LIBUSB_CALL hotplugCallback(libusb_context *, libusb_device *, libusb_hotplug_event, void *);
-   // static int LIBUSB_CALL hotplugCallbackDetach (libusb_context *, libusb_device *, libusb_hotplug_event, void *);
     bool controlReadTransfer(uint8_t command, uint16_t value = 0, uint16_t index = 0 );
     void asyncBulkReadTransfer();
     void awgBulkWriteTransfer();

@@ -22,11 +22,11 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Gabotronics Xscopes Interface</string>
+   <string>Gabotronics Xscope Interface</string>
   </property>
   <property name="windowIcon">
    <iconset resource="xprotolabinterface.qrc">
-    <normaloff>:/Bitmaps/Bitmaps/GT-logo.png</normaloff>:/Bitmaps/Bitmaps/GT-logo.png</iconset>
+    <normaloff>:/Bitmaps/Bitmaps/xscope.png</normaloff>:/Bitmaps/Bitmaps/xscope.png</iconset>
   </property>
   <property name="documentMode">
    <bool>false</bool>
@@ -316,79 +316,6 @@
                  </layout>
                 </item>
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_3">
-                  <item>
-                   <widget class="QLabel" name="label_2">
-                    <property name="minimumSize">
-                     <size>
-                      <width>22</width>
-                      <height>0</height>
-                     </size>
-                    </property>
-                    <property name="text">
-                     <string/>
-                    </property>
-                    <property name="pixmap">
-                     <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/zoom-out.png</pixmap>
-                    </property>
-                    <property name="scaledContents">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QSlider" name="zoomSlider">
-                    <property name="minimum">
-                     <number>128</number>
-                    </property>
-                    <property name="maximum">
-                     <number>1024</number>
-                    </property>
-                    <property name="singleStep">
-                     <number>128</number>
-                    </property>
-                    <property name="pageStep">
-                     <number>128</number>
-                    </property>
-                    <property name="value">
-                     <number>512</number>
-                    </property>
-                    <property name="sliderPosition">
-                     <number>512</number>
-                    </property>
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                    <property name="invertedAppearance">
-                     <bool>true</bool>
-                    </property>
-                    <property name="invertedControls">
-                     <bool>true</bool>
-                    </property>
-                    <property name="tickPosition">
-                     <enum>QSlider::TicksBelow</enum>
-                    </property>
-                    <property name="tickInterval">
-                     <number>128</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="label_4">
-                    <property name="text">
-                     <string/>
-                    </property>
-                    <property name="pixmap">
-                     <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/zoom-in.png</pixmap>
-                    </property>
-                    <property name="scaledContents">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_4">
                   <item>
                    <widget class="QCheckBox" name="xyMode">
@@ -519,10 +446,10 @@
                           <item>
                            <widget class="QSlider" name="ch1PositionSlider">
                             <property name="minimum">
-                             <number>-126</number>
+                             <number>-128</number>
                             </property>
                             <property name="maximum">
-                             <number>0</number>
+                             <number>128</number>
                             </property>
                             <property name="singleStep">
                              <number>16</number>
@@ -531,10 +458,10 @@
                              <number>16</number>
                             </property>
                             <property name="value">
-                             <number>-64</number>
+                             <number>0</number>
                             </property>
                             <property name="sliderPosition">
-                             <number>-64</number>
+                             <number>0</number>
                             </property>
                             <property name="orientation">
                              <enum>Qt::Vertical</enum>
@@ -843,10 +770,10 @@
                           <item>
                            <widget class="QSlider" name="ch2PositionSlider">
                             <property name="minimum">
-                             <number>-126</number>
+                             <number>-128</number>
                             </property>
                             <property name="maximum">
-                             <number>0</number>
+                             <number>128</number>
                             </property>
                             <property name="singleStep">
                              <number>16</number>
@@ -855,10 +782,10 @@
                              <number>16</number>
                             </property>
                             <property name="value">
-                             <number>-64</number>
+                             <number>0</number>
                             </property>
                             <property name="sliderPosition">
-                             <number>-64</number>
+                             <number>0</number>
                             </property>
                             <property name="orientation">
                              <enum>Qt::Vertical</enum>
@@ -2557,7 +2484,7 @@
                   </size>
                  </property>
                  <property name="text">
-                  <string>STOP</string>
+                  <string>START</string>
                  </property>
                 </widget>
                </item>
@@ -3420,7 +3347,7 @@ Frequency</string>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_62">
              <item>
-              <widget class="QGroupBox" name="groupBox_9">
+              <widget class="QGroupBox" name="modeGroupBox">
                <property name="title">
                 <string>Mode</string>
                </property>
@@ -3504,7 +3431,7 @@ Frequency</string>
            <item>
             <widget class="QTabWidget" name="protocolTabWidget">
              <property name="currentIndex">
-              <number>2</number>
+              <number>1</number>
              </property>
              <widget class="QWidget" name="spiTab">
               <attribute name="title">
@@ -4517,6 +4444,9 @@ Frequency</string>
                  <layout class="QVBoxLayout" name="verticalLayout_89">
                   <item>
                    <widget class="QCheckBox" name="checkBox_24">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="text">
                      <string>Connect at startup</string>
                     </property>
@@ -4563,7 +4493,7 @@ Frequency</string>
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_89">
                     <item>
-                     <widget class="QLabel" name="label_73">
+                     <widget class="QLabel" name="connectIcon">
                       <property name="text">
                        <string/>
                       </property>
@@ -4573,7 +4503,7 @@ Frequency</string>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="label_74">
+                     <widget class="QLabel" name="connectLabel">
                       <property name="font">
                        <font>
                         <pointsize>9</pointsize>
@@ -4655,7 +4585,10 @@ Frequency</string>
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="pushButton_16">
+                   <widget class="QPushButton" name="upgradeFirmware">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="minimumSize">
                      <size>
                       <width>0</width>
@@ -4695,6 +4628,125 @@ Frequency</string>
         <attribute name="title">
          <string>About</string>
         </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_108">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_95">
+           <item>
+            <widget class="QWidget" name="widget_2" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>88</height>
+              </size>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_107">
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_97">
+                <item>
+                 <widget class="QLabel" name="label_2">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>467761</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/GT-logo.png</pixmap>
+                  </property>
+                  <property name="scaledContents">
+                   <bool>true</bool>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                  <property name="wordWrap">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_106">
+                  <item>
+                   <widget class="QLabel" name="label_4">
+                    <property name="font">
+                     <font>
+                      <pointsize>11</pointsize>
+                      <weight>75</weight>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Xscope Interface v1.0.0</string>
+                    </property>
+                    <property name="scaledContents">
+                     <bool>true</bool>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_19">
+                    <property name="text">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://gabotronics.com&quot;&gt;&lt;span style=&quot; font-size:26pt; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;gabotronics&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="scaledContents">
+                     <bool>true</bool>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                    <property name="openExternalLinks">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_31">
+                    <property name="text">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copyright © 2013-2014 Gabotronics.com&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="scaledContents">
+                     <bool>true</bool>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+        </layout>
        </widget>
       </widget>
      </widget>

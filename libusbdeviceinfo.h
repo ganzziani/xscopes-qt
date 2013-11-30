@@ -1,6 +1,7 @@
 #ifndef LIBUSBDEVICEINFO_H
 #define LIBUSBDEVICEINFO_H
 
+   #define ZERO_POS 128
 
    enum  USB_ENDPOINT_DIRECTION
    {

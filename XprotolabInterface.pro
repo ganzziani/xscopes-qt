@@ -8,7 +8,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
-TARGET = XprotolabInterface
+TARGET = Xscope
 TEMPLATE = app
 
 
@@ -17,7 +17,8 @@ SOURCES += main.cpp\
     qcustomplot.cpp \
     libusbdevice.cpp \
     fft.cpp \
-    complex.cpp
+    complex.cpp \
+    customtheme.cpp
 
 HEADERS  += xprotolabinterface.h \
     qcustomplot.h \
@@ -26,9 +27,11 @@ HEADERS  += xprotolabinterface.h \
     libusbdeviceinfo.h \
     fft.h \
     complex.h \
-    sniffer.h
+    sniffer.h \
+    customtheme.h
 
-FORMS    += xprotolabinterface.ui
+FORMS    += xprotolabinterface.ui \
+    customtheme.ui
 
 RESOURCES += \
     xprotolabinterface.qrc
