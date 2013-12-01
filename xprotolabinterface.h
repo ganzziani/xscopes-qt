@@ -451,6 +451,7 @@ private:
 
     int initPosCh1;
     int initPosCh2;
+    int initPosScroll;
 };
 
 #endif // XPROTOLABINTERFACE_H

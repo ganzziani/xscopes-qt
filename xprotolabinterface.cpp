@@ -668,7 +668,7 @@ void XprotolabInterface::plotData()
                     bit[m].push_back(pos);
                     textLabelBit[m]->position->setCoords(246, pos-5);
                     if(m+2==ui->comboBoxTrigSource->currentIndex())
-                        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(pos)));
+                        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost-ui->horizontalScrollBar->value())*2),ui->plotterWidget->yAxis->coordToPixel(pos)));
 
                 }
                 else
@@ -1238,6 +1238,8 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
                 triggerPost = 255;
             if(triggerPost<0)
                 triggerPost = 0;
+            triggerPost = triggerPost/2+ ui->horizontalScrollBar->value();
+            qDebug()<<"trigpostCLick: "<<triggerPost;
 
             if(triggerLevel<rangeMax/4)
               triggerLevel = rangeMax/4;
@@ -1382,6 +1384,7 @@ void XprotolabInterface::setTriggerLevelPosition(QPointF pos)
     }
     initPosCh1 = ui->ch1PositionSlider->value();
     initPosCh2 = ui->ch2PositionSlider->value();
+    initPosScroll = ui->horizontalScrollBar->value();
     tlevel = triggerLevel-value;// + rangeMax*3/4 - offsetPos;//+128 - 128*(offsetPos/(rangeMax*3/4));// + rangeMax*3/4 - offsetPos;
     if(tlevel<6)
       tlevel = 6;
@@ -2245,11 +2248,11 @@ void XprotolabInterface::readDeviceSettings()
     }
     ch1ZeroPos = rangeMax/2+ui->ch1PositionSlider->value();
     ch2ZeroPos = rangeMax/2+ui->ch2PositionSlider->value();
-    int value =0, vpos, hpos;
+    int value =0, hpos;
     triggerPost = 256-triggerPost;
-    qDebug()<<triggerPost;
-    hpos = triggerPost*2-(ui->horizontalScrollBar->value())*2;
-    qDebug()<<hpos;
+     qDebug()<<"trigpost: "<<triggerPost;
+    hpos = triggerPost*2-(ui->horizontalScrollBar->value()*2);
+    qDebug()<<"hpos: "<<hpos;
     if(ui->comboBoxTrigSource->currentIndex()==0)
     {
         value = ui->ch1PositionSlider->value();
@@ -2260,15 +2263,7 @@ void XprotolabInterface::readDeviceSettings()
     }
     initPosCh1 = ui->ch1PositionSlider->value();
     initPosCh2 = ui->ch2PositionSlider->value();
-    //vpos = mapRange(triggerLevel,252,3,506,4);
-    //vpos = triggerLevel;//+value-128;
-    //triggerLevel = vpos - value + 128;
-    //qDebug()<<"trig: "<<triggerLevel;
-//    if(vpos<rangeMax/4)
-//      vpos = rangeMax/4;
-//    else if(vpos>rangeMax*3/4)
-//      vpos = rangeMax*3/4;
-
+    initPosScroll = ui->horizontalScrollBar->value();
     tlevel = mapRange(tlevel,252,3,504,6);
     qDebug()<<"val: "<<value;
     qDebug()<<tlevel;
@@ -3154,13 +3149,13 @@ void XprotolabInterface::on_horizontalScrollBar_valueChanged(int position)
     {
         if(ui->comboBoxTrigSource->currentIndex()==0)
         {
-            value = ui->ch1PositionSlider->value();
+            value = initPosCh1 - ui->ch1PositionSlider->value();
         }
         else if(ui->comboBoxTrigSource->currentIndex()==1)
         {
-            value = ui->ch2PositionSlider->value();
+            value = initPosCh2 - ui->ch2PositionSlider->value();
         }
-        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel(2*triggerPost-position*2),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-(initPosCh1-value)))) ;
+        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost-position)*2),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-(value)))) ;
 
         //triggerPixmap->topLeft->setCoords(triggerPost-position*2,triggerLevel+value-128);
     }
@@ -3263,7 +3258,7 @@ void XprotolabInterface::on_doubleSpinBoxTrigHold_valueChanged(double value)
 
 void XprotolabInterface::setTriggerPost()
 {
-    usbDevice.controlReadTransfer('j',256 - (triggerPost/2+ui->horizontalScrollBar->value()));
+    usbDevice.controlReadTransfer('j',256 - (triggerPost));
 }
 
 // M 24 Trigger source
@@ -3271,8 +3266,17 @@ void XprotolabInterface::setTriggerPost()
 void XprotolabInterface::on_comboBoxTrigSource_currentIndexChanged(int index)
 {
     usbDevice.controlWriteTransfer(24, (byte)(index));
+    int value = 0;
+    if(ui->comboBoxTrigSource->currentIndex()==0)
+    {
+        value = initPosCh1 - ui->ch1PositionSlider->value();
+    }
+    else if(ui->comboBoxTrigSource->currentIndex()==1)
+    {
+        value = initPosCh2 - ui->ch2PositionSlider->value();
+    }
     if(!initializing&&index<2)
-        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
+        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost-ui->horizontalScrollBar->value())*2),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-value)));
     setTriggerIcon(trigIcon);
 }
 
@@ -3303,6 +3307,7 @@ void XprotolabInterface::on_ch1PositionSlider_valueChanged(int value)
 {
     usbDevice.controlWriteTransfer(29, mapRange(value,128,-128,0,-128));
     ch1ZeroPos = rangeMax/2+ui->ch1PositionSlider->value();
+    initPosScroll = ui->horizontalScrollBar->value();
     ch1ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
     if(ui->comboBoxTrigSource->currentIndex()==0&&!initializing)
     {
@@ -3319,6 +3324,7 @@ void XprotolabInterface::on_ch2PositionSlider_valueChanged(int value)
 {
     usbDevice.controlWriteTransfer(30, mapRange(value,128,-128,0,-128));
     ch2ZeroPos = rangeMax/2+ui->ch2PositionSlider->value();
+    initPosScroll = ui->horizontalScrollBar->value();
     ch2ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
 
     if(ui->comboBoxTrigSource->currentIndex()==1&&!initializing)
@@ -3355,9 +3361,10 @@ void XprotolabInterface::on_chdPositionSlider_valueChanged(int value)
     if(chPos > temp)
         chPos = temp;
     usbDevice.controlWriteTransfer(31, chPos);
+    initPosScroll = ui->horizontalScrollBar->value();
     if(ui->comboBoxTrigSource->currentIndex()>1||ui->comboBoxTrigSource->currentIndex()<10&&!initializing)
     {
-        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel + value*2+96)));
+        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost-ui->horizontalScrollBar->value())*2),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
     }
 }
 
