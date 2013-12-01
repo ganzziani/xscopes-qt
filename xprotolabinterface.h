@@ -389,8 +389,6 @@ private slots:
 
     void on_protocolTabWidget_currentChanged(int index);
 
-    void on_comboBoxTheme_currentIndexChanged(int index);
-
     void on_chdSizeSlider_valueChanged(int value);
 
     void on_captureButton_clicked();
@@ -404,6 +402,8 @@ private slots:
     void on_clearWaveButton_clicked();
 
     void on_intensitySlider_valueChanged(int value);
+
+    void on_comboBoxTheme_activated(int index);
 
 private:
     Ui::XprotolabInterface *ui;

@@ -4,6 +4,9 @@
 #include <QDialog>
 #include <QDesktopWidget>
 #include <QColorDialog>
+#include <QSettings>
+#define custom 2
+#define SET 509
 
 namespace Ui {
 class CustomTheme;
@@ -11,10 +14,12 @@ class CustomTheme;
 
 class CustomColors
 {
+public:
     QColor ch1, ch1ref, ch2, ch2ref, ch1fft, ch2fft;
-    QColor bit0, bit1, bit2, bit3, bit4, bit5, bit6, bit7;
-    QColor bit0ref, bit1ref, bit2ref, bit3ref, bit4ref, bit6ref, bit7ref;
-    QColor axes, grid, label, background;
+    QColor bit[7];
+    QColor bitref[7];
+    QColor axes, grid, label;
+    QBrush background;
 
 };
 
@@ -28,6 +33,7 @@ public:
     void saveTheme();
     void loadTheme();
     void loadDefaultTheme();
+    void colorizeButtons();
     QString idealForegroundColor(QColor);
     
 private slots:
@@ -40,13 +46,63 @@ private slots:
 
     void on_ch1Button_clicked();
 
+    void on_ch1RefButton_clicked();
+
+    void on_ch2Button_clicked();
+
+    void on_ch2RefButton_clicked();
+
+    void on_ch1FftButton_clicked();
+
+    void on_ch2FftButton_clicked();
+
+    void on_gridButton_clicked();
+
+    void on_axesButton_clicked();
+
+    void on_bit0Button_clicked();
+
+    void on_bit1Button_clicked();
+
+    void on_bit2Button_clicked();
+
+    void on_bit3Button_clicked();
+
+    void on_bit4Button_clicked();
+
+    void on_bit5Button_clicked();
+
+    void on_bit6Button_clicked();
+
+    void on_bit7Button_clicked();
+
+    void on_bit0RefButton_clicked();
+
+    void on_bit1RefButton_clicked();
+
+    void on_bit2RefButton_clicked();
+
+    void on_bit3RefButton_clicked();
+
+    void on_bit4RefButton_clicked();
+
+    void on_bit5RefButton_clicked();
+
+    void on_bit6RefButton_clicked();
+
+    void on_bit7RefButton_clicked();
+
+    void on_backgroundButton_clicked();
+
+    void on_labelButton_clicked();
+
 signals:
     void applyCustomTheme(int,CustomColors*);
 
 public:
     Ui::CustomTheme *ui;
-    bool isThemeSet;
-    QColorDialog colorDialog;
+    int isThemeSet;
+    QColorDialog *colorDialog;
     CustomColors customColors;
 };
 

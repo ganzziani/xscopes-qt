@@ -22,7 +22,7 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     trigIcon = 0;
     mode = OSCILLOSCOPE;
 
-
+    connect(&customThemeDialog,SIGNAL(applyCustomTheme(int,CustomColors*)),this,SLOT(setTheme(int,CustomColors*)));
     setupValues();
     setupGrid(ui->plotterWidget);
 
@@ -36,7 +36,6 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     usbDevice.initializeDevice();
     on_connectButton_clicked();
     initializing = false;
-    //customThemeDialog.show();
 }
 
 XprotolabInterface::~XprotolabInterface()
@@ -50,7 +49,7 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
     setupItemLabels(customPlot);
     setupCursors(customPlot);
     setupTracers(customPlot);
-    setTheme(ui->comboBoxTheme->currentIndex());
+    setTheme(ui->comboBoxTheme->currentIndex(),&customThemeDialog.customColors);
 
     customPlot->xAxis->setTickLabels(false);
     customPlot->xAxis->setAutoTickStep(false);
@@ -148,7 +147,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors)
         ui->plotterWidget->xAxis2->setBasePen(axesPen);
         ui->plotterWidget->yAxis2->setBasePen(axesPen);
 
-        backgroundBrush = QBrush(Qt::black);
         ui->plotterWidget->setBackground(QBrush(Qt::black));
 
         textLabelDeltaTime->setColor("#4be51c");
@@ -228,8 +226,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors)
         ui->plotterWidget->yAxis->setBasePen(axesPen);
         ui->plotterWidget->xAxis2->setBasePen(axesPen);
         ui->plotterWidget->yAxis2->setBasePen(axesPen);
-
-        backgroundBrush = QBrush(Qt::black);
         ui->plotterWidget->setBackground(QBrush(Qt::white));
 
         textLabelDeltaTime->setColor(Qt::red);
@@ -241,8 +237,81 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors)
     }
     else if(theme == Custom)
     {
+        /************** Graph Pens **********/
+        ch1Pen = QPen(customColors->ch1, 2);
+        ch1Graph->setPen(ch1Pen);
+
+        ch2Pen = QPen(customColors->ch2, 2);
+        ch2Graph->setPen(ch2Pen);
+        QString styleSheet;
+        styleSheet = "QLabel { background-color : "+ch1Pen.color().name()+"; }";
+        ui->ch1ColorLabel->setStyleSheet(styleSheet);
+        styleSheet = "QLabel { background-color : "+ch2Pen.color().name()+"; }";
+        ui->ch2ColorLabel->setStyleSheet(styleSheet);
+
+        ch1RefPen = QPen(customColors->ch1ref, 2);
+        ch1RefGraph->setPen(ch1RefPen);
+
+        ch2RefPen = QPen(customColors->ch2ref, 2);
+        ch2RefGraph->setPen(ch2RefPen);
+
+        for(int i =TG-1;i>=0;i--)
+        {
+            ch1PPen[i] = QPen(QColor(4+i*20,255-i*15,4+i*15), (i+1)/TG);
+            ch2PPen[i] = QPen(QColor(255-i*10,4+i*10,4), (i+1)/TG);
+            ch1PGraphs[i]->setPen(ch1PPen[i]);
+            ch2PGraphs[i]->setPen(ch2PPen[i]);
+        }
+
+        for(int i=0;i<8;i++)
+        {
+            chdPen[i] = QPen(customColors->bit[i], 1.5);
+            //chdPen[i] = QPen(Qt::red, 1.5);
+            chdGraph[i]->setPen(chdPen[i]);
+
+            chdRefPen[i] = QPen(customColors->bitref[i], 1.5);
+            chdRefGraph[i]->setPen(chdRefPen[i]);
+        }
+
+        ch1BarPen = QPen(customColors->ch1fft, 2);
+        ch1BarGraph->setPen(ch1BarPen);
+
+        ch2BarPen = QPen(customColors->ch2fft, 2);
+        ch2BarGraph->setPen(ch2BarPen);
+
+        /************** Grid Pens **********/
+        gridPen = QPen(customColors->grid, 1, Qt::DotLine);
+        ui->plotterWidget->xAxis->grid()->setPen(gridPen);
+        ui->plotterWidget->yAxis->grid()->setPen(gridPen);
+
+//        customPlot->xAxis->grid()->setZeroLinePen(QPen(Qt::white, 2));
+//        customPlot->yAxis->grid()->setZeroLinePen(QPen(Qt::white, 2));
+
+        axesPen = QPen(customColors->axes, 1);
+        ui->plotterWidget->xAxis->setTickPen(axesPen);
+        ui->plotterWidget->yAxis->setTickPen(axesPen);
+        ui->plotterWidget->xAxis->setSubTickPen(axesPen);
+        ui->plotterWidget->yAxis->setSubTickPen(axesPen);
+        ui->plotterWidget->xAxis2->setTickPen(axesPen);
+        ui->plotterWidget->yAxis2->setTickPen(axesPen);
+        ui->plotterWidget->xAxis2->setSubTickPen(axesPen);
+        ui->plotterWidget->yAxis2->setSubTickPen(axesPen);
+        ui->plotterWidget->xAxis->setBasePen(axesPen);
+        ui->plotterWidget->yAxis->setBasePen(axesPen);
+        ui->plotterWidget->xAxis2->setBasePen(axesPen);
+        ui->plotterWidget->yAxis2->setBasePen(axesPen);
+
+
+        ui->plotterWidget->setBackground(customColors->background);
+
+        textLabelDeltaTime->setColor(customColors->label);
+        textLabelFrequency->setColor(customColors->label);
+        textLabelDeltaVoltage->setColor(customColors->label);
+        textLabelVoltageB->setColor(customColors->label);
+        textLabelVoltageA->setColor(customColors->label);
 
     }
+    ui->plotterWidget->replot();
 }
 
 void XprotolabInterface::setupGraphs(QCustomPlot *customPlot)
@@ -934,7 +1003,7 @@ void XprotolabInterface::plotData()
         unit = QString::fromUtf8(rateText[ui->samplingSlider->value()].toLatin1());
         for(int i = 0; i<unit.length();i++)
         {
-            if(unit[i]=='m'||unit[i]=='s'||unit[i]==QString::fromUtf8("μ")[0])
+            if(unit[i]=='m'||unit[i]=='s'||unit[i].toLatin1()==QChar('μ').toLatin1())
             {
                 value = unit.left(i).toDouble();
                 unit = unit.remove(unit.left(i));
@@ -1077,7 +1146,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
                 hCursorAPos = rangeMax-5;
             else if(hCursorAPos<5)
                 hCursorAPos = 5;
-            hCursorAHead->topLeft->setPixelPoint(QPointF(14,curPos));
+            hCursorAHead->topLeft->setPixelPoint(QPointF(6,curPos));
             if(ui->radioButtonCursorCH1->isChecked())
                 sendHorizontalCursorCH1A();
             else if(ui->radioButtonCursorCH2->isChecked())
@@ -1096,7 +1165,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
                 hCursorBPos = rangeMax-5;
             else if(hCursorBPos<5)
                 hCursorBPos = 5;
-            hCursorBHead->topLeft->setPixelPoint(QPointF(14,curPos));
+            hCursorBHead->topLeft->setPixelPoint(QPointF(6,curPos));
             if(ui->radioButtonCursorCH1->isChecked())
                 sendHorizontalCursorCH1B();
             else if(ui->radioButtonCursorCH2->isChecked())
@@ -3622,13 +3691,14 @@ void XprotolabInterface::setupValues()
 
 
 
-
-
-void XprotolabInterface::on_comboBoxTheme_currentIndexChanged(int theme)
+void XprotolabInterface::on_comboBoxTheme_activated(int theme)
 {
     if(initializing)
         return;
-    setTheme(theme);
+    if(theme==Custom)
+        customThemeDialog.show();
+    else
+        setTheme(theme);
 }
 
 void XprotolabInterface::on_chdSizeSlider_valueChanged(int value)
@@ -3914,3 +3984,5 @@ void XprotolabInterface::itemDoubleClick(QCPAbstractItem *item, QMouseEvent *eve
       }
     }
 }
+
+
