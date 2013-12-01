@@ -1379,8 +1379,9 @@ void XprotolabInterface::setTriggerLevelPosition(QPointF pos)
         value = ui->ch2PositionSlider->value();
         offsetPos = ch2ZeroPos;
     }
-
-    tlevel = triggerLevel+value;// + rangeMax*3/4 - offsetPos;//+128 - 128*(offsetPos/(rangeMax*3/4));// + rangeMax*3/4 - offsetPos;
+    initPosCh1 = ui->ch1PositionSlider->value();
+    initPosCh2 = ui->ch2PositionSlider->value();
+    tlevel = triggerLevel-value;// + rangeMax*3/4 - offsetPos;//+128 - 128*(offsetPos/(rangeMax*3/4));// + rangeMax*3/4 - offsetPos;
     if(tlevel<6)
       tlevel = 6;
     else if(tlevel>504)
@@ -1389,6 +1390,7 @@ void XprotolabInterface::setTriggerLevelPosition(QPointF pos)
     {
         curPosX = 10;
     }
+    qDebug()<<tlevel;
     triggerPixmap->topLeft->setPixelPoint(QPointF(curPosX,curPosY));
     if(ui->comboBoxTrigSource->currentIndex()<2)
         setTriggerLevel(tlevel);
@@ -2109,7 +2111,8 @@ void XprotolabInterface::readDeviceSettings()
         ui->comboBoxTrigSource->setCurrentIndex(data);
 
     // M 25 Trigger Level
-    triggerLevel = usbDevice.inBuffer[25];
+    int tlevel;
+    tlevel = usbDevice.inBuffer[25];
     // M 26 Window Trigger level 1
     // M 27 Window Trigger level 2
     // M 28 Trigger Timeout
@@ -2254,15 +2257,23 @@ void XprotolabInterface::readDeviceSettings()
     {
         value = ui->ch2PositionSlider->value();
     }
+    initPosCh1 = ui->ch1PositionSlider->value();
+    initPosCh2 = ui->ch2PositionSlider->value();
+    //vpos = mapRange(triggerLevel,252,3,506,4);
+    //vpos = triggerLevel;//+value-128;
+    //triggerLevel = vpos - value + 128;
+    //qDebug()<<"trig: "<<triggerLevel;
+//    if(vpos<rangeMax/4)
+//      vpos = rangeMax/4;
+//    else if(vpos>rangeMax*3/4)
+//      vpos = rangeMax*3/4;
 
-    triggerLevel = mapRange(triggerLevel,252,3,rangeMax*3/4,rangeMax/4);
-    vpos = triggerLevel+value;
-    qDebug()<<"trig: "<<triggerLevel;
-    if(vpos<rangeMax/4)
-      vpos = rangeMax/4;
-    else if(vpos>rangeMax*3/4)
-      vpos = rangeMax*3/4;
-    triggerPixmap->topLeft->setPixelPoint(QPointF(ui->plotterWidget->xAxis->coordToPixel(hpos),ui->plotterWidget->yAxis->coordToPixel(vpos)));
+    tlevel = mapRange(tlevel,252,3,504,6);
+    qDebug()<<"val: "<<value;
+    qDebug()<<tlevel;
+    triggerLevel = tlevel + value;
+    // = tlevel;
+    triggerPixmap->topLeft->setPixelPoint(QPointF(ui->plotterWidget->xAxis->coordToPixel(hpos),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
     setTriggerIcon(trigIcon);
     ui->connectLabel->setText("USB Connected");
     ui->connectIcon->setPixmap(QPixmap(":/Bitmaps/Bitmaps/led-on.png"));
@@ -3293,7 +3304,7 @@ void XprotolabInterface::on_ch1PositionSlider_valueChanged(int value)
     ch1ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
     if(ui->comboBoxTrigSource->currentIndex()==0&&!initializing)
     {
-        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel+value))) ;
+        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel(2*triggerPost-ui->horizontalScrollBar->value()*2),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-(initPosCh1-value)))) ;
     }
 //    if(checkBoxStop.Checked) {
 //        Invalidate(new Rectangle(0, 0, 512, 512));
@@ -3310,7 +3321,7 @@ void XprotolabInterface::on_ch2PositionSlider_valueChanged(int value)
 
     if(ui->comboBoxTrigSource->currentIndex()==1&&!initializing)
     {
-        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel+value-128))) ;
+        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel(2*triggerPost-ui->horizontalScrollBar->value()*2),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-(initPosCh2-value)))) ;
     }
 }
 

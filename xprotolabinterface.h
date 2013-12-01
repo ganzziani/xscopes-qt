@@ -448,6 +448,9 @@ private:
     /************** Grid Pens **********/
     QPen  gridPen, axesPen;
     QBrush  backgroundBrush;
+
+    int initPosCh1;
+    int initPosCh2;
 };
 
 #endif // XPROTOLABINTERFACE_H
