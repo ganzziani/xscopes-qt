@@ -1238,6 +1238,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
                 triggerPost = 255;
             if(triggerPost<0)
                 triggerPost = 0;
+
             if(triggerLevel<rangeMax/4)
               triggerLevel = rangeMax/4;
             else if(triggerLevel>rangeMax*3/4)
@@ -1390,7 +1391,7 @@ void XprotolabInterface::setTriggerLevelPosition(QPointF pos)
     {
         curPosX = 10;
     }
-    qDebug()<<tlevel;
+    qDebug()<<"tlevelc :"<<tlevel;
     triggerPixmap->topLeft->setPixelPoint(QPointF(curPosX,curPosY));
     if(ui->comboBoxTrigSource->currentIndex()<2)
         setTriggerLevel(tlevel);
@@ -3159,7 +3160,7 @@ void XprotolabInterface::on_horizontalScrollBar_valueChanged(int position)
         {
             value = ui->ch2PositionSlider->value();
         }
-        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel(2*triggerPost-position*2),ui->plotterWidget->yAxis->coordToPixel(triggerLevel+value))) ;
+        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel(2*triggerPost-position*2),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-(initPosCh1-value)))) ;
 
         //triggerPixmap->topLeft->setCoords(triggerPost-position*2,triggerLevel+value-128);
     }
@@ -3280,6 +3281,7 @@ void XprotolabInterface::on_comboBoxTrigSource_currentIndexChanged(int index)
 
 void XprotolabInterface::setTriggerLevel(int value)
 {
+    qDebug()<<"tlevel: "<<mapRange(value,504,6,252,3);
     usbDevice.controlWriteTransfer(25,mapRange(value,504,6,252,3));  // 3 - 252
 }
 
@@ -3304,7 +3306,7 @@ void XprotolabInterface::on_ch1PositionSlider_valueChanged(int value)
     ch1ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
     if(ui->comboBoxTrigSource->currentIndex()==0&&!initializing)
     {
-        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel(2*triggerPost-ui->horizontalScrollBar->value()*2),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-(initPosCh1-value)))) ;
+        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((2*triggerPost)-(ui->horizontalScrollBar->value()*2)),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-(initPosCh1-value)))) ;
     }
 //    if(checkBoxStop.Checked) {
 //        Invalidate(new Rectangle(0, 0, 512, 512));
