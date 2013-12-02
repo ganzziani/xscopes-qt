@@ -401,7 +401,7 @@
                    <string/>
                   </property>
                   <property name="currentIndex">
-                   <number>0</number>
+                   <number>1</number>
                   </property>
                   <widget class="QWidget" name="ch1Tab">
                    <attribute name="title">
@@ -2912,11 +2912,17 @@ Frequency</string>
                </item>
                <item>
                 <widget class="QDoubleSpinBox" name="doubleSpinBoxAmp">
+                 <property name="minimumSize">
+                  <size>
+                   <width>55</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="decimals">
                   <number>3</number>
                  </property>
                  <property name="maximum">
-                  <double>40.000000000000000</double>
+                  <double>4.000000000000000</double>
                  </property>
                  <property name="singleStep">
                   <double>0.030000000000000</double>
@@ -3040,6 +3046,12 @@ Frequency</string>
                </item>
                <item>
                 <widget class="QDoubleSpinBox" name="doubleSpinBoxOffset">
+                 <property name="minimumSize">
+                  <size>
+                   <width>55</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="decimals">
                   <number>3</number>
                  </property>
@@ -3047,10 +3059,10 @@ Frequency</string>
                   <double>-2.000000000000000</double>
                  </property>
                  <property name="maximum">
-                  <double>10.000000000000000</double>
+                  <double>2.000000000000000</double>
                  </property>
                  <property name="singleStep">
-                  <double>0.016000000000000</double>
+                  <double>0.015625000000000</double>
                  </property>
                 </widget>
                </item>
@@ -3063,16 +3075,16 @@ Frequency</string>
                   <number>128</number>
                  </property>
                  <property name="singleStep">
-                  <number>32</number>
+                  <number>10</number>
                  </property>
                  <property name="pageStep">
-                  <number>32</number>
+                  <number>10</number>
                  </property>
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
                  <property name="tickInterval">
-                  <number>32</number>
+                  <number>10</number>
                  </property>
                 </widget>
                </item>
@@ -4127,6 +4139,9 @@ Frequency</string>
                    <layout class="QVBoxLayout" name="verticalLayout_83">
                     <item>
                      <widget class="QCheckBox" name="checkBox_21">
+                      <property name="enabled">
+                       <bool>false</bool>
+                      </property>
                       <property name="text">
                        <string>Color Gradient</string>
                       </property>
@@ -4663,7 +4678,7 @@ Frequency</string>
                    <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/GT-logo.png</pixmap>
                   </property>
                   <property name="scaledContents">
-                   <bool>true</bool>
+                   <bool>false</bool>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignCenter</set>

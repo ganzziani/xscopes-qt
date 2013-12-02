@@ -112,10 +112,10 @@ private:
     void setupTracers(QCustomPlot *);
     void setupCursors(QCustomPlot *);
     void setupItemLabels(QCustomPlot *);
+    void setupScatterStyles(bool);
     void saveWavetoFile();
     void closeEvent(QCloseEvent *);
     void selectWaveForm(uint8_t);
-    void readDeviceSettings();
     void updateSweepCursors();
     void parseCSV(QString, byte*);
     void sendCH1Controls();
@@ -154,6 +154,7 @@ private slots:
     void on_playButton_clicked();
     void plotData();
     void sniffProtocol();
+    void readDeviceSettings();
     void moveCursor(QMouseEvent*);
     void selectItem(QMouseEvent*);
     void deselectItem(QMouseEvent*);
@@ -405,6 +406,10 @@ private slots:
 
     void on_comboBoxTheme_activated(int index);
 
+    void on_radioButtonCH1Multiply_clicked();
+
+    void on_radioButtonCH2Multiply_clicked();
+
 private:
     Ui::XprotolabInterface *ui;
     QTimer dataTimer;
@@ -420,7 +425,7 @@ private:
     QCPItemTracer *phaseTracerAA, *phaseTracerAB, *phaseTracerBA, *phaseTracerBB;
     QCPItemStraightLine *hCursorA, *hCursorB, *vCursorA, *vCursorB, *ch1Zero, *ch2Zero;
     QCPItemPixmap *hCursorAHead, *hCursorBHead, *ch1ZeroHead, *ch2ZeroHead;
-    QCPItemPixmap *triggerPixmap, *vCursorAHead, *vCursorBHead;
+    QCPItemPixmap *triggerPixmap, *vCursorAHead, *vCursorBHead, *triggerWin1Pixmap, *triggerWin2Pixmap;
     QCPItemText *textLabelBit[8], *textLabelDeltaTime, *textLabelDeltaVoltage;
     QCPItemText *textLabelVoltageA, *textLabelVoltageB, *textLabelFrequency;
     byte sniffBuffer[1289];
