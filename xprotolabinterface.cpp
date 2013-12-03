@@ -3405,7 +3405,6 @@ void XprotolabInterface::setTriggerPost()
 void XprotolabInterface::on_comboBoxTrigSource_currentIndexChanged(int index)
 {
     usbDevice.controlWriteTransfer(24, (byte)(index));
-    int value = 0;
     if(ui->comboBoxTrigSource->currentIndex()==0)
     {
         triggerLevel = triggerLevel - ui->ch2PositionSlider->value();
