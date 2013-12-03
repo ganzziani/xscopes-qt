@@ -101,10 +101,10 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors)
         ch2RefPen = QPen(QColor("#4be51c"), 2);
         ch2RefGraph->setPen(ch2RefPen);
 
-        for(int i =TG-1;i>=0;i--)
+        for(int i =0;i<TG;i++)
         {
-            ch1PPen[i] = QPen(QColor(4+i*20,255-i*15,4+i*15), (i+1)/TG);
-            ch2PPen[i] = QPen(QColor(255-i*10,4+i*10,4), (i+1)/TG);
+            ch1PPen[i] = QPen(QColor(75,229,28), (TG-i)/TG);
+            ch2PPen[i] = QPen(Qt::red, (TG-i)/TG);
             ch1PGraphs[i]->setPen(ch1PPen[i]);
             ch2PGraphs[i]->setPen(ch2PPen[i]);
         }
@@ -181,10 +181,10 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors)
         ch2RefPen = QPen(QColor("#4be51c"), 2);
         ch2RefGraph->setPen(ch2RefPen);
 
-        for(int i =TG-1;i>=0;i--)
+        for(int i =0;i<TG;i++)
         {
-            ch1PPen[i] = QPen(QColor(4+i*20,255-i*15,4+i*15), (i+1)/TG);
-            ch2PPen[i] = QPen(QColor(255-i*10,4+i*10,4), (i+1)/TG);
+            ch1PPen[i] = QPen(QColor("#2a50fd"), (TG-i)/TG);
+            ch2PPen[i] = QPen(Qt::red, (TG-i)/TG);
             ch1PGraphs[i]->setPen(ch1PPen[i]);
             ch2PGraphs[i]->setPen(ch2PPen[i]);
         }
@@ -255,10 +255,10 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors)
         ch2RefPen = QPen(customColors->ch2ref, 2);
         ch2RefGraph->setPen(ch2RefPen);
 
-        for(int i =TG-1;i>=0;i--)
+        for(int i =0;i<TG;i++)
         {
-            ch1PPen[i] = QPen(QColor(4+i*20,255-i*15,4+i*15), (i+1)/TG);
-            ch2PPen[i] = QPen(QColor(255-i*10,4+i*10,4), (i+1)/TG);
+            ch1PPen[i] = QPen(customColors->ch1, (TG-i)/TG);
+            ch2PPen[i] = QPen(customColors->ch2, (TG-i)/TG);
             ch1PGraphs[i]->setPen(ch1PPen[i]);
             ch2PGraphs[i]->setPen(ch2PPen[i]);
         }
@@ -311,6 +311,7 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors)
         textLabelVoltageA->setColor(customColors->label);
 
     }
+    on_intensitySlider_valueChanged(0);
     ui->plotterWidget->replot();
 }
 
@@ -1491,6 +1492,24 @@ void XprotolabInterface::sniffProtocol()
 {
     if(usbDevice.dataLength<1289)
         return;
+
+
+    bool static toggleC = ui->checkBoxCircular->isChecked();
+    bool static toggleA = ui->checkBoxASCII->isChecked();
+
+    QString tempBuffer;
+    for(int s = 0; s<usbDevice.dataLength; s++)
+        tempBuffer.append(usbDevice.chData[s]);
+    if(sniffBuffer==tempBuffer&&toggleC == ui->checkBoxCircular->isChecked()&&toggleA == ui->checkBoxASCII->isChecked())
+    {
+        toggleC = ui->checkBoxCircular->isChecked();
+        toggleA = ui->checkBoxASCII->isChecked();
+        return;
+    }
+    toggleC = ui->checkBoxCircular->isChecked();
+    toggleA = ui->checkBoxASCII->isChecked();
+
+
     sniffLogic = (Sniffer*)usbDevice.chData;
     int j=0;
     uint16_t i =0,n=0;
@@ -1500,6 +1519,7 @@ void XprotolabInterface::sniffProtocol()
     ui->misoTextEdit->clear();
     ui->mosiTextEdit->clear();
     ui->i2cTextEdit->clear();
+
     byte data, addrData;
     QByteArray bdata;
     QString rxData, txData,i2cData;
@@ -1703,6 +1723,7 @@ void XprotolabInterface::sniffProtocol()
         }
         ui->i2cTextEdit->setPlainText((QString)i2cData);
     }
+    sniffBuffer = tempBuffer;
 }
 
 void XprotolabInterface::xAxisChanged(QCPRange range)
@@ -2099,12 +2120,16 @@ void XprotolabInterface::readDeviceSettings()
     if((data & (byte)(1 << 3)) != 0)
     {
        ui->startSnifferButton->setText(tr("STOP"));
-       mode = SNIFFER;      
+       mode = SNIFFER;
+       ui->pauseSnifferButton->setEnabled(true);
+       ui->pauseSnifferButton->setText(tr("Pause"));
        ui->mainTabWidget->setCurrentIndex(2);
     }
     else
     {
        ui->startSnifferButton->setText(tr("START"));
+       ui->pauseSnifferButton->setEnabled(false);
+       ui->pauseSnifferButton->setText(tr("Pause"));
        enableSnifferControls(true);
     }
     if((data & (byte)(1 << 4)) != 0)
@@ -3175,11 +3200,15 @@ void XprotolabInterface::sendMStatusControls()
         field += (1 << 3);
         ui->startSnifferButton->setText(tr("STOP"));
         enableSnifferControls(false);
+        ui->pauseSnifferButton->setEnabled(true);
+        ui->pauseSnifferButton->setText(tr("Pause"));
     }
     else
     {
         ui->startSnifferButton->setText(tr("START"));
         enableSnifferControls(true);
+        ui->pauseSnifferButton->setEnabled(false);
+        ui->pauseSnifferButton->setText(tr("Pause"));
     }
     if(mode == OSCILLOSCOPE)
         field += (1 << 4);
@@ -3553,6 +3582,8 @@ void XprotolabInterface::on_protocolTabWidget_currentChanged(int index)
 //        field += (1 << 2);
     mode = OSCILLOSCOPE;
     enableSnifferControls(true);
+    ui->pauseSnifferButton->setEnabled(false);
+    ui->pauseSnifferButton->setText(tr("Pause"));
     field += (1 << 5);
 //    if(metervdc== 1)
 //        field += (1 << 6);
@@ -4007,44 +4038,62 @@ void XprotolabInterface::on_clearWaveButton_clicked()
 
 void XprotolabInterface::on_intensitySlider_valueChanged(int value)
 {
-    int h1, h2, s1, s2, v1, v2;
+    qreal h, s, lmaxCh1, lmaxCh2;
+    ch1Pen.color().getHslF(&h, &s, &lmaxCh1);
+    ch2Pen.color().getHslF(&h, &s, &lmaxCh2);
+    qreal h1, h2, s1, s2, l1, l2;
     QPen t1Pen, t2Pen;
-    t1Pen = ch1Pen;
-    t1Pen.color().getHsv(&h1, &s1, &v1);
-    t2Pen = ch2Pen;
-    t2Pen.color().getHsv(&h2, &s2, &v2);
-    t1Pen.setColor(QColor::fromHsv(h1, s1, qMin(255,v1+value)));
-    t2Pen.setColor(QColor::fromHsv(h2, s2, qMin(255,v2+value)));
-    ch1Graph->setPen(t1Pen);
-    ch2Graph->setPen(t2Pen);
+
     for(int i=0;i<TG;i++)
     {
         t1Pen = ch1PPen[i];
-        t1Pen.color().getHsv(&h1, &s1, &v1);
+        t1Pen.color().getHslF(&h1, &s1, &l1);
         t2Pen = ch2PPen[i];
-        t2Pen.color().getHsv(&h2, &s2, &v2);
-        t1Pen.setColor(QColor::fromHsv(h1, s1, qMin(255,v1+value)));
-        t2Pen.setColor(QColor::fromHsv(h2, s2, qMin(255,v2+value)));
-        ch1PGraphs[i]->setPen(t1Pen);
-        ch2PGraphs[i]->setPen(t2Pen);
-    }
-    for(int i=0;i<8;i++)
-    {
-        t1Pen = chdPen[i];
-        t1Pen.color().getHsv(&h1, &s1, &v1);
-        t1Pen.setColor(QColor::fromHsv(h1, s1, qMin(255,v1+value)));
-        chdGraph[i]->setPen(t1Pen);
-    }
+        t2Pen.color().getHslF(&h2, &s2, &l2);
+        if(ui->comboBoxTheme->currentIndex()==Dark)
+        {
+            t1Pen.setColor(QColor::fromHslF(h1, s1, 1.0-sqrt(mapRangeF((10-i+(value/100)),0.5,10.5,1,0))));
 
-    t1Pen = ch1BarPen;
-    t1Pen.color().getHsv(&h1, &s1, &v1);
-    t1Pen.setColor(QColor::fromHsv(h1, s1, qMin(255,v1+value)));
-    ch1BarGraph->setPen(t1Pen);
+            t2Pen.setColor(QColor::fromHslF(h2, s2, 1.0-sqrt(mapRangeF((10-i+(value/100)),0.5,10.5,1,0))));
+            ch1PGraphs[i]->setPen(t1Pen);
+            ch2PGraphs[i]->setPen(t2Pen);
+        }
+        else if(ui->comboBoxTheme->currentIndex()==Light)
+        {
+            t1Pen.setColor(QColor::fromHslF(h1, s1, sqrt(mapRangeF((10-i+(value/100)),0.5,10.5,1,0))));
+            t2Pen.setColor(QColor::fromHslF(h2, s2, sqrt(mapRangeF((10-i+(value/100)),0.5,10.5,1,0))));
+            ch1PGraphs[i]->setPen(t1Pen);
+            ch2PGraphs[i]->setPen(t2Pen);
+        }
+        else
+        {
+            if(customThemeDialog.idealForegroundColor(customThemeDialog.customColors.background.color())=="#fffff")
+            {
+                t1Pen.setColor(QColor::fromHslF(h1, s1, 1.0-sqrt(mapRangeF((10-i+(value/100)),0.5,10.5,1,0))));
 
-    t1Pen = ch2BarPen;
-    t1Pen.color().getHsv(&h1, &s1, &v1);
-    t1Pen.setColor(QColor::fromHsv(h1, s1, qMin(255,v1+value)));
-    ch2BarGraph->setPen(t2Pen);
+                t2Pen.setColor(QColor::fromHslF(h2, s2, 1.0-sqrt(mapRangeF((10-i+(value/100)),0.5,10.5,1,0))));
+                ch1PGraphs[i]->setPen(t1Pen);
+                ch2PGraphs[i]->setPen(t2Pen);
+            }
+            else
+            {
+                t1Pen.setColor(QColor::fromHslF(h1, s1, sqrt(mapRangeF((10-i+(value/100)),0.5,10.5,1,0))));
+                t2Pen.setColor(QColor::fromHslF(h2, s2, sqrt(mapRangeF((10-i+(value/100)),0.5,10.5,1,0))));
+                ch1PGraphs[i]->setPen(t1Pen);
+                ch2PGraphs[i]->setPen(t2Pen);
+            }
+
+        }
+
+    }
+}
+
+float XprotolabInterface::mapRangeF(int value, int oldMax, int oldMin, int newMax, int newMin)
+{
+    int newRange, oldRange;
+    newRange = newMax - newMin;
+    oldRange = oldMax - oldMin;
+    return newMax - ((float)((value - oldMin) * newRange) / oldRange);
 }
 
 void XprotolabInterface::readAppSettings()
@@ -4119,6 +4168,27 @@ void XprotolabInterface::itemDoubleClick(QCPAbstractItem *item, QMouseEvent *eve
 }
 
 
+void XprotolabInterface::on_restoreSettingButton_clicked()
+{
+    if(!usbDevice.isDeviceConnected)
+        return;
+    ui->restoreSettingButton->setEnabled(false);
+    usbDevice.restoreSettings();
+    QTimer::singleShot(1000,this,SLOT(readDeviceSettings()));
+    ui->restoreSettingButton->setEnabled(true);
 
+}
 
-
+void XprotolabInterface::on_pauseSnifferButton_clicked()
+{
+    if(ui->pauseSnifferButton->text()==tr("Pause"))
+    {
+        usbDevice.stopScope();
+        ui->pauseSnifferButton->setText(tr("Resume"));
+    }
+    else
+    {
+        usbDevice.startScope();
+        ui->pauseSnifferButton->setText(tr("Pause"));
+    }
+}

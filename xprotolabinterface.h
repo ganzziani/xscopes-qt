@@ -147,6 +147,7 @@ private:
     void setTriggerIcon(int);
     void moveTrigger(QPointF);
     int mapRange(int value, int oldMax, int oldMin, int newMax, int newMin);
+    float mapRangeF(int value, int oldMax, int oldMin, int newMax, int newMin);
 
 
     
@@ -410,6 +411,10 @@ private slots:
 
     void on_radioButtonCH2Multiply_clicked();
 
+    void on_restoreSettingButton_clicked();
+
+    void on_pauseSnifferButton_clicked();
+
 private:
     Ui::XprotolabInterface *ui;
     QTimer dataTimer;
@@ -428,7 +433,7 @@ private:
     QCPItemPixmap *triggerPixmap, *vCursorAHead, *vCursorBHead, *triggerWin1Pixmap, *triggerWin2Pixmap;
     QCPItemText *textLabelBit[8], *textLabelDeltaTime, *textLabelDeltaVoltage;
     QCPItemText *textLabelVoltageA, *textLabelVoltageB, *textLabelFrequency;
-    byte sniffBuffer[1289];
+    QString sniffBuffer;
     uint16_t triggerPost,triggerLevel;
     int currentSelected;
     QVector<double> ch1RefBuffer, ch2RefBuffer, ch1SaveBuffer, ch2SaveBuffer;

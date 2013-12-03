@@ -290,6 +290,16 @@ void LibUsbDevice::startScope()
     libusb_control_transfer(deviceHandle,0xC0,'g',0,0,NULL,0,1000);
 }
 
+void LibUsbDevice::restoreSettings()
+{
+    if(!isDeviceConnected)
+    {
+        qDebug()<<"Device not connected";
+        return;
+    }
+    libusb_control_transfer(deviceHandle,0xC0,'k',0,0,NULL,0,1000);
+}
+
 void LibUsbDevice::forceTrigger()
 {
     if(!isDeviceConnected)

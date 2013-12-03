@@ -225,7 +225,7 @@
         </font>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>3</number>
        </property>
        <property name="elideMode">
         <enum>Qt::ElideNone</enum>
@@ -3426,6 +3426,22 @@ Frequency</string>
               </spacer>
              </item>
              <item>
+              <widget class="QPushButton" name="pauseSnifferButton">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>39</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Pause</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QPushButton" name="startSnifferButton">
                <property name="minimumSize">
                 <size>
@@ -3881,7 +3897,7 @@ Frequency</string>
                       </font>
                      </property>
                      <property name="verticalScrollBarPolicy">
-                      <enum>Qt::ScrollBarAlwaysOff</enum>
+                      <enum>Qt::ScrollBarAlwaysOn</enum>
                      </property>
                     </widget>
                    </item>
@@ -4026,16 +4042,19 @@ Frequency</string>
                       <item>
                        <widget class="QSlider" name="intensitySlider">
                         <property name="minimum">
-                         <number>-255</number>
+                         <number>-50</number>
                         </property>
                         <property name="maximum">
-                         <number>255</number>
+                         <number>50</number>
                         </property>
                         <property name="singleStep">
-                         <number>32</number>
+                         <number>10</number>
                         </property>
                         <property name="pageStep">
-                         <number>32</number>
+                         <number>10</number>
+                        </property>
+                        <property name="value">
+                         <number>0</number>
                         </property>
                         <property name="orientation">
                          <enum>Qt::Horizontal</enum>
@@ -4044,7 +4063,7 @@ Frequency</string>
                          <enum>QSlider::TicksBelow</enum>
                         </property>
                         <property name="tickInterval">
-                         <number>32</number>
+                         <number>10</number>
                         </property>
                        </widget>
                       </item>
@@ -4612,6 +4631,19 @@ Frequency</string>
                     </property>
                     <property name="text">
                      <string>UPGRADE FIRMWARE</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="restoreSettingButton">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>32</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>RESTORE SETTINGS</string>
                     </property>
                    </widget>
                   </item>

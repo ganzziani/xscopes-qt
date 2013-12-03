@@ -35,7 +35,8 @@ public:
     void autoSetup();
     void saveAWG();
     void saveDeviceSettings();
-    void setPostTrigger();
+    void restoreSettings();
+
 
     QString getStringFromUnsignedChar( unsigned char *,int);
 
