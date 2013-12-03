@@ -3408,14 +3408,14 @@ void XprotolabInterface::on_comboBoxTrigSource_currentIndexChanged(int index)
     int value = 0;
     if(ui->comboBoxTrigSource->currentIndex()==0)
     {
-        triggerLevel = triggerLevel + ui->ch2PositionSlider->value();
-        triggerLevel = triggerLevel - ui->ch1PositionSlider->value();
+        triggerLevel = triggerLevel - ui->ch2PositionSlider->value();
+        triggerLevel = triggerLevel + ui->ch1PositionSlider->value();
 
     }
     else if(ui->comboBoxTrigSource->currentIndex()==1)
     {
-        triggerLevel = triggerLevel - ui->ch2PositionSlider->value();
-        triggerLevel = triggerLevel + ui->ch1PositionSlider->value();
+        triggerLevel = triggerLevel + ui->ch2PositionSlider->value();
+        triggerLevel = triggerLevel - ui->ch1PositionSlider->value();
     }
     if(!initializing&&index<2)
         moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost-ui->horizontalScrollBar->value())*2),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
