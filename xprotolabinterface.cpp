@@ -37,6 +37,7 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     initializing = false;
     connect(&dataTimer, SIGNAL(timeout()), this, SLOT(plotData()));
     dataTimer.start(0); // Interval 0 means to refresh as fast as possible
+
 }
 
 XprotolabInterface::~XprotolabInterface()
@@ -1191,6 +1192,8 @@ void XprotolabInterface::plotData()
 
         }
     }
+    ch1ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
+    ch2ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
     ui->plotterWidget->replot();
     usbDevice.dataAvailable = false;
 }
@@ -2524,8 +2527,8 @@ void XprotolabInterface::readDeviceSettings()
     ui->connectIcon->setPixmap(QPixmap(":/Bitmaps/Bitmaps/led-on.png"));
 //    ch1ZeroHead->topLeft->setCoords(2,ch1ZeroPos);
 //    ch2ZeroHead->topLeft->setCoords(2,ch2ZeroPos);
-    ch1ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
-    ch2ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
+//    ch1ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
+//    ch2ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
 }
 
 
