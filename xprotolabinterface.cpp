@@ -20,22 +20,23 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     saveWave = false;
     displayLoadedWave = false;
     trigIcon = 0;
+    bitTriggerSource = false;
     mode = OSCILLOSCOPE;
+    lastTriggerSource = 0;
 
     connect(&customThemeDialog,SIGNAL(applyCustomTheme(int,CustomColors*)),this,SLOT(setTheme(int,CustomColors*)));
     setupValues();
     setupGrid(ui->plotterWidget);
 
-    //connect(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), this, SLOT(xAxisChanged(QCPRange)));
-    //connect(ui->plotterWidget, SIGNAL(), this, SLOT(xAxisChanged(QCPRange)));
     connect(ui->plotterWidget, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(moveCursor(QMouseEvent*)));
     connect(ui->plotterWidget, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(selectItem(QMouseEvent*)));
     connect(ui->plotterWidget, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(deselectItem(QMouseEvent*)));
     connect(ui->plotterWidget, SIGNAL(itemDoubleClick(QCPAbstractItem*,QMouseEvent*)), this, SLOT(itemDoubleClick(QCPAbstractItem*,QMouseEvent*)));
-    connect(ui->plotterWidget, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(zoom(QWheelEvent*)));
     usbDevice.initializeDevice();
     on_connectButton_clicked();
     initializing = false;
+    connect(&dataTimer, SIGNAL(timeout()), this, SLOT(plotData()));
+    dataTimer.start(0); // Interval 0 means to refresh as fast as possible
 }
 
 XprotolabInterface::~XprotolabInterface()
@@ -75,8 +76,6 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
    //connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
 
    customPlot->setInteractions(QCP::iSelectPlottables);
-   connect(&dataTimer, SIGNAL(timeout()), this, SLOT(plotData()));
-   dataTimer.start(0); // Interval 0 means to refresh as fast as possible
 }
 
 void XprotolabInterface::setTheme(int theme, CustomColors *customColors)
@@ -510,6 +509,18 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/dualr.png"));
     triggerPixmap->topLeft->setCoords(150,250);
     triggerPixmap->setVisible(false);
+
+    triggerWin1Pixmap = new QCPItemPixmap(customPlot);
+    customPlot->addItem(triggerWin1Pixmap);
+    triggerWin1Pixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/risingg.png"));
+    triggerWin1Pixmap->topLeft->setCoords(150,250);
+    triggerWin1Pixmap->setVisible(false);
+
+    triggerWin2Pixmap = new QCPItemPixmap(customPlot);
+    customPlot->addItem(triggerWin2Pixmap);
+    triggerWin2Pixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/fallingg.png"));
+    triggerWin2Pixmap->topLeft->setCoords(150,250);
+    triggerWin2Pixmap->setVisible(false);
 }
 
 void XprotolabInterface::setupTracers(QCustomPlot *customPlot)
@@ -726,6 +737,8 @@ void XprotolabInterface::plotData()
                     bit[m].push_back(10+(m*20)+ui->chdPositionSlider->value()*50);
                     pos = 20+(m*20)+ui->chdPositionSlider->value()*50+ui->chdSizeSlider->value();
                     textLabelBit[m]->position->setCoords(246, pos-5);
+                    if(m+2==ui->comboBoxTrigSource->currentIndex()&&ui->checkBoxCHDTrace->isChecked())
+                        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost-ui->horizontalScrollBar->value())*2),ui->plotterWidget->yAxis->coordToPixel(pos)));
                 }
 
             }
@@ -733,13 +746,11 @@ void XprotolabInterface::plotData()
 
         }
     }
-//    ch1ZeroPos = rangeMax-((rangeMax/8+ui->ch1PositionSlider->minimum() - ui->ch1PositionSlider->value()))*2-255;
-//    ch2ZeroPos = rangeMax-((rangeMax/8+ui->ch2PositionSlider->minimum() - ui->ch2PositionSlider->value()))*2-255;
     if(once)
     {
         once = false;
-        ch1ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
-        ch2ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
+//        ch1ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
+//        ch2ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
 
     }
     if(ui->decaySlider->value()>0)
@@ -1298,13 +1309,11 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
             if(triggerPost<0)
                 triggerPost = 0;
             triggerPost = triggerPost/2+ ui->horizontalScrollBar->value();
-            qDebug()<<"trigpostCLick: "<<triggerPost;
-
             if(triggerLevel<rangeMax/4)
               triggerLevel = rangeMax/4;
             else if(triggerLevel>rangeMax*3/4)
               triggerLevel = rangeMax*3/4;
-            setTriggerLevelPosition(event->posF());
+            setTriggerLevelPosition(event->posF(),Other);
 //            static int times = 0;
 
 //            if(times <10)
@@ -1315,6 +1324,38 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
 //            triggerPixmap->topLeft->setPixelPoint(QPointF(curPos,event->posF().ry()));
 
 //            times = 0;
+        }
+        else if(currentSelected == isTriggerWin1Pixmap)
+        {
+            triggerWin1Level = ui->plotterWidget->yAxis->pixelToCoord(event->posF().ry());
+            triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->posF().rx());
+            if(triggerPost>255)
+                triggerPost = 255;
+            if(triggerPost<0)
+                triggerPost = 0;
+            triggerPost = triggerPost/2+ ui->horizontalScrollBar->value();
+
+            if(triggerWin1Level<rangeMax/4)
+              triggerWin1Level = rangeMax/4;
+            else if(triggerWin1Level>rangeMax*3/4)
+              triggerWin1Level = rangeMax*3/4;
+            setTriggerLevelPosition(event->posF(),Window1);
+        }
+        else if(currentSelected == isTriggerWin2Pixmap)
+        {
+            triggerWin2Level = ui->plotterWidget->yAxis->pixelToCoord(event->posF().ry());
+            triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->posF().rx());
+            if(triggerPost>255)
+                triggerPost = 255;
+            if(triggerPost<0)
+                triggerPost = 0;
+            triggerPost = triggerPost/2+ ui->horizontalScrollBar->value();
+
+            if(triggerWin2Level<rangeMax/4)
+              triggerWin2Level = rangeMax/4;
+            else if(triggerWin1Level>rangeMax*3/4)
+              triggerWin2Level = rangeMax*3/4;
+            setTriggerLevelPosition(event->posF(),Window2);
         }
 
     }
@@ -1341,6 +1382,36 @@ void XprotolabInterface::moveTrigger(QPointF pos)
         curPosX = 10;
     }
     triggerPixmap->topLeft->setPixelPoint(QPointF(curPosX,curPosY));
+
+}
+void XprotolabInterface::moveWinTrigger(double curPosX,double curPosY1, double curPosY2 )
+{
+    if(ui->radioButtonFree->isChecked())
+        return;
+    curPosX = curPosX-9;
+    if(curPosX<5)
+        curPosX=5;
+    else if(curPosX>ui->plotterWidget->visibleRegion().boundingRect().right()-32)
+        curPosX = ui->plotterWidget->visibleRegion().boundingRect().right()-32;
+
+    curPosY1 = curPosY1-7;
+    curPosY2 = curPosY2-7;
+
+    if(curPosY1>ui->plotterWidget->visibleRegion().boundingRect().bottom()-32)
+        curPosY1 = ui->plotterWidget->visibleRegion().boundingRect().bottom()-32;
+    else if(curPosY1<0)
+        curPosY1=0;
+    if(curPosY2>ui->plotterWidget->visibleRegion().boundingRect().bottom()-32)
+        curPosY2 = ui->plotterWidget->visibleRegion().boundingRect().bottom()-32;
+    else if(curPosY2<0)
+        curPosY2=0;
+    if(ui->samplingSlider->value()>=11)
+    {
+        curPosX = 10;
+    }
+    triggerWin1Pixmap->topLeft->setPixelPoint(QPointF(curPosX,curPosY1));
+    triggerWin2Pixmap->topLeft->setPixelPoint(QPointF(curPosX,curPosY2));
+
 
 }
 
@@ -1386,6 +1457,22 @@ void XprotolabInterface::selectItem(QMouseEvent *event)
         else
             triggerPixmap->setPen(QPen(QColor("#ff0000")));
     }
+    else if(triggerWin1Pixmap->selectTest(event->posF(),false)>=0 && triggerWin1Pixmap->selectTest(event->posF(),false)<8.0)
+    {
+        currentSelected = isTriggerWin1Pixmap;
+        if(ui->comboBoxTrigSource->currentIndex()==0)
+            triggerWin1Pixmap->setPen(QPen(QColor(75,229,28)));
+        else
+            triggerWin1Pixmap->setPen(QPen(QColor("#ff0000")));
+    }
+    else if(triggerWin2Pixmap->selectTest(event->posF(),false)>=0 && triggerWin2Pixmap->selectTest(event->posF(),false)<8.0)
+    {
+        currentSelected = isTriggerWin2Pixmap;
+        if(ui->comboBoxTrigSource->currentIndex()==0)
+            triggerWin2Pixmap->setPen(QPen(QColor(75,229,28)));
+        else
+            triggerWin2Pixmap->setPen(QPen(QColor("#ff0000")));
+    }
     else
     {
         currentSelected = isNone;
@@ -1395,22 +1482,19 @@ void XprotolabInterface::selectItem(QMouseEvent *event)
 
 void XprotolabInterface::deselectItem(QMouseEvent *)
 {
-//    if(currentSelected==isTriggerPixmap)
-//    {
-//        setTriggerLevel(triggerLevel/2);
-//        setTriggerPost();
-//    }
     currentSelected = isNone;
     hCursorAHead->setPen(QPen(Qt::NoPen));
     hCursorBHead->setPen(QPen(Qt::NoPen));
     vCursorAHead->setPen(QPen(Qt::NoPen));
     vCursorBHead->setPen(QPen(Qt::NoPen));
     triggerPixmap->setPen(QPen(Qt::NoPen));
+    triggerWin1Pixmap->setPen(QPen(Qt::NoPen));
+    triggerWin2Pixmap->setPen(QPen(Qt::NoPen));
     ch1ZeroHead->setPen(QPen(Qt::NoPen));
     ch2ZeroHead->setPen(QPen(Qt::NoPen));
 }
 
-void XprotolabInterface::setTriggerLevelPosition(QPointF pos)
+void XprotolabInterface::setTriggerLevelPosition(QPointF pos, int type)
 {
 
     if(ui->radioButtonFree->isChecked())
@@ -1428,9 +1512,6 @@ void XprotolabInterface::setTriggerLevelPosition(QPointF pos)
     else if(curPosY<0)
         curPosY=0;
     int offsetPos, value,tlevel;
-    tlevel = triggerLevel;
-    //ch1 = rangeMax-((rangeMax/8+ui->ch1PositionSlider->minimum() - ui->ch1PositionSlider->value()) +(double)usbDevice.chData[i])*2;
-
     if(ui->comboBoxTrigSource->currentIndex()==0)
     {
         value = ui->ch1PositionSlider->value();
@@ -1444,19 +1525,55 @@ void XprotolabInterface::setTriggerLevelPosition(QPointF pos)
     initPosCh1 = ui->ch1PositionSlider->value();
     initPosCh2 = ui->ch2PositionSlider->value();
     initPosScroll = ui->horizontalScrollBar->value();
-    tlevel = triggerLevel-value;// + rangeMax*3/4 - offsetPos;//+128 - 128*(offsetPos/(rangeMax*3/4));// + rangeMax*3/4 - offsetPos;
-    if(tlevel<6)
-      tlevel = 6;
-    else if(tlevel>504)
-      tlevel = 504;
-    if(ui->samplingSlider->value()>=11)
+    if(type==Window1)
     {
-        curPosX = 10;
+        tlevel = triggerWin1Level-value;
+        if(tlevel<0)
+          tlevel = 0;
+        else if(tlevel>512)
+          tlevel = 512;
+        if(ui->samplingSlider->value()>=11)
+        {
+            curPosX = 10;
+        }
+        triggerWin1Pixmap->topLeft->setPixelPoint(QPointF(curPosX,curPosY));
+        triggerWin2Pixmap->topLeft->setPixelPoint(QPointF(curPosX,ui->plotterWidget->yAxis->coordToPixel(triggerWin2Level)+7));
+        if(ui->comboBoxTrigSource->currentIndex()<2)
+            setTriggerWin1Level(tlevel);
     }
-    qDebug()<<"tlevelc :"<<tlevel;
-    triggerPixmap->topLeft->setPixelPoint(QPointF(curPosX,curPosY));
-    if(ui->comboBoxTrigSource->currentIndex()<2)
-        setTriggerLevel(tlevel);
+    else if(type==Window2)
+    {
+        tlevel = triggerWin2Level-value;
+        if(tlevel<0)
+          tlevel = 0;
+        else if(tlevel>512)
+          tlevel = 512;
+        if(ui->samplingSlider->value()>=11)
+        {
+            curPosX = 10;
+        }
+        triggerWin2Pixmap->topLeft->setPixelPoint(QPointF(curPosX,curPosY));
+        triggerWin1Pixmap->topLeft->setPixelPoint(QPointF(curPosX,ui->plotterWidget->yAxis->coordToPixel(triggerWin1Level)+7));
+        if(ui->comboBoxTrigSource->currentIndex()<2)
+            setTriggerWin2Level(tlevel);
+    }
+    else if(type==Other)
+    {
+        tlevel = triggerLevel-value;
+        if(tlevel<6)
+          tlevel = 6;
+        else if(tlevel>504)
+          tlevel = 504;
+        if(ui->samplingSlider->value()>=11)
+        {
+            curPosX = 10;
+        }
+        qDebug()<<"tlevelc :"<<tlevel;
+        triggerPixmap->topLeft->setPixelPoint(QPointF(curPosX,curPosY));
+        if(ui->comboBoxTrigSource->currentIndex()<2)
+            setTriggerLevel(tlevel);
+    }
+
     setTriggerPost();
 }
 
@@ -2224,13 +2341,23 @@ void XprotolabInterface::readDeviceSettings()
     // M 24 Trigger source
     data = usbDevice.inBuffer[24];   // Trigger source
     if (data <= 10)
+    {
         ui->comboBoxTrigSource->setCurrentIndex(data);
+        lastTriggerSource = data;
+    }
+    else
+    {
+        ui->comboBoxTrigSource->setCurrentIndex(0);
+        lastTriggerSource = 0;
+    }
 
     // M 25 Trigger Level
-    int tlevel;
+    int tlevel, tlevelWin1,tlevelWin2;
     tlevel = usbDevice.inBuffer[25];
     // M 26 Window Trigger level 1
+    tlevelWin1 = usbDevice.inBuffer[26];
     // M 27 Window Trigger level 2
+    tlevelWin2 = usbDevice.inBuffer[27];
     // M 28 Trigger Timeout
     data = usbDevice.inBuffer[28];
     ui->doubleSpinBoxTrigAuto->setValue(((double)data + 1) * 0.04096);
@@ -2360,11 +2487,11 @@ void XprotolabInterface::readDeviceSettings()
     }
     ch1ZeroPos = rangeMax/2+ui->ch1PositionSlider->value();
     ch2ZeroPos = rangeMax/2+ui->ch2PositionSlider->value();
+    qDebug()<<"ch1: "<<ch1ZeroPos;
+    qDebug()<<"ch2: "<<ch2ZeroPos;
     int value =0, hpos;
     triggerPost = 256-triggerPost;
-     qDebug()<<"trigpost: "<<triggerPost;
     hpos = triggerPost*2-(ui->horizontalScrollBar->value()*2);
-    qDebug()<<"hpos: "<<hpos;
     if(ui->comboBoxTrigSource->currentIndex()==0)
     {
         value = ui->ch1PositionSlider->value();
@@ -2373,19 +2500,32 @@ void XprotolabInterface::readDeviceSettings()
     {
         value = ui->ch2PositionSlider->value();
     }
+    else
+        bitTriggerSource = true;
     initPosCh1 = ui->ch1PositionSlider->value();
     initPosCh2 = ui->ch2PositionSlider->value();
     initPosScroll = ui->horizontalScrollBar->value();
-    tlevel = mapRange(tlevel,252,3,504,6);
-    qDebug()<<"val: "<<value;
-    qDebug()<<tlevel;
-    triggerLevel = tlevel + value;
-    // = tlevel;
-    triggerPixmap->topLeft->setPixelPoint(QPointF(ui->plotterWidget->xAxis->coordToPixel(hpos),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
-    setTriggerIcon(trigIcon);
-    ui->connectLabel->setText("USB Connected");
-    ui->connectIcon->setPixmap(QPixmap(":/Bitmaps/Bitmaps/led-on.png"));
 
+    setTriggerIcon(trigIcon);
+
+    tlevel = mapRange(tlevel,252,3,504,6);
+    triggerLevel = tlevel + value;
+    triggerPixmap->topLeft->setCoords(hpos,triggerLevel);
+
+    tlevelWin1 = mapRange(tlevelWin1,255,0,512,0);
+    triggerWin1Level = tlevelWin1 + value;
+    triggerWin1Pixmap->topLeft->setCoords(hpos,triggerWin1Level);
+
+    tlevelWin2 = mapRange(tlevelWin2,255,0,512,0);
+    triggerWin2Level = tlevelWin2 + value;
+    triggerWin2Pixmap->topLeft->setCoords(hpos,triggerWin2Level);
+
+    ui->connectLabel->setText(tr("USB Connected"));
+    ui->connectIcon->setPixmap(QPixmap(":/Bitmaps/Bitmaps/led-on.png"));
+//    ch1ZeroHead->topLeft->setCoords(2,ch1ZeroPos);
+//    ch2ZeroHead->topLeft->setCoords(2,ch2ZeroPos);
+    ch1ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
+    ch2ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
 }
 
 
@@ -3295,26 +3435,11 @@ void XprotolabInterface::on_horizontalScrollBar_valueChanged(int position)
             value = initPosCh2 - ui->ch2PositionSlider->value();
         }
         moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost-position)*2),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-(value)))) ;
-
-        //triggerPixmap->topLeft->setCoords(triggerPost-position*2,triggerLevel+value-128);
+        moveWinTrigger(ui->plotterWidget->xAxis->coordToPixel((triggerPost-position)*2),ui->plotterWidget->yAxis->coordToPixel(triggerWin1Level-value),ui->plotterWidget->yAxis->coordToPixel(triggerWin2Level-value)) ;
     }
 
     plotData();
-//    if(checkBoxStop.Checked) {
-//        Invalidate(new Rectangle(0, 0, 512, 512));
-//    }
 }
-
-//void XprotolabInterface::horzScrollBarChanged(int value)
-//{
-//    usbDevice.controlWriteTransfer(14, (uint16_t)(value));
-////  if (qAbs(ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->range().center()-value/1000.0) > 0.001) // if user is dragging plot, we don't want to replot twice
-////  {
-////     ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(value/1000.0, ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->range().size(), Qt::AlignCenter);
-////     ui->plotterWidget->replot();
-////  }
-//}
-
 
 // M 15 Vertical cursor A
 void XprotolabInterface::sendVerticalCursorA()
@@ -3405,19 +3530,64 @@ void XprotolabInterface::setTriggerPost()
 void XprotolabInterface::on_comboBoxTrigSource_currentIndexChanged(int index)
 {
     usbDevice.controlWriteTransfer(24, (byte)(index));
-    if(ui->comboBoxTrigSource->currentIndex()==0)
+    if(index==0&&bitTriggerSource)
+    {
+        bitTriggerSource = false;
+        triggerLevel = triggerLevel + ui->ch1PositionSlider->value();
+        triggerWin1Level = triggerWin1Level + ui->ch1PositionSlider->value();
+        triggerWin2Level = triggerWin2Level + ui->ch1PositionSlider->value();
+        lastTriggerSource  = 0;
+    }
+    else if(index==1&&bitTriggerSource)
+    {
+        bitTriggerSource = false;
+        triggerLevel = triggerLevel + ui->ch2PositionSlider->value();
+        triggerWin1Level = triggerWin1Level + ui->ch2PositionSlider->value();
+        triggerWin2Level = triggerWin2Level + ui->ch2PositionSlider->value();
+        lastTriggerSource = 1;
+    }
+    else if(index==0&&lastTriggerSource == 1)
     {
         triggerLevel = triggerLevel - ui->ch2PositionSlider->value();
         triggerLevel = triggerLevel + ui->ch1PositionSlider->value();
-
+        triggerWin1Level = triggerWin1Level - ui->ch2PositionSlider->value();
+        triggerWin1Level = triggerWin1Level + ui->ch1PositionSlider->value();
+        triggerWin2Level = triggerWin2Level - ui->ch2PositionSlider->value();
+        triggerWin2Level = triggerWin2Level + ui->ch1PositionSlider->value();
+        lastTriggerSource  = 0;
     }
-    else if(ui->comboBoxTrigSource->currentIndex()==1)
+    else if(index==1&&lastTriggerSource == 0)
     {
         triggerLevel = triggerLevel + ui->ch2PositionSlider->value();
         triggerLevel = triggerLevel - ui->ch1PositionSlider->value();
+        triggerWin1Level = triggerWin1Level + ui->ch2PositionSlider->value();
+        triggerWin1Level = triggerWin1Level - ui->ch1PositionSlider->value();
+        triggerWin2Level = triggerWin2Level + ui->ch2PositionSlider->value();
+        triggerWin2Level = triggerWin2Level - ui->ch1PositionSlider->value();
+        lastTriggerSource = 1;
+    }
+    if(index>1)
+    {
+        if(ui->radioButtonWindow->isChecked()||ui->radioButtonNegative->isChecked()||ui->radioButtonPositive->isChecked())
+        {
+            ui->radioButtonRising->setChecked(true);
+            on_radioButtonRising_clicked();
+        }
+        ui->radioButtonWindow->setEnabled(false);
+        ui->radioButtonPositive->setEnabled(false);
+        ui->radioButtonNegative->setEnabled(false);
+    }
+    else
+    {
+        ui->radioButtonWindow->setEnabled(true);
+        ui->radioButtonPositive->setEnabled(true);
+        ui->radioButtonNegative->setEnabled(true);
     }
     if(!initializing&&index<2)
+    {
         moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost-ui->horizontalScrollBar->value())*2),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
+        moveWinTrigger(ui->plotterWidget->xAxis->coordToPixel((triggerPost-ui->horizontalScrollBar->value())*2),ui->plotterWidget->yAxis->coordToPixel(triggerWin1Level),ui->plotterWidget->yAxis->coordToPixel(triggerWin2Level)) ;
+    }
     setTriggerIcon(trigIcon);
 }
 
@@ -3431,7 +3601,20 @@ void XprotolabInterface::setTriggerLevel(int value)
 }
 
 // M 26 Window Trigger level 1
+
+void XprotolabInterface::setTriggerWin1Level(int value)
+{
+    qDebug()<<"tlevel: "<<mapRange(value,504,6,255,0);
+    usbDevice.controlWriteTransfer(26,mapRange(value,512,0,255,0));  // 3 - 252
+}
 // M 27 Window Trigger level 2
+
+void XprotolabInterface::setTriggerWin2Level(int value)
+{
+    qDebug()<<"tlevel: "<<mapRange(value,504,6,255,0);
+    usbDevice.controlWriteTransfer(27,mapRange(value,512,0,255,0));  // 3 - 252
+}
+
 // M 28 Trigger Timeout
 
 void XprotolabInterface::on_doubleSpinBoxTrigAuto_valueChanged(double value)
@@ -3453,6 +3636,7 @@ void XprotolabInterface::on_ch1PositionSlider_valueChanged(int value)
     if(ui->comboBoxTrigSource->currentIndex()==0&&!initializing)
     {
         moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((2*triggerPost)-(ui->horizontalScrollBar->value()*2)),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-(initPosCh1-value)))) ;
+        moveWinTrigger(ui->plotterWidget->xAxis->coordToPixel((2*triggerPost)-(ui->horizontalScrollBar->value()*2)),ui->plotterWidget->yAxis->coordToPixel(triggerWin1Level-(initPosCh1-value)),ui->plotterWidget->yAxis->coordToPixel(triggerWin2Level-(initPosCh1-value))) ;
     }
 //    if(checkBoxStop.Checked) {
 //        Invalidate(new Rectangle(0, 0, 512, 512));
@@ -3471,6 +3655,8 @@ void XprotolabInterface::on_ch2PositionSlider_valueChanged(int value)
     if(ui->comboBoxTrigSource->currentIndex()==1&&!initializing)
     {
         moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel(2*triggerPost-ui->horizontalScrollBar->value()*2),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-(initPosCh2-value)))) ;
+        moveWinTrigger(ui->plotterWidget->xAxis->coordToPixel((2*triggerPost)-(ui->horizontalScrollBar->value()*2)),ui->plotterWidget->yAxis->coordToPixel(triggerWin1Level-(initPosCh2-value)),ui->plotterWidget->yAxis->coordToPixel(triggerWin2Level-(initPosCh2-value))) ;
+
     }
 }
 
@@ -3840,8 +4026,8 @@ void XprotolabInterface::setupValues()
 
     QString tempP = ":/Bitmaps/Bitmaps/";
 
-    triggerIconPathsG << tempP+"risingg.png" << tempP+"fallingg.png" << tempP+"dualg.png" << tempP+"positiveg.png" << tempP+"negativeg.png" << tempP+"windowg.png";
-    triggerIconPathsR << tempP+"risingr.png" << tempP+"fallingr.png" << tempP+"dualr.png" << tempP+"positiver.png" << tempP+"negativer.png" << tempP+"windowr.png";
+    triggerIconPathsG << tempP+"risingg.png" << tempP+"fallingg.png" << tempP+"dualg.png" << tempP+"positiveg.png" << tempP+"negativeg.png" << tempP+"window1g.png" << tempP+"window2g.png";
+    triggerIconPathsR << tempP+"risingr.png" << tempP+"fallingr.png" << tempP+"dualr.png" << tempP+"positiver.png" << tempP+"negativer.png" << tempP+"window1r.png" << tempP+"window2r.png";
 }
 
 
@@ -4138,13 +4324,45 @@ void XprotolabInterface::setTriggerIcon(int iconNum)
 {
     trigIcon = iconNum;
     if(ui->radioButtonFree->isChecked())
+    {
+        triggerWin1Pixmap->setVisible(false);
+        triggerWin2Pixmap->setVisible(false);
         triggerPixmap->setVisible(false);
+        return;
+    }
+    else if(ui->radioButtonWindow->isChecked())
+    {
+        triggerWin1Pixmap->setVisible(true);
+        triggerWin2Pixmap->setVisible(true);
+        triggerPixmap->setVisible(false);
+        if(ui->comboBoxTrigSource->currentIndex()==0)
+        {
+            triggerWin1Pixmap->setPixmap(QPixmap(triggerIconPathsG[iconNum]));
+            triggerWin2Pixmap->setPixmap(QPixmap(triggerIconPathsG[iconNum+1]));
+        }
+        else if(ui->comboBoxTrigSource->currentIndex()==1)
+        {
+            triggerWin1Pixmap->setPixmap(QPixmap(triggerIconPathsR[iconNum]));
+            triggerWin2Pixmap->setPixmap(QPixmap(triggerIconPathsR[iconNum+1]));
+        }
+        else
+        {
+            triggerWin1Pixmap->setVisible(false);
+            triggerWin2Pixmap->setVisible(false);
+            triggerPixmap->setVisible(true);
+        }
+
+    }
     else
+    {
+        triggerWin1Pixmap->setVisible(false);
+        triggerWin2Pixmap->setVisible(false);
         triggerPixmap->setVisible(true);
-    if(ui->comboBoxTrigSource->currentIndex()==0)
-        triggerPixmap->setPixmap(QPixmap(triggerIconPathsG[iconNum]));
-    else
-        triggerPixmap->setPixmap(QPixmap(triggerIconPathsR[iconNum]));
+        if(ui->comboBoxTrigSource->currentIndex()==0)
+            triggerPixmap->setPixmap(QPixmap(triggerIconPathsG[iconNum]));
+        else
+            triggerPixmap->setPixmap(QPixmap(triggerIconPathsR[iconNum]));
+    }
 
 }
 

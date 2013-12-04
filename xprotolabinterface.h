@@ -67,6 +67,8 @@ enum Selected {
     isVCursorAHead,
     isVCursorBHead,
     isTriggerPixmap,
+    isTriggerWin1Pixmap,
+    isTriggerWin2Pixmap,
     isCH1Zero,
     isCH2Zero,
     isNone
@@ -81,17 +83,19 @@ enum Trigger {
     Window
 };
 
+enum TriggerType{
+    Window1,
+    Window2,
+    Other
+};
+
 enum Theme {
     Dark,
     Light,
     Custom
 };
 #define TG 9
-#ifdef Q_OS_WIN
-#define DIRSEP "\\"
-#else
-#define DIRSEP "/"
-#endif
+
 typedef QVector<double> DataBuffer;
 
 namespace Ui {
@@ -140,12 +144,15 @@ private:
     void setFFTWindow(int);
     void setDecodeProtocol(int);
     void setTriggerLevel(int);
+    void setTriggerWin1Level(int);
+    void setTriggerWin2Level(int);
     void setTriggerPost();
-    void setTriggerLevelPosition(QPointF);
+    void setTriggerLevelPosition(QPointF,int);
     void readAppSettings();
     void enableSnifferControls(bool);
     void setTriggerIcon(int);
     void moveTrigger(QPointF);
+    void moveWinTrigger(double,double,double);
     int mapRange(int value, int oldMax, int oldMin, int newMax, int newMin);
     float mapRangeF(int value, int oldMax, int oldMin, int newMax, int newMin);
 
@@ -434,7 +441,7 @@ private:
     QCPItemText *textLabelBit[8], *textLabelDeltaTime, *textLabelDeltaVoltage;
     QCPItemText *textLabelVoltageA, *textLabelVoltageB, *textLabelFrequency;
     QString sniffBuffer;
-    uint16_t triggerPost,triggerLevel;
+    uint16_t triggerPost,triggerLevel,triggerWin1Level,triggerWin2Level;
     int currentSelected;
     QVector<double> ch1RefBuffer, ch2RefBuffer, ch1SaveBuffer, ch2SaveBuffer;
     QList<DataBuffer> ch1PBuffer,ch2PBuffer;
@@ -461,7 +468,8 @@ private:
 
     int initPosCh1;
     int initPosCh2;
-    int initPosScroll;
+    int initPosScroll, lastTriggerSource;
+    bool bitTriggerSource;
 };
 
 #endif // XPROTOLABINTERFACE_H
