@@ -4338,15 +4338,15 @@ void XprotolabInterface::on_intensitySlider_valueChanged(int value)
         t2Pen.color().getHslF(&h2, &s2, &l2);
         if(ui->comboBoxTheme->currentIndex()==Dark)
         {
-            t1Pen.setColor(QColor::fromHslF(h1, s1, mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh1,0)));
-            t2Pen.setColor(QColor::fromHslF(h2, s2, mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh2,0)));
+            t1Pen.setColor(QColor::fromHslF(h1, s1,  sqrt(mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh1,0.05))));
+            t2Pen.setColor(QColor::fromHslF(h2, s2,  sqrt(mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh2,0.05))));
             ch1PGraphs[i]->setPen(t1Pen);
             ch2PGraphs[i]->setPen(t2Pen);
         }
         else if(ui->comboBoxTheme->currentIndex()==Light)
         {
-            t1Pen.setColor(QColor::fromHslF(h1, s1, 1.0-mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh1,0)));
-            t2Pen.setColor(QColor::fromHslF(h2, s2, 1.0-mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh2,0)));
+            t1Pen.setColor(QColor::fromHslF(h1, s1, 1.0-mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh1,0.05)));
+            t2Pen.setColor(QColor::fromHslF(h2, s2, 1.0-mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh2,0.05)));
             ch1PGraphs[i]->setPen(t1Pen);
             ch2PGraphs[i]->setPen(t2Pen);
         }
@@ -4354,16 +4354,15 @@ void XprotolabInterface::on_intensitySlider_valueChanged(int value)
         {
             if(customThemeDialog.idealForegroundColor(customThemeDialog.customColors.background.color())=="#fffff")
             {
-                t1Pen.setColor(QColor::fromHslF(h1, s1, 1.0-sqrt(mapRangeF((10-i+(value/10)),0.5,10.5,1,0))));
-
-                t2Pen.setColor(QColor::fromHslF(h2, s2, 1.0-sqrt(mapRangeF((10-i+(value/10)),0.5,10.5,1,0))));
+                t1Pen.setColor(QColor::fromHslF(h1, s1, 1.0-mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh1,0.05)));
+                t2Pen.setColor(QColor::fromHslF(h2, s2, 1.0-mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh2,0.05)));
                 ch1PGraphs[i]->setPen(t1Pen);
                 ch2PGraphs[i]->setPen(t2Pen);
             }
             else
             {
-                t1Pen.setColor(QColor::fromHslF(h1, s1, sqrt(mapRangeF((10-i+(value/100)),0.5,10.5,1,0))));
-                t2Pen.setColor(QColor::fromHslF(h2, s2, sqrt(mapRangeF((10-i+(value/100)),0.5,10.5,1,0))));
+                t1Pen.setColor(QColor::fromHslF(h1, s1, mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh1,0.05)));
+                t2Pen.setColor(QColor::fromHslF(h2, s2, mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh2,0.05)));
                 ch1PGraphs[i]->setPen(t1Pen);
                 ch2PGraphs[i]->setPen(t2Pen);
             }
@@ -4373,12 +4372,12 @@ void XprotolabInterface::on_intensitySlider_valueChanged(int value)
     }
 }
 
-float XprotolabInterface::mapRangeF(float value, float oldMax, float oldMin, float newMax, float newMin)
+double XprotolabInterface::mapRangeF(double value, double oldMax, double oldMin, double newMax, double newMin)
 {
-    float newRange, oldRange;
+    double newRange, oldRange;
     newRange = newMax - newMin;
     oldRange = oldMax - oldMin;
-    return newMax - ((float)((value - oldMin) * newRange) / oldRange);
+    return newMax - (((value - oldMin) * newRange) / oldRange);
 }
 
 void XprotolabInterface::readAppSettings()

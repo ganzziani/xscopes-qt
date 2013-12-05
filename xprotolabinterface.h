@@ -154,7 +154,7 @@ private:
     void moveTrigger(QPointF);
     void moveWinTrigger(double,double,double);
     int mapRange(int value, int oldMax, int oldMin, int newMax, int newMin);
-    float mapRangeF(float value, float oldMax, float oldMin, float newMax, float newMin);
+    double mapRangeF(double value, double oldMax, double oldMin, double newMax, double newMin);
 
 
     
