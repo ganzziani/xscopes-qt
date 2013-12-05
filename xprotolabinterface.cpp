@@ -4338,8 +4338,8 @@ void XprotolabInterface::on_intensitySlider_valueChanged(int value)
         t2Pen.color().getHslF(&h2, &s2, &l2);
         if(ui->comboBoxTheme->currentIndex()==Dark)
         {
-            t1Pen.setColor(QColor::fromHslF(h1, s1,  sqrt(mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh1,0.05))));
-            t2Pen.setColor(QColor::fromHslF(h2, s2,  sqrt(mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh2,0.05))));
+            t1Pen.setColor(QColor::fromHslF(h1, s1,  mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh1,0.05)));
+            t2Pen.setColor(QColor::fromHslF(h2, s2,  mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh2,0.05)));
             ch1PGraphs[i]->setPen(t1Pen);
             ch2PGraphs[i]->setPen(t2Pen);
         }
