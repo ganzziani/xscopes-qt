@@ -392,8 +392,6 @@ void XprotolabInterface::setupScatterStyles(bool lStyle)
 //    }
 }
 
-
-
 void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
 {
     hCursorA = new QCPItemStraightLine(customPlot);
@@ -641,9 +639,9 @@ void XprotolabInterface::plotData()
     }
     else if(mode!=OSCILLOSCOPE||usbDevice.dataLength>770)
         return;
-    QVector<double> key,hCursorPos[2];
-    static bool once = true;
-    double ch1,ch2,minV,maxV, minX1 = 0, minX2 = 256,aTrack,bTrack;
+    QVector<double> key;
+    double ch1,ch2,minV,maxV, aTrack,bTrack;
+    byte minX1 = 0, minX2 = 255,samples = 255, a, mid, *p;
     QVector<double> ch1Buffer,ch2Buffer,fft1,fft2,ch1RefBuff,ch2RefBuff;
     QVector<double> bit[8],bitRefBuff[8];
     complex pSignal1[256],pSignal2[256];
@@ -656,7 +654,8 @@ void XprotolabInterface::plotData()
     {
         step = 2;
         i=ui->horizontalScrollBar->value();
-        minX2 = 128;
+        minX2 = 127;
+        samples = 127;
     }
     else if(ui->rollMode->isChecked())
     {
@@ -680,8 +679,6 @@ void XprotolabInterface::plotData()
         ch2 = ui->ch2PositionSlider->value() + (255-(int)usbDevice.chData[i+256])*2;
         ch1Buffer.push_back(ch1);
         ch2Buffer.push_back(ch2);
-        hCursorPos[0].push_back(hCursorAPos);
-        hCursorPos[1].push_back(hCursorBPos);
 
         if(ui->radioButtonCursorCH1->isChecked())
         {
@@ -711,10 +708,10 @@ void XprotolabInterface::plotData()
             else if(maxV<ch2)
                 maxV = ch2;
         }
-        if(usbDevice.chData[i]==128&&minX1==0&&xtime<128)
-            minX1 = xtime;
-        if(usbDevice.chData[i]==128&&minX2==0&&minX1!=0&&xtime<128)
-            minX2 = (xtime-minX1)*2;
+//        if(usbDevice.chData[i]==128&&minX1==0&&xtime<128)
+//            minX1 = xtime;
+//        if(usbDevice.chData[i]==128&&minX2==0&&minX1!=0)
+//            minX2 = xtime;//minX2 = (xtime-minX1)*2;
 
 
         {
@@ -747,13 +744,70 @@ void XprotolabInterface::plotData()
 
         }
     }
-    if(once)
+    if(ui->radioButtonCursorCH1->isChecked())
     {
-        once = false;
-//        ch1ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
-//        ch2ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
+        samples = 255;
+        p = usbDevice.chData+i;
+        mid = minV + (maxV-minV)/2;
+        a=0;
+        if(p[0]<mid)
+        {
+            while(*p++<mid)
+            {
+                a++;
+                if(a==samples)
+                    goto ENDSCAN;
+            }
+            minX1 = a;
+            while(*p++>mid)
+            {
+                a++;
+                if(a==samples)
+                    goto ENDSCAN;
+            }
+            minX2 = ++a;
+            while(*p++<mid)
+            {
+                a++;
+                if(a==samples)
+                    goto ENDSCAN;
+            }
+            minX2 = ++a;
 
+        }
+        else
+        {
+            while(*p++>mid)
+            {
+                a++;
+                if(a==samples)
+                    goto ENDSCAN;
+            }
+            minX1 = a;
+            while(*p++<mid)
+            {
+                a++;
+                if(a==samples)
+                    goto ENDSCAN;
+            }
+            minX2 = ++a;
+            while(*p++>mid)
+            {
+                a++;
+                if(a==samples)
+                    goto ENDSCAN;
+            }
+            minX2 = ++a;
+        }
+        ENDSCAN:
+        if(ui->samplingSlider->value()>=11)
+        {
+            minX1 = minX1>>1;
+            minX2 = minX2>>1;
+        }
     }
+    qDebug()<<minX1;
+    qDebug()<<minX2;
     if(ui->decaySlider->value()>0)
     {
         ch1PBuffer.push_back(ch1Buffer);
@@ -1129,13 +1183,13 @@ void XprotolabInterface::plotData()
         deltaVolt = deltaVolt*value/64;
         if(ui->radioButtonCursorCH1->isChecked())
         {
-            voltA = voltA - ch1ZeroPos;
-            voltB = voltB - ch1ZeroPos;
+            voltA = hCursorAHead->right->pixelPoint().ry() - ch1ZeroHead->right->pixelPoint().ry();
+            voltB = hCursorBHead->right->pixelPoint().ry() - ch1ZeroHead->right->pixelPoint().ry();
         }
         else if(ui->radioButtonCursorCH2->isChecked())
         {
-            voltA = voltA - ch2ZeroPos;
-            voltB = voltB - ch2ZeroPos;
+            voltA = hCursorAHead->right->pixelPoint().ry() - ch2ZeroHead->right->pixelPoint().ry();
+            voltB = hCursorBHead->right->pixelPoint().ry() - ch2ZeroHead->right->pixelPoint().ry();
         }
 
         voltA = voltA*value/64;
@@ -1149,12 +1203,24 @@ void XprotolabInterface::plotData()
 
         if(ui->checkBoxCursorAuto->isChecked())
         {
-            hCursorAPos = minV;
-            hCursorBPos = maxV;
-            hCursorAHead->topLeft->setCoords(-3,hCursorAPos+14);
-            hCursorBHead->topLeft->setCoords(-3,hCursorBPos+14);
-            vCursorAHead->topLeft->setPixelPoint(QPointF(ui->plotterWidget->xAxis->coordToPixel(minX1),10));
-            vCursorBHead->topLeft->setPixelPoint(QPointF(ui->plotterWidget->xAxis->coordToPixel(minX2),10));
+            if(ui->radioButtonCursorCH1->isChecked())
+            {
+                hCursorAPosCh1 = minV;
+                hCursorBPosCh1 = maxV;
+                hCursorAHead->topLeft->setCoords(-3,hCursorAPosCh1+14);
+                hCursorBHead->topLeft->setCoords(-3,hCursorBPosCh1+14);
+            }
+            else if(ui->radioButtonCursorCH2->isChecked())
+            {
+                hCursorAPosCh2 = minV;
+                hCursorBPosCh2 = maxV;
+                hCursorAHead->topLeft->setCoords(-3,hCursorAPosCh2+14);
+                hCursorBHead->topLeft->setCoords(-3,hCursorBPosCh2+14);
+            }
+
+
+//            vCursorAHead->topLeft->setPixelPoint(QPointF(ui->plotterWidget->xAxis->coordToPixel(minX1),10));
+//            vCursorBHead->topLeft->setPixelPoint(QPointF(ui->plotterWidget->xAxis->coordToPixel(minX2),10));
         }
         else if(ui->checkBoxCursorTrack->isChecked())
         {
@@ -1170,6 +1236,10 @@ void XprotolabInterface::plotData()
                 phaseTracerAB->updatePosition();
                 aTrack = phaseTracerAA->position->value();
                 bTrack = phaseTracerAB->position->value();
+                hCursorAPosCh1 = aTrack;
+                hCursorBPosCh1 = bTrack;
+                hCursorAHead->topLeft->setCoords(-3,hCursorAPosCh1+14);
+                hCursorBHead->topLeft->setCoords(-3,hCursorBPosCh1+14);
             }
             else if(ui->radioButtonCursorCH2->isChecked())
             {
@@ -1183,12 +1253,13 @@ void XprotolabInterface::plotData()
                 phaseTracerBB->updatePosition();
                 aTrack = phaseTracerBA->position->value();
                 bTrack = phaseTracerBB->position->value();
+                hCursorAPosCh2 = aTrack;
+                hCursorBPosCh2 = bTrack;
+                hCursorAHead->topLeft->setCoords(-3,hCursorAPosCh2+14);
+                hCursorBHead->topLeft->setCoords(-3,hCursorBPosCh2+14);
 
             }
-            hCursorAPos = aTrack;
-            hCursorBPos = bTrack;
-            hCursorAHead->topLeft->setCoords(-3,hCursorAPos+14);
-            hCursorBHead->topLeft->setCoords(-3,hCursorBPos+14);
+
 
         }
     }
@@ -1221,9 +1292,15 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
                 hCursorAPos = 5;
             hCursorAHead->topLeft->setPixelPoint(QPointF(6,curPos));
             if(ui->radioButtonCursorCH1->isChecked())
+            {
+                hCursorAPosCh1 = hCursorAPos;
                 sendHorizontalCursorCH1A();
+            }
             else if(ui->radioButtonCursorCH2->isChecked())
+            {
+                hCursorAPosCh2 = hCursorAPos;
                 sendHorizontalCursorCH2A();
+            }
         }
         else if(currentSelected == isHCursorBHead)
         {
@@ -1240,9 +1317,15 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
                 hCursorBPos = 5;
             hCursorBHead->topLeft->setPixelPoint(QPointF(6,curPos));
             if(ui->radioButtonCursorCH1->isChecked())
+            {
+                hCursorBPosCh1 = hCursorBPos;
                 sendHorizontalCursorCH1B();
+            }
             else if(ui->radioButtonCursorCH2->isChecked())
+            {
+                hCursorBPosCh2 = hCursorBPos;
                 sendHorizontalCursorCH2B();
+            }
         }
         else if(currentSelected == isVCursorAHead)
         {
@@ -1331,6 +1414,11 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
         else if(currentSelected == isTriggerWin1Pixmap)
         {
             triggerWin1Level = ui->plotterWidget->yAxis->pixelToCoord(event->posF().ry());
+            if(triggerWin1Level>triggerWin2Level-8)
+            {
+                triggerWin1Level = triggerWin2Level;
+                return;
+            }
             triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->posF().rx());
             if(triggerPost>255)
                 triggerPost = 255;
@@ -1347,6 +1435,11 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
         else if(currentSelected == isTriggerWin2Pixmap)
         {
             triggerWin2Level = ui->plotterWidget->yAxis->pixelToCoord(event->posF().ry());
+            if(triggerWin2Level<triggerWin1Level-5)
+            {
+                triggerWin2Level = triggerWin1Level;
+                return;
+            }
             triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->posF().rx());
             if(triggerPost>255)
                 triggerPost = 255;
@@ -1387,6 +1480,7 @@ void XprotolabInterface::moveTrigger(QPointF pos)
     triggerPixmap->topLeft->setPixelPoint(QPointF(curPosX,curPosY));
 
 }
+
 void XprotolabInterface::moveWinTrigger(double curPosX,double curPosY1, double curPosY2 )
 {
     if(ui->radioButtonFree->isChecked())
@@ -2300,37 +2394,37 @@ void XprotolabInterface::readDeviceSettings()
     }
     // M 17 CH1 Horizontal cursor A
     data = usbDevice.inBuffer[17];
-    if((byte)data>=0 && (byte)data<128 && ui->radioButtonCursorCH1->isChecked())
+    if((byte)data>=0 && (byte)data<128)
     {
-        hCursorAPos = mapRange(data,128,0,rangeMax*3/4,rangeMax/4);
-        hCursorAHead->topLeft->setCoords(-3,hCursorAPos);
+        hCursorAPosCh1 = mapRange(data,128,0,rangeMax*3/4,rangeMax/4);
+        hCursorAHead->topLeft->setCoords(-3,hCursorAPosCh1);
         hCursorA->point1->setCoords(0,0);
         hCursorA->point2->setCoords(10,0);
     }
     // M 18 CH1 Horizontal cursor B
     data = usbDevice.inBuffer[18];
-    if((byte)data>=0 && (byte)data<128 && ui->radioButtonCursorCH1->isChecked())
+    if((byte)data>=0 && (byte)data<128)
     {
-        hCursorBPos = mapRange(data,64,0,rangeMax*3/4,rangeMax/4);;
-        hCursorBHead->topLeft->setCoords(-3,hCursorBPos);
+        hCursorBPosCh1 = mapRange(data,64,0,rangeMax*3/4,rangeMax/4);;
+        hCursorBHead->topLeft->setCoords(-3,hCursorBPosCh1);
         hCursorB->point1->setCoords(0,0);
         hCursorB->point2->setCoords(10,0);
     }
     // M 19 CH2 Horizontal cursor A
     data = usbDevice.inBuffer[19];
-    if((byte)data>=0 && (byte)data<128 && ui->radioButtonCursorCH2->isChecked())
+    if((byte)data>=0 && (byte)data<128)
     {
-        hCursorAPos = mapRange(data,128,0,rangeMax*3/4,rangeMax/4);
-        hCursorAHead->topLeft->setCoords(-3,hCursorAPos);
+        hCursorAPosCh2 = mapRange(data,128,0,rangeMax*3/4,rangeMax/4);
+        hCursorAHead->topLeft->setCoords(-3,hCursorAPosCh2);
         hCursorA->point1->setCoords(0,0);
         hCursorA->point2->setCoords(10,0);
     }
     // M 20 CH2 Horizontal cursor B
     data = usbDevice.inBuffer[20];
-    if((byte)data>=0 && (byte)data<128 && ui->radioButtonCursorCH2->isChecked())
+    if((byte)data>=0 && (byte)data<128)
     {
-        hCursorBPos = mapRange(data,64,0,rangeMax*3/4,rangeMax/4);
-        hCursorBHead->topLeft->setCoords(-3,hCursorBPos);
+        hCursorBPosCh2 = mapRange(data,64,0,rangeMax*3/4,rangeMax/4);
+        hCursorBHead->topLeft->setCoords(-3,hCursorBPosCh2);
         hCursorB->point1->setCoords(0,0);
         hCursorB->point2->setCoords(10,0);
     }
@@ -2929,6 +3023,8 @@ void XprotolabInterface::sendCursorControls()
         hCursorBHead->setVisible(true);
         hCursorA->setVisible(true);
         hCursorB->setVisible(true);
+        hCursorAHead->topLeft->setCoords(-3,hCursorAPosCh1+14);
+        hCursorBHead->topLeft->setCoords(-3,hCursorBPosCh1+14);
         textLabelDeltaVoltage->setVisible(true);
         textLabelVoltageA->setVisible(true);
         textLabelVoltageB->setVisible(true);
@@ -2940,6 +3036,8 @@ void XprotolabInterface::sendCursorControls()
         hCursorBHead->setVisible(true);
         hCursorA->setVisible(true);
         hCursorB->setVisible(true);
+        hCursorAHead->topLeft->setCoords(-3,hCursorAPosCh2+14);
+        hCursorBHead->topLeft->setCoords(-3,hCursorBPosCh2+14);
         textLabelDeltaVoltage->setVisible(true);
         textLabelVoltageA->setVisible(true);
         textLabelVoltageB->setVisible(true);
@@ -3469,7 +3567,7 @@ int XprotolabInterface::mapRange(int value, int oldMax, int oldMin, int newMax, 
 // M 17 CH1 Horizontal cursor A
 void XprotolabInterface::sendHorizontalCursorCH1A()
 {
-    int oldvalue = hCursorAPos;
+    int oldvalue = hCursorAPosCh1;
     if(oldvalue>(rangeMax*3/4))
         oldvalue = rangeMax*3/4;
     else if(oldvalue<(rangeMax/4))
@@ -3485,7 +3583,7 @@ void XprotolabInterface::sendHorizontalCursorCH1B()
 //    byte value;
 //    value = 64*hCursorBPos/rangeMax;
 //    value = 64-value;
-    int oldvalue = hCursorBPos;
+    int oldvalue = hCursorBPosCh1;
     if(oldvalue>(rangeMax*3/4))
         oldvalue = rangeMax*3/4;
     else if(oldvalue<(rangeMax/4))
@@ -3495,7 +3593,7 @@ void XprotolabInterface::sendHorizontalCursorCH1B()
 // M 19 CH2 Horizontal cursor A
 void XprotolabInterface::sendHorizontalCursorCH2A()
 {
-    int oldvalue = hCursorAPos;
+    int oldvalue = hCursorAPosCh2;
     if(oldvalue>(rangeMax*3/4))
         oldvalue = rangeMax*3/4;
     else if(oldvalue<(rangeMax/4))
@@ -3505,7 +3603,7 @@ void XprotolabInterface::sendHorizontalCursorCH2A()
 // M 20 CH2 Horizontal cursor B
 void XprotolabInterface::sendHorizontalCursorCH2B()
 {
-    int oldvalue = hCursorBPos;
+    int oldvalue = hCursorBPosCh2;
     if(oldvalue>(rangeMax*3/4))
         oldvalue = rangeMax*3/4;
     else if(oldvalue<(rangeMax/4))
@@ -4240,16 +4338,15 @@ void XprotolabInterface::on_intensitySlider_valueChanged(int value)
         t2Pen.color().getHslF(&h2, &s2, &l2);
         if(ui->comboBoxTheme->currentIndex()==Dark)
         {
-            t1Pen.setColor(QColor::fromHslF(h1, s1, 1.0-sqrt(mapRangeF((10-i+(value/100)),0.5,10.5,1,0))));
-
-            t2Pen.setColor(QColor::fromHslF(h2, s2, 1.0-sqrt(mapRangeF((10-i+(value/100)),0.5,10.5,1,0))));
+            t1Pen.setColor(QColor::fromHslF(h1, s1, mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh1,0)));
+            t2Pen.setColor(QColor::fromHslF(h2, s2, mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh2,0)));
             ch1PGraphs[i]->setPen(t1Pen);
             ch2PGraphs[i]->setPen(t2Pen);
         }
         else if(ui->comboBoxTheme->currentIndex()==Light)
         {
-            t1Pen.setColor(QColor::fromHslF(h1, s1, sqrt(mapRangeF((10-i+(value/100)),0.5,10.5,1,0))));
-            t2Pen.setColor(QColor::fromHslF(h2, s2, sqrt(mapRangeF((10-i+(value/100)),0.5,10.5,1,0))));
+            t1Pen.setColor(QColor::fromHslF(h1, s1, 1.0-mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh1,0)));
+            t2Pen.setColor(QColor::fromHslF(h2, s2, 1.0-mapRangeF(((i+1.0)*(value/10.0)),i+1.0,0,lmaxCh2,0)));
             ch1PGraphs[i]->setPen(t1Pen);
             ch2PGraphs[i]->setPen(t2Pen);
         }
@@ -4257,9 +4354,9 @@ void XprotolabInterface::on_intensitySlider_valueChanged(int value)
         {
             if(customThemeDialog.idealForegroundColor(customThemeDialog.customColors.background.color())=="#fffff")
             {
-                t1Pen.setColor(QColor::fromHslF(h1, s1, 1.0-sqrt(mapRangeF((10-i+(value/100)),0.5,10.5,1,0))));
+                t1Pen.setColor(QColor::fromHslF(h1, s1, 1.0-sqrt(mapRangeF((10-i+(value/10)),0.5,10.5,1,0))));
 
-                t2Pen.setColor(QColor::fromHslF(h2, s2, 1.0-sqrt(mapRangeF((10-i+(value/100)),0.5,10.5,1,0))));
+                t2Pen.setColor(QColor::fromHslF(h2, s2, 1.0-sqrt(mapRangeF((10-i+(value/10)),0.5,10.5,1,0))));
                 ch1PGraphs[i]->setPen(t1Pen);
                 ch2PGraphs[i]->setPen(t2Pen);
             }
@@ -4276,9 +4373,9 @@ void XprotolabInterface::on_intensitySlider_valueChanged(int value)
     }
 }
 
-float XprotolabInterface::mapRangeF(int value, int oldMax, int oldMin, int newMax, int newMin)
+float XprotolabInterface::mapRangeF(float value, float oldMax, float oldMin, float newMax, float newMin)
 {
-    int newRange, oldRange;
+    float newRange, oldRange;
     newRange = newMax - newMin;
     oldRange = oldMax - oldMin;
     return newMax - ((float)((value - oldMin) * newRange) / oldRange);
@@ -4340,13 +4437,13 @@ void XprotolabInterface::setTriggerIcon(int iconNum)
         triggerPixmap->setVisible(false);
         if(ui->comboBoxTrigSource->currentIndex()==0)
         {
-            triggerWin1Pixmap->setPixmap(QPixmap(triggerIconPathsG[iconNum]));
-            triggerWin2Pixmap->setPixmap(QPixmap(triggerIconPathsG[iconNum+1]));
+            triggerWin1Pixmap->setPixmap(QPixmap(triggerIconPathsG[iconNum+1]));
+            triggerWin2Pixmap->setPixmap(QPixmap(triggerIconPathsG[iconNum]));
         }
         else if(ui->comboBoxTrigSource->currentIndex()==1)
         {
-            triggerWin1Pixmap->setPixmap(QPixmap(triggerIconPathsR[iconNum]));
-            triggerWin2Pixmap->setPixmap(QPixmap(triggerIconPathsR[iconNum+1]));
+            triggerWin1Pixmap->setPixmap(QPixmap(triggerIconPathsR[iconNum+1]));
+            triggerWin2Pixmap->setPixmap(QPixmap(triggerIconPathsR[iconNum]));
         }
         else
         {

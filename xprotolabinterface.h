@@ -154,7 +154,7 @@ private:
     void moveTrigger(QPointF);
     void moveWinTrigger(double,double,double);
     int mapRange(int value, int oldMax, int oldMin, int newMax, int newMin);
-    float mapRangeF(int value, int oldMax, int oldMin, int newMax, int newMin);
+    float mapRangeF(float value, float oldMax, float oldMin, float newMax, float newMin);
 
 
     
@@ -430,7 +430,7 @@ private:
     bool isScrolling;
     QString filePath;
     double rangeMax,fftWindow[256],hCursorAPos ,hCursorBPos ,vCursorAPos ,vCursorBPos;
-    double ch1ZeroPos, ch2ZeroPos;
+    double ch1ZeroPos, ch2ZeroPos, hCursorAPosCh1 ,hCursorBPosCh1,hCursorAPosCh2 ,hCursorBPosCh2;
     QStringList rateText,gainText;
     int freqValue[23],xmax,mode;
     bool bitChecked[8],itemIsSelected,captureRef,saveWave,displayLoadedWave;
