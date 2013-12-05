@@ -806,8 +806,6 @@ void XprotolabInterface::plotData()
             minX2 = minX2>>1;
         }
     }
-    qDebug()<<minX1;
-    qDebug()<<minX2;
     if(ui->decaySlider->value()>0)
     {
         ch1PBuffer.push_back(ch1Buffer);
@@ -1665,7 +1663,6 @@ void XprotolabInterface::setTriggerLevelPosition(QPointF pos, int type)
         {
             curPosX = 10;
         }
-        qDebug()<<"tlevelc :"<<tlevel;
         triggerPixmap->topLeft->setPixelPoint(QPointF(curPosX,curPosY));
         if(ui->comboBoxTrigSource->currentIndex()<2)
             setTriggerLevel(tlevel);
@@ -1797,7 +1794,7 @@ void XprotolabInterface::sniffProtocol()
         {
             double vsize;
             vsize = ui->rxTextEdit->height()/ui->rxTextEdit->fontPointSize();
-            qDebug()<<vsize;
+
             ui->rxTextEdit->setPlainText(rxData);
             ui->rxTextEdit->textCursor().movePosition(QTextCursor::Down);
         }
@@ -2584,8 +2581,6 @@ void XprotolabInterface::readDeviceSettings()
     }
     ch1ZeroPos = rangeMax/2+ui->ch1PositionSlider->value();
     ch2ZeroPos = rangeMax/2+ui->ch2PositionSlider->value();
-    qDebug()<<"ch1: "<<ch1ZeroPos;
-    qDebug()<<"ch2: "<<ch2ZeroPos;
     int value =0, hpos;
     triggerPost = 256-triggerPost;
     hpos = triggerPost*2-(ui->horizontalScrollBar->value()*2);
@@ -2643,7 +2638,7 @@ void XprotolabInterface::zoom(QWheelEvent* event)
 
     if (event->orientation() == Qt::Vertical)
     {
-        qDebug()<<numSteps;
+
     }
     event->accept();
     rangeMax = value;
@@ -3697,7 +3692,6 @@ void XprotolabInterface::on_comboBoxTrigSource_currentIndexChanged(int index)
 
 void XprotolabInterface::setTriggerLevel(int value)
 {
-    qDebug()<<"tlevel: "<<mapRange(value,504,6,252,3);
     usbDevice.controlWriteTransfer(25,mapRange(value,504,6,252,3));  // 3 - 252
 }
 
@@ -3705,14 +3699,12 @@ void XprotolabInterface::setTriggerLevel(int value)
 
 void XprotolabInterface::setTriggerWin1Level(int value)
 {
-    qDebug()<<"tlevel: "<<mapRange(value,504,6,255,0);
     usbDevice.controlWriteTransfer(26,mapRange(value,512,0,255,0));  // 3 - 252
 }
 // M 27 Window Trigger level 2
 
 void XprotolabInterface::setTriggerWin2Level(int value)
 {
-    qDebug()<<"tlevel: "<<mapRange(value,504,6,255,0);
     usbDevice.controlWriteTransfer(27,mapRange(value,512,0,255,0));  // 3 - 252
 }
 
