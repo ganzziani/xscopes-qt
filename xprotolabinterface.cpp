@@ -1277,8 +1277,8 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
 
         if(currentSelected == isHCursorAHead)
         {
-            hCursorAPos = ui->plotterWidget->yAxis->pixelToCoord(event->posF().ry());
-            curPos = event->posF().ry()-16;
+            hCursorAPos = ui->plotterWidget->yAxis->pixelToCoord(event->y());
+            curPos = event->y()-16;
 
             if(curPos>ui->plotterWidget->visibleRegion().boundingRect().bottom()-32)
                 curPos = ui->plotterWidget->visibleRegion().boundingRect().bottom()-32;
@@ -1302,8 +1302,8 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
         }
         else if(currentSelected == isHCursorBHead)
         {
-            hCursorBPos = ui->plotterWidget->yAxis->pixelToCoord(event->posF().ry());
-            curPos = event->posF().ry()-16;
+            hCursorBPos = ui->plotterWidget->yAxis->pixelToCoord(event->y());
+            curPos = event->y()-16;
 
             if(curPos>ui->plotterWidget->visibleRegion().boundingRect().bottom()-32)
                 curPos = ui->plotterWidget->visibleRegion().boundingRect().bottom()-32;
@@ -1327,8 +1327,8 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
         }
         else if(currentSelected == isVCursorAHead)
         {
-            vCursorAPos = ui->plotterWidget->xAxis->pixelToCoord(event->posF().rx());
-            curPos = event->posF().rx()-16;
+            vCursorAPos = ui->plotterWidget->xAxis->pixelToCoord(event->x());
+            curPos = event->x()-16;
             if(curPos<5)
                 curPos=5;
             else if(curPos>ui->plotterWidget->visibleRegion().boundingRect().right()-32)
@@ -1342,8 +1342,8 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
         }
         else if(currentSelected == isVCursorBHead)
         {
-            vCursorBPos = ui->plotterWidget->xAxis->pixelToCoord(event->posF().rx());
-            curPos = event->posF().rx()-16;
+            vCursorBPos = ui->plotterWidget->xAxis->pixelToCoord(event->x());
+            curPos = event->x()-16;
             if(curPos<5)
                 curPos=5;
             else if(curPos>ui->plotterWidget->visibleRegion().boundingRect().right()-32)
@@ -1360,7 +1360,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
             int value,maxp,minp;
             maxp = rangeMax*3/4;
             minp = rangeMax/4;
-            curPos = event->posF().ry()-8;
+            curPos = event->y()-8;
             if(curPos>(ui->plotterWidget->yAxis->coordToPixel(minp)))
                 curPos = ui->plotterWidget->yAxis->coordToPixel(minp);
             else if(curPos<ui->plotterWidget->yAxis->coordToPixel(maxp))
@@ -1374,7 +1374,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
             int value,maxp,minp;
             maxp = rangeMax*3/4;
             minp = rangeMax/4;
-            curPos = event->posF().ry()-8;
+            curPos = event->y()-8;
             if(curPos>(ui->plotterWidget->yAxis->coordToPixel(minp)))
                 curPos = ui->plotterWidget->yAxis->coordToPixel(minp);
             else if(curPos<ui->plotterWidget->yAxis->coordToPixel(maxp))
@@ -1385,8 +1385,8 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
         }
         else if(currentSelected == isTriggerPixmap)
         {
-            triggerLevel = ui->plotterWidget->yAxis->pixelToCoord(event->posF().ry());
-            triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->posF().rx());
+            triggerLevel = ui->plotterWidget->yAxis->pixelToCoord(event->y());
+            triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->x());
             //triggerPost+=ui->horizontalScrollBar->value();
             if(triggerPost>255)
                 triggerPost = 255;
@@ -1397,7 +1397,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
               triggerLevel = rangeMax/4;
             else if(triggerLevel>rangeMax*3/4)
               triggerLevel = rangeMax*3/4;
-            setTriggerLevelPosition(event->posF(),Other);
+            setTriggerLevelPosition(event->localPos(),Other);
 //            static int times = 0;
 
 //            if(times <10)
@@ -1411,13 +1411,13 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
         }
         else if(currentSelected == isTriggerWin1Pixmap)
         {
-            triggerWin1Level = ui->plotterWidget->yAxis->pixelToCoord(event->posF().ry());
+            triggerWin1Level = ui->plotterWidget->yAxis->pixelToCoord(event->y());
             if(triggerWin1Level>triggerWin2Level-8)
             {
                 triggerWin1Level = triggerWin2Level;
                 return;
             }
-            triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->posF().rx());
+            triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->x());
             if(triggerPost>255)
                 triggerPost = 255;
             if(triggerPost<0)
@@ -1428,17 +1428,17 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
               triggerWin1Level = rangeMax/4;
             else if(triggerWin1Level>rangeMax*3/4)
               triggerWin1Level = rangeMax*3/4;
-            setTriggerLevelPosition(event->posF(),Window1);
+            setTriggerLevelPosition(event->localPos(),Window1);
         }
         else if(currentSelected == isTriggerWin2Pixmap)
         {
-            triggerWin2Level = ui->plotterWidget->yAxis->pixelToCoord(event->posF().ry());
+            triggerWin2Level = ui->plotterWidget->yAxis->pixelToCoord(event->y());
             if(triggerWin2Level<triggerWin1Level-5)
             {
                 triggerWin2Level = triggerWin1Level;
                 return;
             }
-            triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->posF().rx());
+            triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->x());
             if(triggerPost>255)
                 triggerPost = 255;
             if(triggerPost<0)
@@ -1449,7 +1449,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
               triggerWin2Level = rangeMax/4;
             else if(triggerWin1Level>rangeMax*3/4)
               triggerWin2Level = rangeMax*3/4;
-            setTriggerLevelPosition(event->posF(),Window2);
+            setTriggerLevelPosition(event->localPos(),Window2);
         }
 
     }
@@ -1514,37 +1514,37 @@ void XprotolabInterface::selectItem(QMouseEvent *event)
 {
     if(!(event->buttons() & Qt::LeftButton))
         return;
-    if(hCursorAHead->selectTest(event->posF(),false)>=0 && hCursorAHead->selectTest(event->posF(),false)<8.0)
+    if(hCursorAHead->selectTest(event->localPos(),false)>=0 && hCursorAHead->selectTest(event->localPos(),false)<8.0)
     {
         currentSelected = isHCursorAHead;
         hCursorAHead->setPen(QPen(QColor("#1692e5")));
     }
-    else if(hCursorBHead->selectTest(event->posF(),false)>=0 && hCursorBHead->selectTest(event->posF(),false)<8.0)
+    else if(hCursorBHead->selectTest(event->localPos(),false)>=0 && hCursorBHead->selectTest(event->localPos(),false)<8.0)
     {
         currentSelected = isHCursorBHead;
         hCursorBHead->setPen(QPen(QColor("#1692e5")));
     }
-    else if(vCursorAHead->selectTest(event->posF(),false)>=0 && vCursorAHead->selectTest(event->posF(),false)<8.0)
+    else if(vCursorAHead->selectTest(event->localPos(),false)>=0 && vCursorAHead->selectTest(event->localPos(),false)<8.0)
     {
         currentSelected = isVCursorAHead;
         vCursorAHead->setPen(QPen(QColor("#e04e4e")));
     }
-    else if(vCursorBHead->selectTest(event->posF(),false)>=0 && vCursorBHead->selectTest(event->posF(),false)<8.0)
+    else if(vCursorBHead->selectTest(event->localPos(),false)>=0 && vCursorBHead->selectTest(event->localPos(),false)<8.0)
     {
         currentSelected = isVCursorBHead;
         vCursorBHead->setPen(QPen(QColor("#e04e4e")));
     }
-    else if(ch1ZeroHead->selectTest(event->posF(),false)>=0 && ch1ZeroHead->selectTest(event->posF(),false)<8.0)
+    else if(ch1ZeroHead->selectTest(event->localPos(),false)>=0 && ch1ZeroHead->selectTest(event->localPos(),false)<8.0)
     {
         currentSelected = isCH1Zero;
         ch1ZeroHead->setPen(QPen(QColor("#f9a94c")));
     }
-    else if(ch2ZeroHead->selectTest(event->posF(),false)>=0 && ch2ZeroHead->selectTest(event->posF(),false)<8.0)
+    else if(ch2ZeroHead->selectTest(event->localPos(),false)>=0 && ch2ZeroHead->selectTest(event->localPos(),false)<8.0)
     {
         currentSelected = isCH2Zero;
         ch2ZeroHead->setPen(QPen(QColor("#f9a94c")));
     }
-    else if(triggerPixmap->selectTest(event->posF(),false)>=0 && triggerPixmap->selectTest(event->posF(),false)<8.0)
+    else if(triggerPixmap->selectTest(event->localPos(),false)>=0 && triggerPixmap->selectTest(event->localPos(),false)<8.0)
     {
         currentSelected = isTriggerPixmap;
         if(ui->comboBoxTrigSource->currentIndex()==0)
@@ -1552,7 +1552,7 @@ void XprotolabInterface::selectItem(QMouseEvent *event)
         else
             triggerPixmap->setPen(QPen(QColor("#ff0000")));
     }
-    else if(triggerWin1Pixmap->selectTest(event->posF(),false)>=0 && triggerWin1Pixmap->selectTest(event->posF(),false)<8.0)
+    else if(triggerWin1Pixmap->selectTest(event->localPos(),false)>=0 && triggerWin1Pixmap->selectTest(event->localPos(),false)<8.0)
     {
         currentSelected = isTriggerWin1Pixmap;
         if(ui->comboBoxTrigSource->currentIndex()==0)
@@ -1560,7 +1560,7 @@ void XprotolabInterface::selectItem(QMouseEvent *event)
         else
             triggerWin1Pixmap->setPen(QPen(QColor("#ff0000")));
     }
-    else if(triggerWin2Pixmap->selectTest(event->posF(),false)>=0 && triggerWin2Pixmap->selectTest(event->posF(),false)<8.0)
+    else if(triggerWin2Pixmap->selectTest(event->localPos(),false)>=0 && triggerWin2Pixmap->selectTest(event->localPos(),false)<8.0)
     {
         currentSelected = isTriggerWin2Pixmap;
         if(ui->comboBoxTrigSource->currentIndex()==0)
