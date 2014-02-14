@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>960</width>
-    <height>644</height>
+    <height>689</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -43,7 +43,16 @@
         <property name="spacing">
          <number>0</number>
         </property>
-        <property name="margin">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
          <number>0</number>
         </property>
         <item>
@@ -225,7 +234,7 @@
         </font>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>4</number>
        </property>
        <property name="elideMode">
         <enum>Qt::ElideNone</enum>
@@ -4741,7 +4750,7 @@ Frequency</string>
                      </font>
                     </property>
                     <property name="text">
-                     <string>Xscope Interface v1.0.0.1</string>
+                     <string>Xscope Interface v1.0.0.2</string>
                     </property>
                     <property name="scaledContents">
                      <bool>true</bool>
