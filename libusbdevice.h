@@ -43,7 +43,11 @@ public:
 public:
     bool isDeviceConnected,isInitialiazed;
     QString cstatus;
-    libusb_device_handle *deviceHandle;
+    libusb_device **devs;
+    libusb_device *deviceFound = NULL;
+    libusb_device *dev;
+    libusb_device_descriptor deviceDesc;
+    libusb_device_handle *deviceHandle = NULL;
     libusb_context *context;
     libusb_hotplug_callback_handle hotplugHandle[2];
     struct libusb_transfer *pcToUsbDeviceTransfer;
