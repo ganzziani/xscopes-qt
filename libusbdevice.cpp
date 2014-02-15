@@ -1,4 +1,5 @@
 #include "libusbdevice.h"
+#include "libusbdeviceinfo.h"
 
 LibUsbDevice::LibUsbDevice(QObject *parent) :
     QObject(parent)
@@ -97,8 +98,41 @@ void LibUsbDevice::initializeDevice()
 
 void LibUsbDevice::openDevice()
 {
+    size_t i = 0;
     int status;
-    deviceHandle = libusb_open_device_with_vid_pid(context, VENDOR_ID, PRODUCT_ID);
+    status = libusb_get_device_list(context, &devs);
+    if (status < 0)
+    {
+        cstatus = tr("Cannot open device!");
+        qDebug()<<"No USB Devices to List"<<endl;
+        return;
+    }
+
+    while ((dev = devs[i++]) != NULL)
+    {
+        status = libusb_get_device_descriptor(dev, &deviceDesc);
+        if (status < 0)
+        {
+            break;
+        }
+        if (deviceDesc.idVendor == VENDOR_ID && deviceDesc.idProduct == PRODUCT_ID)
+        {
+            status = libusb_open(dev, &deviceHandle);
+            if (status)
+            {
+                cstatus = tr("Cannot open device!");
+                qDebug()<<"Cannot open device--"<<i<<endl;
+                deviceHandle = NULL;
+            }
+            else
+            {
+                qDebug()<<dev<<" Device Opened"<<endl;
+                break;
+            }
+        }
+    }
+    libusb_free_device_list(devs, 1);
+
     if(deviceHandle == NULL)
     {
         cstatus = tr("Cannot open device!");
