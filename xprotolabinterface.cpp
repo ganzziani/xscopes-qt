@@ -2852,21 +2852,21 @@ void XprotolabInterface::on_checkBoxASCII_clicked()
 void XprotolabInterface::sendCHDBitControls()
 {
     byte field = 0;
-    if(bitChecked[0] = ui->checkBoxCHD0->isChecked())
+    if(bitChecked[0] == ui->checkBoxCHD0->isChecked())
         field += (1 << 0);
-    if(bitChecked[1] = ui->checkBoxCHD1->isChecked())
+    if(bitChecked[1] == ui->checkBoxCHD1->isChecked())
         field += (1 << 1);
-    if(bitChecked[2] = ui->checkBoxCHD2->isChecked())
+    if(bitChecked[2] == ui->checkBoxCHD2->isChecked())
         field += (1 << 2);
-    if(bitChecked[3] = ui->checkBoxCHD3->isChecked())
+    if(bitChecked[3] == ui->checkBoxCHD3->isChecked())
         field += (1 << 3);
-    if(bitChecked[4] = ui->checkBoxCHD4->isChecked())
+    if(bitChecked[4] == ui->checkBoxCHD4->isChecked())
         field += (1 << 4);
-    if(bitChecked[5] = ui->checkBoxCHD5->isChecked())
+    if(bitChecked[5] == ui->checkBoxCHD5->isChecked())
         field += (1 << 5);
-    if(bitChecked[6] = ui->checkBoxCHD6->isChecked())
+    if(bitChecked[6] == ui->checkBoxCHD6->isChecked())
         field += (1 << 6);
-    if(bitChecked[7] = ui->checkBoxCHD7->isChecked())
+    if(bitChecked[7] == ui->checkBoxCHD7->isChecked())
         field += (1 << 7);
     usbDevice.controlWriteTransfer(4, field);
 }
@@ -3782,7 +3782,7 @@ void XprotolabInterface::on_chdPositionSlider_valueChanged(int value)
         chPos = temp;
     usbDevice.controlWriteTransfer(31, chPos);
     initPosScroll = ui->horizontalScrollBar->value();
-    if(ui->comboBoxTrigSource->currentIndex()>1||ui->comboBoxTrigSource->currentIndex()<10&&!initializing)
+    if((ui->comboBoxTrigSource->currentIndex()>1 || ui->comboBoxTrigSource->currentIndex()<10) && !initializing)
     {
         moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost-ui->horizontalScrollBar->value())*2),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
     }
