@@ -1123,7 +1123,7 @@ void XprotolabInterface::plotData()
         if(deltaTime<0)
             deltaTime = deltaTime*-1;
 
-        unit = QString::fromUtf8(rateText[ui->samplingSlider->value()].toLatin1());
+        unit = (rateText[ui->samplingSlider->value()]);
         for(int i = 0; i<unit.length();i++)
         {
             if(unit[i]=='m'||unit[i]=='s'||unit[i].toLatin1()==QChar('μ').toLatin1())
@@ -2548,7 +2548,7 @@ void XprotolabInterface::readDeviceSettings()
     updateSweepCursors();
     ui->ch1Label->setText("CH1 = "+gainText[ui->ch1GainSlider->value()]);
     ui->ch2Label->setText("CH2 = "+gainText[ui->ch2GainSlider->value()]);
-    ui->timeLabel->setText("Time = "+QString::fromUtf8(rateText[ui->samplingSlider->value()].toLatin1()));
+    ui->timeLabel->setText("Time = "+(rateText[ui->samplingSlider->value()]));
     if(freq < 1)
         freq = 1;
     if(freq > 100000)
@@ -2652,7 +2652,7 @@ void XprotolabInterface::on_samplingSlider_valueChanged(int value)
     if(!usbDevice.isDeviceConnected)
         return;
     usbDevice.controlWriteTransfer(0,(byte)value);
-    ui->timeLabel->setText("Time = "+rateText[ui->samplingSlider->value()].toLatin1());
+    ui->timeLabel->setText("Time = "+rateText[ui->samplingSlider->value()]);
     if(value>=11)
         triggerPixmap->topLeft->setPixelPoint(QPointF(10,ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
     else
