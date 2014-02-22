@@ -1390,8 +1390,8 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
             //triggerPost+=ui->horizontalScrollBar->value();
             if(triggerPost>255)
                 triggerPost = 255;
-            if(triggerPost<0)
-                triggerPost = 0;
+            //if(triggerPost<0)    Variable is unsigned integer so test will always fail
+            //    triggerPost = 0;
             triggerPost = triggerPost/2+ ui->horizontalScrollBar->value();
             if(triggerLevel<rangeMax/4)
               triggerLevel = rangeMax/4;
@@ -1420,8 +1420,8 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
             triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->x());
             if(triggerPost>255)
                 triggerPost = 255;
-            if(triggerPost<0)
-                triggerPost = 0;
+            //if(triggerPost<0)     Variable is unsigned integer so test will always fail
+            //    triggerPost = 0;
             triggerPost = triggerPost/2+ ui->horizontalScrollBar->value();
 
             if(triggerWin1Level<rangeMax/4)
@@ -1441,8 +1441,8 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
             triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->x());
             if(triggerPost>255)
                 triggerPost = 255;
-            if(triggerPost<0)
-                triggerPost = 0;
+            //if(triggerPost<0)     Variable is unsigned integer so test will always fail
+            //    triggerPost = 0;
             triggerPost = triggerPost/2+ ui->horizontalScrollBar->value();
 
             if(triggerWin2Level<rangeMax/4)
@@ -1606,16 +1606,14 @@ void XprotolabInterface::setTriggerLevelPosition(QPointF pos, int type)
         curPosY = ui->plotterWidget->visibleRegion().boundingRect().bottom()-32;
     else if(curPosY<0)
         curPosY=0;
-    int offsetPos, value,tlevel;
+    int value,tlevel;
     if(ui->comboBoxTrigSource->currentIndex()==0)
     {
         value = ui->ch1PositionSlider->value();
-        offsetPos = ch1ZeroPos;
     }
     else if(ui->comboBoxTrigSource->currentIndex()==1)
     {
         value = ui->ch2PositionSlider->value();
-        offsetPos = ch2ZeroPos;
     }
     initPosCh1 = ui->ch1PositionSlider->value();
     initPosCh2 = ui->ch2PositionSlider->value();
@@ -1792,8 +1790,8 @@ void XprotolabInterface::sniffProtocol()
         }
         if(protocol == RS232)
         {
-            double vsize;
-            vsize = ui->rxTextEdit->height()/ui->rxTextEdit->fontPointSize();
+            //double vsize;
+            //vsize = ui->rxTextEdit->height()/ui->rxTextEdit->fontPointSize();
 
             ui->rxTextEdit->setPlainText(rxData);
             ui->rxTextEdit->textCursor().movePosition(QTextCursor::Down);
@@ -2631,8 +2629,8 @@ void XprotolabInterface::closeEvent(QCloseEvent *event)
 
 void XprotolabInterface::zoom(QWheelEvent* event)
 {
-    int numDegrees = event->delta() / 8;
-    int numSteps = numDegrees / 15;
+    //int numDegrees = event->delta() / 8;
+    //int numSteps = numDegrees / 15;
     int value = 0;
 
 
