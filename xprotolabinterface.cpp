@@ -600,7 +600,8 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
     textLabelDeltaVoltage = new QCPItemText(customPlot);
     customPlot->addItem(textLabelDeltaVoltage);
 
-    textLabelDeltaVoltage->position->setCoords(225, 10);
+    textLabelDeltaVoltage->position->setCoords(200, 25);
+    textLabelDeltaVoltage->setPositionAlignment(Qt::AlignLeft);
     textLabelDeltaVoltage->setText("ΔV = 0 V");
     textLabelDeltaVoltage->setFont(QFont(font().family(), 8,QFont::DemiBold));
     textLabelDeltaVoltage->setSelectable(false);
@@ -609,7 +610,8 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
     textLabelVoltageB = new QCPItemText(customPlot);
     customPlot->addItem( textLabelVoltageB);
 
-    textLabelVoltageB->position->setCoords(225, 25);
+    textLabelVoltageB->position->setCoords(200, 40);
+    textLabelVoltageB->setPositionAlignment(Qt::AlignLeft);
     textLabelVoltageB->setText("VB = 0 V");
     textLabelVoltageB->setFont(QFont(font().family(), 8, QFont::DemiBold));
     textLabelVoltageB->setSelectable(false);
@@ -618,7 +620,8 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
     textLabelVoltageA = new QCPItemText(customPlot);
     customPlot->addItem( textLabelVoltageA);
 
-    textLabelVoltageA->position->setCoords(225, 40);
+    textLabelVoltageA->position->setCoords(200, 55);
+    textLabelVoltageA->setPositionAlignment(Qt::AlignLeft);
     textLabelVoltageA->setText("VA = 0 V");
     textLabelVoltageA->setFont(QFont(font().family(), 8, QFont::DemiBold));
     textLabelVoltageA->setSelectable(false);
