@@ -644,6 +644,7 @@ void XprotolabInterface::plotData()
         return;
     QVector<double> key;
     double ch1,ch2,minV,maxV, aTrack,bTrack;
+    double ch1_xs,ch2_xs,ch1min,ch1max,ch2min,ch2max;
     byte minX1 = 0, minX2 = 255,samples = 255, a, mid, *p;
     QVector<double> ch1Buffer,ch2Buffer,fft1,fft2,ch1RefBuff,ch2RefBuff;
     QVector<double> bit[8],bitRefBuff[8];
@@ -676,10 +677,12 @@ void XprotolabInterface::plotData()
         {
             key.push_back(xtime);
         }
-        ch1 = rangeMax-((rangeMax/8+ui->ch1PositionSlider->minimum() - ui->ch1PositionSlider->value()) +(double)usbDevice.chData[i])*2;
-        ch2 = rangeMax-((rangeMax/8+ui->ch2PositionSlider->minimum() - ui->ch2PositionSlider->value()) +(double)usbDevice.chData[i+256])*2;
+        //ch1 = rangeMax-((rangeMax/8+ui->ch1PositionSlider->minimum() - ui->ch1PositionSlider->value()) +(double)usbDevice.chData[i])*2;
+        //ch2 = rangeMax-((rangeMax/8+ui->ch2PositionSlider->minimum() - ui->ch2PositionSlider->value()) +(double)usbDevice.chData[i+256])*2;
         ch1 = ui->ch1PositionSlider->value() + (255-(int)usbDevice.chData[i])*2;
         ch2 = ui->ch2PositionSlider->value() + (255-(int)usbDevice.chData[i+256])*2;
+        ch1_xs = ((int)usbDevice.chData[i]-128)*2;
+        ch2_xs = ((int)usbDevice.chData[i+256]-128)*2;
         ch1Buffer.push_back(ch1);
         ch2Buffer.push_back(ch2);
 
@@ -689,6 +692,8 @@ void XprotolabInterface::plotData()
             {
                 minV = ch1;
                 maxV = ch1;
+                ch1min = ch1_xs;
+                ch1max = ch1_xs;
             }
             if(minV>ch1)
             {
@@ -698,6 +703,12 @@ void XprotolabInterface::plotData()
             }
             else if(maxV<ch1)
                 maxV = ch1;
+            if(ch1min>ch1_xs)
+            {
+                ch1min = ch1_xs;
+            }
+            else if(ch1max<ch1_xs)
+                ch1max = ch1_xs;
         }
         else if(ui->radioButtonCursorCH2->isChecked())
         {
@@ -705,11 +716,19 @@ void XprotolabInterface::plotData()
             {
                 minV = ch2;
                 maxV = ch2;
+                ch2min = ch2_xs;
+                ch2max = ch2_xs;
             }
             if(minV>ch2)
                 minV = ch2;
             else if(maxV<ch2)
                 maxV = ch2;
+            if(ch2min>ch2_xs)
+            {
+                ch2min = ch2_xs;
+            }
+            else if(ch2max<ch2_xs)
+                ch2max = ch2_xs;
         }
 //        if(usbDevice.chData[i]==128&&minX1==0&&xtime<128)
 //            minX1 = xtime;
@@ -1186,15 +1205,20 @@ void XprotolabInterface::plotData()
         {
             voltA = hCursorAHead->right->pixelPoint().ry() - ch1ZeroHead->right->pixelPoint().ry();
             voltB = hCursorBHead->right->pixelPoint().ry() - ch1ZeroHead->right->pixelPoint().ry();
+            voltA = ch1max;
+            voltB = ch1min;
         }
         else if(ui->radioButtonCursorCH2->isChecked())
         {
             voltA = hCursorAHead->right->pixelPoint().ry() - ch2ZeroHead->right->pixelPoint().ry();
             voltB = hCursorBHead->right->pixelPoint().ry() - ch2ZeroHead->right->pixelPoint().ry();
+            voltA = ch2max;
+            voltB = ch2min;
         }
 
         voltA = voltA*value/64;
         voltB = voltB*value/64;
+        deltaVolt = voltB - voltA;
         textLabelDeltaVoltage->setVisible(true);
         textLabelVoltageA->setVisible(true);
         textLabelVoltageB->setVisible(true);
