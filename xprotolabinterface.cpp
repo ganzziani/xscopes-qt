@@ -1218,7 +1218,7 @@ void XprotolabInterface::plotData()
 
         voltA = voltA*value/64;
         voltB = voltB*value/64;
-        deltaVolt = voltB - voltA;
+        deltaVolt = voltA - voltB;
         textLabelDeltaVoltage->setVisible(true);
         textLabelVoltageA->setVisible(true);
         textLabelVoltageB->setVisible(true);
