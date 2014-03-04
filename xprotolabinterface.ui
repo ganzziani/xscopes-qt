@@ -234,7 +234,7 @@
         </font>
        </property>
        <property name="currentIndex">
-        <number>3</number>
+        <number>4</number>
        </property>
        <property name="elideMode">
         <enum>Qt::ElideNone</enum>
@@ -4613,7 +4613,7 @@ Frequency</string>
                     <item>
                      <widget class="QLineEdit" name="latestFirmWareVersion">
                       <property name="text">
-                       <string>2.26</string>
+                       <string>2.22</string>
                       </property>
                      </widget>
                     </item>
