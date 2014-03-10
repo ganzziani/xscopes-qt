@@ -13,6 +13,7 @@ LibUsbDevice::LibUsbDevice(QObject *parent) :
     usbDeviceToPcTransfer = NULL;
     dataAvailable = false;
     hasHotPlugSupport = false;
+    deviceFound = NULL;
 }
 
 extern "C" int LIBUSB_CALL hotplugAttachCallback (libusb_context *, libusb_device *, libusb_hotplug_event, void *ref)

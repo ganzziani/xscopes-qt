@@ -822,6 +822,7 @@ void XprotolabInterface::plotData()
             ch1PGraphs[k]->clearData();
             ch2PGraphs[k]->clearData();
         }
+
     }
     else
     {
@@ -909,6 +910,11 @@ void XprotolabInterface::plotData()
     {
         ch1Graph->clearData();
         ch2Graph->clearData();
+        for(int k=0;k<TG;k++)
+        {
+            ch1PGraphs[k]->clearData();
+            ch2PGraphs[k]->clearData();
+        }
         ch1Graph->setData(key, ch2Buffer);
         ch1Graph->rescaleValueAxis(true);
        //ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(key.first(), key.last());
@@ -1129,7 +1135,7 @@ void XprotolabInterface::plotData()
         unit = (rateText[ui->samplingSlider->value()]);
         for(int i = 0; i<unit.length();i++)
         {
-            if(unit[i]=='m'||unit[i]=='s'||unit[i].toLatin1()==QChar('μ').toLatin1())
+            if(unit[i]=='m'||unit[i]=='s'||unit[i]=='u')
             {
                 value = unit.left(i).toDouble();
                 unit = unit.remove(unit.left(i));
@@ -1137,6 +1143,7 @@ void XprotolabInterface::plotData()
             }
         }
         unit = unit.replace("/div","");
+        unit = unit.replace('u', QChar(0xB5));//QString::fromUtf8("μ"));
         deltaTime = deltaTime*value/32;
         deltaTime = deltaTime;
         freq = 1/deltaTime;
@@ -1400,7 +1407,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
               triggerLevel = rangeMax/4;
             else if(triggerLevel>rangeMax*3/4)
               triggerLevel = rangeMax*3/4;
-            setTriggerLevelPosition(event->localPos(),Other);
+            setTriggerLevelPosition(event->posF(),Other);
 //            static int times = 0;
 
 //            if(times <10)
@@ -1431,7 +1438,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
               triggerWin1Level = rangeMax/4;
             else if(triggerWin1Level>rangeMax*3/4)
               triggerWin1Level = rangeMax*3/4;
-            setTriggerLevelPosition(event->localPos(),Window1);
+            setTriggerLevelPosition(event->posF(),Window1);
         }
         else if(currentSelected == isTriggerWin2Pixmap)
         {
@@ -1452,7 +1459,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
               triggerWin2Level = rangeMax/4;
             else if(triggerWin1Level>rangeMax*3/4)
               triggerWin2Level = rangeMax*3/4;
-            setTriggerLevelPosition(event->localPos(),Window2);
+            setTriggerLevelPosition(event->posF(),Window2);
         }
 
     }
@@ -1517,37 +1524,37 @@ void XprotolabInterface::selectItem(QMouseEvent *event)
 {
     if(!(event->buttons() & Qt::LeftButton))
         return;
-    if(hCursorAHead->selectTest(event->localPos(),false)>=0 && hCursorAHead->selectTest(event->localPos(),false)<8.0)
+    if(hCursorAHead->selectTest(event->posF(),false)>=0 && hCursorAHead->selectTest(event->posF(),false)<8.0)
     {
         currentSelected = isHCursorAHead;
         hCursorAHead->setPen(QPen(QColor("#1692e5")));
     }
-    else if(hCursorBHead->selectTest(event->localPos(),false)>=0 && hCursorBHead->selectTest(event->localPos(),false)<8.0)
+    else if(hCursorBHead->selectTest(event->posF(),false)>=0 && hCursorBHead->selectTest(event->posF(),false)<8.0)
     {
         currentSelected = isHCursorBHead;
         hCursorBHead->setPen(QPen(QColor("#1692e5")));
     }
-    else if(vCursorAHead->selectTest(event->localPos(),false)>=0 && vCursorAHead->selectTest(event->localPos(),false)<8.0)
+    else if(vCursorAHead->selectTest(event->posF(),false)>=0 && vCursorAHead->selectTest(event->posF(),false)<8.0)
     {
         currentSelected = isVCursorAHead;
         vCursorAHead->setPen(QPen(QColor("#e04e4e")));
     }
-    else if(vCursorBHead->selectTest(event->localPos(),false)>=0 && vCursorBHead->selectTest(event->localPos(),false)<8.0)
+    else if(vCursorBHead->selectTest(event->posF(),false)>=0 && vCursorBHead->selectTest(event->posF(),false)<8.0)
     {
         currentSelected = isVCursorBHead;
         vCursorBHead->setPen(QPen(QColor("#e04e4e")));
     }
-    else if(ch1ZeroHead->selectTest(event->localPos(),false)>=0 && ch1ZeroHead->selectTest(event->localPos(),false)<8.0)
+    else if(ch1ZeroHead->selectTest(event->posF(),false)>=0 && ch1ZeroHead->selectTest(event->posF(),false)<8.0)
     {
         currentSelected = isCH1Zero;
         ch1ZeroHead->setPen(QPen(QColor("#f9a94c")));
     }
-    else if(ch2ZeroHead->selectTest(event->localPos(),false)>=0 && ch2ZeroHead->selectTest(event->localPos(),false)<8.0)
+    else if(ch2ZeroHead->selectTest(event->posF(),false)>=0 && ch2ZeroHead->selectTest(event->posF(),false)<8.0)
     {
         currentSelected = isCH2Zero;
         ch2ZeroHead->setPen(QPen(QColor("#f9a94c")));
     }
-    else if(triggerPixmap->selectTest(event->localPos(),false)>=0 && triggerPixmap->selectTest(event->localPos(),false)<8.0)
+    else if(triggerPixmap->selectTest(event->posF(),false)>=0 && triggerPixmap->selectTest(event->posF(),false)<8.0)
     {
         currentSelected = isTriggerPixmap;
         if(ui->comboBoxTrigSource->currentIndex()==0)
@@ -1555,7 +1562,7 @@ void XprotolabInterface::selectItem(QMouseEvent *event)
         else
             triggerPixmap->setPen(QPen(QColor("#ff0000")));
     }
-    else if(triggerWin1Pixmap->selectTest(event->localPos(),false)>=0 && triggerWin1Pixmap->selectTest(event->localPos(),false)<8.0)
+    else if(triggerWin1Pixmap->selectTest(event->posF(),false)>=0 && triggerWin1Pixmap->selectTest(event->posF(),false)<8.0)
     {
         currentSelected = isTriggerWin1Pixmap;
         if(ui->comboBoxTrigSource->currentIndex()==0)
@@ -1563,7 +1570,7 @@ void XprotolabInterface::selectItem(QMouseEvent *event)
         else
             triggerWin1Pixmap->setPen(QPen(QColor("#ff0000")));
     }
-    else if(triggerWin2Pixmap->selectTest(event->localPos(),false)>=0 && triggerWin2Pixmap->selectTest(event->localPos(),false)<8.0)
+    else if(triggerWin2Pixmap->selectTest(event->posF(),false)>=0 && triggerWin2Pixmap->selectTest(event->posF(),false)<8.0)
     {
         currentSelected = isTriggerWin2Pixmap;
         if(ui->comboBoxTrigSource->currentIndex()==0)
@@ -4083,7 +4090,7 @@ void XprotolabInterface::on_radioButton100K_clicked()
 void XprotolabInterface::setupValues()
 {
     // Sampling rate
-    rateText << "8μs/div" << "16μs/div" << "32μs/div" << "64μs/div" << "128μs/div" << "256μs/div" << "500μs/div" << "1ms/div"
+    rateText << "8us/div" << "16us/div" << "32us/div" << "64us/div" << "128us/div" << "256us/div" << "500us/div" << "1ms/div"
              << "2ms/div" << "5ms/div" << "10ms/div" << "20ms/div" << "50ms/div" << "0.1s/div" << "0.2s/div" << "0.5s/div"
              << "1s/div" << "2s/div" << "5s/div" << "10s/div" << "20s/div" << "50s/div";
     // Gain Text with x1 probe
