@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>960</width>
-    <height>644</height>
+    <height>689</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -43,7 +43,16 @@
         <property name="spacing">
          <number>0</number>
         </property>
-        <property name="margin">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
          <number>0</number>
         </property>
         <item>
@@ -225,7 +234,7 @@
         </font>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>4</number>
        </property>
        <property name="elideMode">
         <enum>Qt::ElideNone</enum>
@@ -2650,6 +2659,9 @@
                     </item>
                     <item>
                      <widget class="QPushButton" name="openCSVButton">
+                      <property name="toolTip">
+                       <string>Data must be integer, in the range of [-127,127]. The buffer size is 256.</string>
+                      </property>
                       <property name="text">
                        <string>Open CSV</string>
                       </property>
@@ -2670,6 +2682,9 @@
                     </item>
                     <item>
                      <widget class="QPushButton" name="saveAWGButton">
+                      <property name="toolTip">
+                       <string>Data will be sent to the device and saved to the EEPROM.</string>
+                      </property>
                       <property name="text">
                        <string>Save as Custom</string>
                       </property>
@@ -3944,6 +3959,9 @@ Frequency</string>
                  <layout class="QHBoxLayout" name="horizontalLayout_77">
                   <item>
                    <widget class="QPushButton" name="loadWave">
+                    <property name="toolTip">
+                     <string>Loads a previously saved waveform</string>
+                    </property>
                     <property name="text">
                      <string>Load Wave</string>
                     </property>
@@ -3951,6 +3969,9 @@ Frequency</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="saveWave">
+                    <property name="toolTip">
+                     <string>Saves a waveform. A destination folder will be selected once</string>
+                    </property>
                     <property name="text">
                      <string>Save Wave</string>
                     </property>
@@ -3958,6 +3979,9 @@ Frequency</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="clearWaveButton">
+                    <property name="toolTip">
+                     <string>Clears the display of the loaded waveform and returns to normal operation</string>
+                    </property>
                     <property name="text">
                      <string>Clear</string>
                     </property>
@@ -3965,6 +3989,9 @@ Frequency</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="screenShotButton">
+                    <property name="toolTip">
+                     <string>Saves a PNG image of the graph area. A destination folder will be selected once</string>
+                    </property>
                     <property name="text">
                      <string>Screenshot</string>
                     </property>
@@ -4178,6 +4205,9 @@ Frequency</string>
                     </item>
                     <item>
                      <widget class="QCheckBox" name="checkBoxPersistence">
+                      <property name="toolTip">
+                       <string>The data on the graph will not be erased</string>
+                      </property>
                       <property name="text">
                        <string>Infinite Persistence</string>
                       </property>
@@ -4185,6 +4215,9 @@ Frequency</string>
                     </item>
                     <item>
                      <widget class="QCheckBox" name="checkBoxVectors">
+                      <property name="toolTip">
+                       <string>Toggles between displaying single dots for the data, or vectors</string>
+                      </property>
                       <property name="text">
                        <string>Vectors</string>
                       </property>
@@ -4199,6 +4232,9 @@ Frequency</string>
                    <layout class="QVBoxLayout" name="verticalLayout_86">
                     <item>
                      <widget class="QCheckBox" name="checkBoxShowSettings">
+                      <property name="toolTip">
+                       <string>Toggles displaying the settings on the device’s screen. No effect on the software interface</string>
+                      </property>
                       <property name="text">
                        <string>Show Settings</string>
                       </property>
@@ -4206,6 +4242,9 @@ Frequency</string>
                     </item>
                     <item>
                      <widget class="QCheckBox" name="checkBoxInvert">
+                      <property name="toolTip">
+                       <string>When enabled, the display’s pixels on the device are inverted (the display will have a white background). No effect on the software interface.</string>
+                      </property>
                       <property name="text">
                        <string>Invert</string>
                       </property>
@@ -4213,6 +4252,9 @@ Frequency</string>
                     </item>
                     <item>
                      <widget class="QCheckBox" name="checkBoxFlip">
+                      <property name="toolTip">
+                       <string>The device’s display orientation is flipped. No effect on the software interface</string>
+                      </property>
                       <property name="text">
                        <string>Flip</string>
                       </property>
@@ -4408,6 +4450,9 @@ Frequency</string>
                       <height>0</height>
                      </size>
                     </property>
+                    <property name="toolTip">
+                     <string>The cursors will try to be set at the best location to measure the current waveform</string>
+                    </property>
                     <property name="text">
                      <string>Automatic</string>
                     </property>
@@ -4438,6 +4483,9 @@ Frequency</string>
                  <layout class="QVBoxLayout" name="verticalLayout_101">
                   <item>
                    <widget class="QCheckBox" name="checkBoxCursorTrack">
+                    <property name="toolTip">
+                     <string>The location of the horizontal cursor will track the signal located on the vertical cursor</string>
+                    </property>
                     <property name="text">
                      <string>Track</string>
                     </property>
@@ -4651,6 +4699,9 @@ Frequency</string>
                       <height>32</height>
                      </size>
                     </property>
+                    <property name="toolTip">
+                     <string>The factory default settings will be loaded to the device</string>
+                    </property>
                     <property name="text">
                      <string>RESTORE SETTINGS</string>
                     </property>
@@ -4741,7 +4792,7 @@ Frequency</string>
                      </font>
                     </property>
                     <property name="text">
-                     <string>Xscope Interface v1.0.0.1</string>
+                     <string>Xscope Interface v1.0.0.2</string>
                     </property>
                     <property name="scaledContents">
                      <bool>true</bool>

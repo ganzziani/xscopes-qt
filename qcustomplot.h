@@ -19,20 +19,15 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 05.09.13                                             **
-**          Version: 1.0.1                                                **
+**             Date: 09.12.13                                             **
+**          Version: 1.1.1                                                **
 ****************************************************************************/
 
 #ifndef QCUSTOMPLOT_H
 #define QCUSTOMPLOT_H
 
-#ifdef QT_DISABLE_DEPRECATED_BEFORE
-#  undef QT_DISABLE_DEPRECATED_BEFORE
-#endif
-#define QT_DISABLE_DEPRECATED_BEFORE QT_VERSION_CHECK(0, 0, 0)
-
 #include <QObject>
-#include <QWeakPointer>
+#include <QPointer>
 #include <QWidget>
 #include <QPainter>
 #include <QPaintEvent>
@@ -55,7 +50,7 @@
 #  include <QPrinter>
 #else
 #  include <QtNumeric>
-#  include <QPrinter>
+#  include <QtPrintSupport>
 #endif
 
 class QCPPainter;
@@ -73,15 +68,9 @@ class QCPLayer;
 class QCPPlotTitle;
 class QCPLegend;
 class QCPAbstractLegendItem;
-class QCPAbstractItem; 
 
 
 /*! \file */
-
-#ifdef QT_DISABLE_DEPRECATED_BEFORE
-#  undef QT_DISABLE_DEPRECATED_BEFORE
-#endif
-#define QT_DISABLE_DEPRECATED_BEFORE QT_VERSION_CHECK(0, 0, 0)
 
 
 // decl definitions for shared library compilation/usage:
@@ -442,7 +431,7 @@ protected:
   // property members:
   bool mVisible;
   QCustomPlot *mParentPlot;
-  QWeakPointer<QCPLayerable> mParentLayerable;
+  QPointer<QCPLayerable> mParentLayerable;
   QCPLayer *mLayer;
   bool mAntialiased;
   
@@ -481,6 +470,8 @@ public:
   double size() const;
   double center() const;
   void normalize();
+  void expand(const QCPRange &otherRange);
+  QCPRange expanded(const QCPRange &otherRange) const;
   QCPRange sanitizedForLogScale() const;
   QCPRange sanitizedForLinScale() const;
   bool contains(double value) const;
@@ -886,6 +877,7 @@ class QCP_LIB_DECL QCPAxis : public QCPLayerable
   Q_PROPERTY(QColor tickLabelColor READ tickLabelColor WRITE setTickLabelColor)
   Q_PROPERTY(double tickLabelRotation READ tickLabelRotation WRITE setTickLabelRotation)
   Q_PROPERTY(QString dateTimeFormat READ dateTimeFormat WRITE setDateTimeFormat)
+  Q_PROPERTY(Qt::TimeSpec dateTimeSpec READ dateTimeSpec WRITE setDateTimeSpec)
   Q_PROPERTY(QString numberFormat READ numberFormat WRITE setNumberFormat)
   Q_PROPERTY(int numberPrecision READ numberPrecision WRITE setNumberPrecision)
   Q_PROPERTY(double tickStep READ tickStep WRITE setTickStep)
@@ -982,6 +974,7 @@ public:
   QColor tickLabelColor() const { return mTickLabelColor; }
   double tickLabelRotation() const { return mTickLabelRotation; }
   QString dateTimeFormat() const { return mDateTimeFormat; }
+  Qt::TimeSpec dateTimeSpec() const { return mDateTimeSpec; }
   QString numberFormat() const;
   int numberPrecision() const { return mNumberPrecision; }
   double tickStep() const { return mTickStep; }
@@ -1036,6 +1029,7 @@ public:
   void setTickLabelColor(const QColor &color);
   void setTickLabelRotation(double degrees);
   void setDateTimeFormat(const QString &format);
+  void setDateTimeSpec(const Qt::TimeSpec &timeSpec);
   void setNumberFormat(const QString &formatCode);
   void setNumberPrecision(int precision);
   void setTickStep(double step);
@@ -1077,6 +1071,7 @@ public:
   void moveRange(double diff);
   void scaleRange(double factor, double center);
   void setScaleRatio(const QCPAxis *otherAxis, double ratio=1.0);
+  void rescale(bool onlyVisiblePlottables=false);
   double pixelToCoord(double value) const;
   double coordToPixel(double value) const;
   SelectablePart getPartAt(const QPointF &pos) const;
@@ -1089,6 +1084,7 @@ public:
 signals:
   void ticksRequest();
   void rangeChanged(const QCPRange &newRange);
+  void rangeChanged(const QCPRange &newRange, const QCPRange &oldRange);
   void selectionChanged(const QCPAxis::SelectableParts &parts);
 
 protected:
@@ -1126,6 +1122,7 @@ protected:
   QFont mTickLabelFont, mSelectedTickLabelFont;
   QColor mTickLabelColor, mSelectedTickLabelColor;
   QString mDateTimeFormat;
+  Qt::TimeSpec mDateTimeSpec;
   int mNumberPrecision;
   char mNumberFormatChar;
   bool mNumberBeautifulPowers;
@@ -1276,7 +1273,7 @@ protected:
   bool mAntialiasedFill, mAntialiasedScatters, mAntialiasedErrorBars;
   QPen mPen, mSelectedPen;
   QBrush mBrush, mSelectedBrush;
-  QWeakPointer<QCPAxis> mKeyAxis, mValueAxis;
+  QPointer<QCPAxis> mKeyAxis, mValueAxis;
   bool mSelectable, mSelected;
   
   // reimplemented virtual methods:
@@ -1309,6 +1306,7 @@ private:
   Q_DISABLE_COPY(QCPAbstractPlottable)
   
   friend class QCustomPlot;
+  friend class QCPAxis;
   friend class QCPPlottableLegendItem;
 };
 
@@ -1374,7 +1372,7 @@ public:
   QPointF coords() const { return QPointF(mKey, mValue); }
   QCPAxis *keyAxis() const { return mKeyAxis.data(); }
   QCPAxis *valueAxis() const { return mValueAxis.data(); }
-  QCPAxisRect *axisRect() const { return mAxisRect.data(); }
+  QCPAxisRect *axisRect() const;
   virtual QPointF pixelPoint() const;
   
   // setters:
@@ -1389,8 +1387,8 @@ public:
 protected:
   // property members:
   PositionType mPositionType;
-  QWeakPointer<QCPAxis> mKeyAxis, mValueAxis;
-  QWeakPointer<QCPAxisRect> mAxisRect;
+  QPointer<QCPAxis> mKeyAxis, mValueAxis;
+  QPointer<QCPAxisRect> mAxisRect;
   double mKey, mValue;
   QCPItemAnchor *mParentAnchor;
   
@@ -1418,7 +1416,7 @@ public:
   
   // getters:
   bool clipToAxisRect() const { return mClipToAxisRect; }
-  QCPAxisRect *clipAxisRect() const { return mClipAxisRect.data(); }
+  QCPAxisRect *clipAxisRect() const;
   bool selectable() const { return mSelectable; }
   bool selected() const { return mSelected; }
   
@@ -1444,7 +1442,7 @@ signals:
 protected:
   // property members:
   bool mClipToAxisRect;
-  QWeakPointer<QCPAxisRect> mClipAxisRect;
+  QPointer<QCPAxisRect> mClipAxisRect;
   QList<QCPItemPosition*> mPositions;
   QList<QCPItemAnchor*> mAnchors;
   bool mSelectable, mSelected;
@@ -1589,7 +1587,7 @@ public:
   QCPAxisRect* axisRect(int index=0) const;
   QList<QCPAxisRect*> axisRects() const;
   QCPLayoutElement* layoutElementAt(const QPointF &pos) const;
-  Q_SLOT void rescaleAxes(bool onlyVisible=false);
+  Q_SLOT void rescaleAxes(bool onlyVisiblePlottables=false);
   
   QList<QCPAxis*> selectedAxes() const;
   QList<QCPLegend*> selectedLegends() const;
@@ -1795,9 +1793,9 @@ public:
   using QCPAbstractPlottable::rescaleAxes;
   using QCPAbstractPlottable::rescaleKeyAxis;
   using QCPAbstractPlottable::rescaleValueAxis;
-  virtual void rescaleAxes(bool onlyEnlarge, bool includeErrorBars) const; // overloads base class interface
-  virtual void rescaleKeyAxis(bool onlyEnlarge, bool includeErrorBars) const; // overloads base class interface
-  virtual void rescaleValueAxis(bool onlyEnlarge, bool includeErrorBars) const; // overloads base class interface
+  void rescaleAxes(bool onlyEnlarge, bool includeErrorBars) const; // overloads base class interface
+  void rescaleKeyAxis(bool onlyEnlarge, bool includeErrorBars) const; // overloads base class interface
+  void rescaleValueAxis(bool onlyEnlarge, bool includeErrorBars) const; // overloads base class interface
   
 protected:
   // property members:
@@ -1808,7 +1806,7 @@ protected:
   ErrorType mErrorType;
   double mErrorBarSize;
   bool mErrorBarSkipSymbol;
-  QWeakPointer<QCPGraph> mChannelFillGraph;
+  QPointer<QCPGraph> mChannelFillGraph;
   
   // reimplemented virtual methods:
   virtual void draw(QCPPainter *painter);
@@ -2015,7 +2013,7 @@ protected:
   // property members:
   QCPBarDataMap *mData;
   double mWidth;
-  QWeakPointer<QCPBars> mBarBelow, mBarAbove;
+  QPointer<QCPBars> mBarBelow, mBarAbove;
   
   // reimplemented virtual methods:
   virtual void draw(QCPPainter *painter);
@@ -2725,7 +2723,7 @@ protected:
   Qt::AspectRatioMode mBackgroundScaledMode;
   QCPLayoutInset *mInsetLayout;
   Qt::Orientations mRangeDrag, mRangeZoom;
-  QWeakPointer<QCPAxis> mRangeDragHorzAxis, mRangeDragVertAxis, mRangeZoomHorzAxis, mRangeZoomVertAxis;
+  QPointer<QCPAxis> mRangeDragHorzAxis, mRangeDragVertAxis, mRangeZoomHorzAxis, mRangeZoomVertAxis;
   double mRangeZoomFactorHorz, mRangeZoomFactorVert;
   // non-property members:
   QCPRange mDragStartHorzRange, mDragStartVertRange;
