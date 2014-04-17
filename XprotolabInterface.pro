@@ -48,4 +48,4 @@ greaterThan(QT_MAJOR_VERSION, 4):LIBS += -lQt5Concurrent
 
 unix:!macx:!symbian: LIBS += -lusb-1.0
 
-OTHER_FILES +=
+OTHER_FILES += 
