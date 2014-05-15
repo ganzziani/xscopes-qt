@@ -50,4 +50,4 @@ greaterThan(QT_MAJOR_VERSION, 4):QT += printsupport
 
 unix:!macx:!symbian: LIBS += -lusb-1.0
 
-OTHER_FILES += 
+OTHER_FILES +=  

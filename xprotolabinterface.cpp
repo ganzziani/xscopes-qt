@@ -469,7 +469,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
 
     ch1ZeroHead = new QCPItemPixmap(customPlot);
     customPlot->addItem(ch1ZeroHead);
-    ch1ZeroHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/zero1.png"));
+    ch1ZeroHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/chan1-zero.png"));
     ch1ZeroHead->topLeft->setPixelPoint(QPointF(2,hCursorAPos));
     ch1Zero->point1->setParentAnchor(ch1ZeroHead->right);
     ch1Zero->point2->setParentAnchor(ch1ZeroHead->right);
@@ -490,7 +490,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
 
     ch2ZeroHead = new QCPItemPixmap(customPlot);
     customPlot->addItem(ch2ZeroHead);
-    ch2ZeroHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/zero1.png"));
+    ch2ZeroHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/chan2-zero.png"));
     ch2ZeroHead->topLeft->setPixelPoint(QPointF(2,hCursorBPos));
     ch2Zero->point1->setParentAnchor(ch2ZeroHead->right);
     ch2Zero->point2->setParentAnchor(ch2ZeroHead->right);
