@@ -36,7 +36,7 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     on_connectButton_clicked();
     initializing = false;
     connect(&dataTimer, SIGNAL(timeout()), this, SLOT(plotData()));
-    dataTimer.start(0); // Interval 0 means to refresh as fast as possible
+    dataTimer.start(4); // Interval 0 means to refresh as fast as possible
 
 }
 
