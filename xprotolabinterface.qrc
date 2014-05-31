@@ -48,5 +48,7 @@
         <file>Bitmaps/window1r.png</file>
         <file>Bitmaps/window2g.png</file>
         <file>Bitmaps/window2r.png</file>
+        <file>Bitmaps/chan1-zero.png</file>
+        <file>Bitmaps/chan2-zero.png</file>
     </qresource>
 </RCC>
