@@ -48,6 +48,6 @@ greaterThan(QT_MAJOR_VERSION, 4):LIBS += -lQt5Concurrent
 greaterThan(QT_MAJOR_VERSION, 4):QT += widgets
 greaterThan(QT_MAJOR_VERSION, 4):QT += printsupport
 
-unix:!macx:!symbian: LIBS += -lusb-1.0
+unix:macx: LIBS += -lusb-1.0
 
 OTHER_FILES +=  
