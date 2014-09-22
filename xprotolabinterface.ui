@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>960</width>
-    <height>689</height>
+    <width>850</width>
+    <height>850</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="maximumSize">
    <size>
@@ -22,16 +28,22 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Gabotronics Xscope Interface</string>
+   <string>Gabotronics Xscope Interface - Not Connected</string>
   </property>
   <property name="windowIcon">
    <iconset resource="xprotolabinterface.qrc">
-    <normaloff>:/Bitmaps/Bitmaps/xscope.png</normaloff>:/Bitmaps/Bitmaps/xscope.png</iconset>
+    <normaloff>:/Bitmaps/Bitmaps/GT-logo-256.png</normaloff>:/Bitmaps/Bitmaps/GT-logo-256.png</iconset>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
   </property>
   <property name="documentMode">
    <bool>false</bool>
   </property>
   <widget class="QWidget" name="centralWidget">
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout_57">
     <item>
      <widget class="QSplitter" name="splitter">
@@ -43,13 +55,28 @@
         <property name="spacing">
          <number>0</number>
         </property>
-        <property name="margin">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
          <number>0</number>
         </property>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
            <widget class="QCustomPlot" name="plotterWidget" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="minimumSize">
              <size>
               <width>0</width>
@@ -213,9 +240,15 @@
        </layout>
       </widget>
       <widget class="QTabWidget" name="mainTabWidget">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="maximumSize">
         <size>
-         <width>480</width>
+         <width>525</width>
          <height>16777215</height>
         </size>
        </property>
@@ -1989,6 +2022,9 @@
                  <height>16777215</height>
                 </size>
                </property>
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
                <property name="title">
                 <string>Trigger</string>
                </property>
@@ -2018,6 +2054,12 @@
                        <item>
                         <widget class="QComboBox" name="comboBoxTrigSource">
                          <property name="editable">
+                          <bool>true</bool>
+                         </property>
+                         <property name="maxVisibleItems">
+                          <number>999</number>
+                         </property>
+                         <property name="frame">
                           <bool>true</bool>
                          </property>
                          <item>
@@ -2084,8 +2126,8 @@
                      <widget class="QPushButton" name="forceButton">
                       <property name="minimumSize">
                        <size>
-                        <width>0</width>
-                        <height>40</height>
+                        <width>80</width>
+                        <height>30</height>
                        </size>
                       </property>
                       <property name="toolTip">
@@ -2402,49 +2444,6 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_39">
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_37">
-               <item>
-                <widget class="QPushButton" name="pushButton_3">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>34</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>Save</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="pushButton_4">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>34</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>Record</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="playButton">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>34</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>Play</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
               <spacer name="horizontalSpacer_9">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
@@ -2463,8 +2462,8 @@
                 <widget class="QPushButton" name="autoButton">
                  <property name="minimumSize">
                   <size>
-                   <width>0</width>
-                   <height>34</height>
+                   <width>80</width>
+                   <height>30</height>
                   </size>
                  </property>
                  <property name="toolTip">
@@ -2479,8 +2478,8 @@
                 <widget class="QPushButton" name="stopButton">
                  <property name="minimumSize">
                   <size>
-                   <width>0</width>
-                   <height>34</height>
+                   <width>80</width>
+                   <height>30</height>
                   </size>
                  </property>
                  <property name="text">
@@ -2505,8 +2504,23 @@
           <layout class="QVBoxLayout" name="verticalLayout_71">
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_58">
+             <property name="spacing">
+              <number>6</number>
+             </property>
              <item>
               <widget class="QGroupBox" name="groupBox_6">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>315</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="title">
                 <string>Waveform</string>
                </property>
@@ -2673,6 +2687,12 @@
                     </item>
                     <item>
                      <widget class="QPushButton" name="saveAWGButton">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
                       <property name="toolTip">
                        <string>Data will be sent to the device and saved to the EEPROM.</string>
                       </property>
@@ -2702,7 +2722,23 @@
               </widget>
              </item>
              <item>
-              <widget class="QTextEdit" name="textEditCSV"/>
+              <widget class="QTextEdit" name="textEditCSV">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>180</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="tabStopWidth">
+                <number>80</number>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -3438,8 +3474,8 @@ Frequency</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>0</width>
-                 <height>39</height>
+                 <width>80</width>
+                 <height>30</height>
                 </size>
                </property>
                <property name="text">
@@ -3451,8 +3487,8 @@ Frequency</string>
               <widget class="QPushButton" name="startSnifferButton">
                <property name="minimumSize">
                 <size>
-                 <width>0</width>
-                 <height>39</height>
+                 <width>80</width>
+                 <height>30</height>
                 </size>
                </property>
                <property name="text">
@@ -4012,6 +4048,78 @@ Frequency</string>
                   </property>
                  </widget>
                 </item>
+                <item>
+                 <widget class="Line" name="line">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_37">
+                  <item>
+                   <widget class="QPushButton" name="pushButton_4">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true"/>
+                    </property>
+                    <property name="text">
+                     <string>Record</string>
+                    </property>
+                    <property name="icon">
+                     <iconset resource="xprotolabinterface.qrc">
+                      <normaloff>:/Bitmaps/Bitmaps/ico-record.png</normaloff>:/Bitmaps/Bitmaps/ico-record.png</iconset>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="playButton">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Play</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_13">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>250</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="font">
+                     <font>
+                      <weight>75</weight>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
                </layout>
               </item>
              </layout>
@@ -4255,6 +4363,9 @@ Frequency</string>
                   </item>
                   <item>
                    <layout class="QVBoxLayout" name="verticalLayout_85">
+                    <property name="spacing">
+                     <number>2</number>
+                    </property>
                     <item>
                      <layout class="QHBoxLayout" name="horizontalLayout_84">
                       <item>
@@ -4522,8 +4633,14 @@ Frequency</string>
              <layout class="QVBoxLayout" name="verticalLayout_90">
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_90">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
                 <item>
                  <layout class="QVBoxLayout" name="verticalLayout_89">
+                  <property name="spacing">
+                   <number>10</number>
+                  </property>
                   <item>
                    <widget class="QCheckBox" name="checkBox_24">
                     <property name="enabled">
@@ -4557,35 +4674,115 @@ Frequency</string>
                  </spacer>
                 </item>
                 <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_95">
+                  <property name="spacing">
+                   <number>15</number>
+                  </property>
+                  <item>
+                   <widget class="QRadioButton" name="radioButton">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="text">
+                     <string>Serial port</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioButton_2">
+                    <property name="text">
+                     <string>Usb</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_32">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
                  <layout class="QVBoxLayout" name="verticalLayout_88">
+                  <property name="spacing">
+                   <number>10</number>
+                  </property>
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_88">
+                    <property name="spacing">
+                     <number>10</number>
+                    </property>
                     <item>
                      <widget class="QLabel" name="label_72">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
                       <property name="text">
                        <string>COM Port</string>
                       </property>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QComboBox" name="comboBox_9"/>
+                     <widget class="QComboBox" name="comboBox_9">
+                      <property name="enabled">
+                       <bool>false</bool>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>150</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                     </widget>
                     </item>
                    </layout>
                   </item>
                   <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_89">
+                   <layout class="QHBoxLayout" name="horizontalLayout_89" stretch="0,0,0">
+                    <property name="spacing">
+                     <number>2</number>
+                    </property>
                     <item>
                      <widget class="QLabel" name="connectIcon">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
                       <property name="text">
                        <string/>
                       </property>
                       <property name="pixmap">
                        <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/led-off.png</pixmap>
                       </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
                      </widget>
                     </item>
                     <item>
                      <widget class="QLabel" name="connectLabel">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
                       <property name="font">
                        <font>
                         <pointsize>9</pointsize>
@@ -4596,7 +4793,26 @@ Frequency</string>
                       <property name="text">
                        <string>Not Connected</string>
                       </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="wordWrap">
+                       <bool>true</bool>
+                      </property>
                      </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_13">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
                     </item>
                    </layout>
                   </item>
@@ -4652,29 +4868,31 @@ Frequency</string>
                  </layout>
                 </item>
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_94">
-                  <item>
-                   <spacer name="horizontalSpacer_13">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_94" stretch="0,0">
+                  <property name="spacing">
+                   <number>10</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>50</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>50</number>
+                  </property>
                   <item>
                    <widget class="QPushButton" name="upgradeFirmware">
                     <property name="enabled">
                      <bool>false</bool>
                     </property>
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
                     <property name="minimumSize">
                      <size>
-                      <width>0</width>
-                      <height>32</height>
+                      <width>80</width>
+                      <height>30</height>
                      </size>
                     </property>
                     <property name="text">
@@ -4684,10 +4902,16 @@ Frequency</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="restoreSettingButton">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
                     <property name="minimumSize">
                      <size>
-                      <width>0</width>
-                      <height>32</height>
+                      <width>80</width>
+                      <height>30</height>
                      </size>
                     </property>
                     <property name="toolTip">
@@ -4698,19 +4922,6 @@ Frequency</string>
                     </property>
                    </widget>
                   </item>
-                  <item>
-                   <spacer name="horizontalSpacer_14">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
                  </layout>
                 </item>
                </layout>
@@ -4722,135 +4933,139 @@ Frequency</string>
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="aboutTab">
+       <widget class="QWidget" name="tab">
         <attribute name="title">
          <string>About</string>
         </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_108">
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_95">
-           <item>
-            <widget class="QWidget" name="widget_2" native="true">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>88</height>
-              </size>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_107">
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_97">
-                <item>
-                 <widget class="QLabel" name="label_2">
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>16777215</width>
-                    <height>467761</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string/>
-                  </property>
-                  <property name="pixmap">
-                   <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/GT-logo.png</pixmap>
-                  </property>
-                  <property name="scaledContents">
-                   <bool>false</bool>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                  <property name="wordWrap">
-                   <bool>false</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_106">
-                  <item>
-                   <widget class="QLabel" name="label_4">
-                    <property name="font">
-                     <font>
-                      <pointsize>11</pointsize>
-                      <weight>75</weight>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Xscope Interface v1.0.0.2</string>
-                    </property>
-                    <property name="scaledContents">
-                     <bool>true</bool>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="label_19">
-                    <property name="text">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://gabotronics.com&quot;&gt;&lt;span style=&quot; font-size:26pt; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;gabotronics&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                    <property name="scaledContents">
-                     <bool>true</bool>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                    <property name="openExternalLinks">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="label_31">
-                    <property name="text">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copyright © 2013-2014 Gabotronics.com&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                    <property name="scaledContents">
-                     <bool>true</bool>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <spacer name="verticalSpacer_4">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
-         </item>
-        </layout>
+        <widget class="QWidget" name="widget_2" native="true">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>20</y>
+           <width>491</width>
+           <height>401</height>
+          </rect>
+         </property>
+         <widget class="QLabel" name="label_4">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>320</y>
+            <width>291</width>
+            <height>21</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copyright © 2013-2014 Gabotronics.com&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_19">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>250</y>
+            <width>411</width>
+            <height>71</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://gabotronics.com&quot;&gt;&lt;span style=&quot; font-size:20pt; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;www.gabotronics.com&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="textFormat">
+           <enum>Qt::RichText</enum>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="openExternalLinks">
+           <bool>true</bool>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::TextBrowserInteraction</set>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_31">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>160</y>
+            <width>161</width>
+            <height>41</height>
+           </rect>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-image: url(:/Bitmaps/Bitmaps/app-name.png);
+background-repeat: none;
+background-position: center;</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_2">
+          <property name="geometry">
+           <rect>
+            <x>30</x>
+            <y>210</y>
+            <width>131</width>
+            <height>21</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="lineWidth">
+           <number>1</number>
+          </property>
+          <property name="text">
+           <string>&lt;b&gt;Version:&lt;/b&gt; 1.0.0.2</string>
+          </property>
+         </widget>
+        </widget>
        </widget>
       </widget>
      </widget>
     </item>
    </layout>
   </widget>
+  <action name="actionSave_Wave">
+   <property name="icon">
+    <iconset resource="xprotolabinterface.qrc">
+     <normaloff>:/Bitmaps/Bitmaps/ico-save.png</normaloff>:/Bitmaps/Bitmaps/ico-save.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save Wave</string>
+   </property>
+  </action>
+  <action name="actionLoad_Wave">
+   <property name="text">
+    <string>Load Wave</string>
+   </property>
+  </action>
+  <action name="actionClear">
+   <property name="text">
+    <string>Clear</string>
+   </property>
+  </action>
+  <action name="actionScreenshot">
+   <property name="icon">
+    <iconset resource="xprotolabinterface.qrc">
+     <normaloff>:/Bitmaps/Bitmaps/ico-screenshot.png</normaloff>:/Bitmaps/Bitmaps/ico-screenshot.png</iconset>
+   </property>
+   <property name="text">
+    <string>Screenshot</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

@@ -164,16 +164,13 @@ void CustomTheme::colorizeButtons()
     ui->backgroundButton->setStyleSheet(ssheet);
     ssheet = "QPushButton { background-color : "+customColors.label.name()+"; color : "+idealForegroundColor(customColors.label)+"; }";
     ui->labelButton->setStyleSheet(ssheet);
-
-
 }
-
 
 void CustomTheme::on_ch1Button_clicked()
 {
-
-    customColors.ch1 = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.ch1);
+    if(!colorDialog->exec()) return;
+    customColors.ch1 = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.ch1.name()+"; color : "+idealForegroundColor(customColors.ch1)+"; }";
     ui->ch1Button->setStyleSheet(ssheet);
@@ -181,9 +178,9 @@ void CustomTheme::on_ch1Button_clicked()
 
 void CustomTheme::on_ch1RefButton_clicked()
 {
-
-    customColors.ch1ref = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.ch1ref);
+    if(!colorDialog->exec()) return;
+    customColors.ch1ref = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.ch1ref.name()+"; color : "+idealForegroundColor(customColors.ch1ref)+"; }";
     ui->ch1RefButton->setStyleSheet(ssheet);
@@ -191,9 +188,9 @@ void CustomTheme::on_ch1RefButton_clicked()
 
 void CustomTheme::on_ch2Button_clicked()
 {
-
-    customColors.ch2 = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.ch2);
+    if(!colorDialog->exec()) return;
+    customColors.ch2 = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.ch2.name()+"; color : "+idealForegroundColor(customColors.ch2)+"; }";
     ui->ch2Button->setStyleSheet(ssheet);
@@ -201,9 +198,9 @@ void CustomTheme::on_ch2Button_clicked()
 
 void CustomTheme::on_ch2RefButton_clicked()
 {
-
-    customColors.ch2ref = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.ch2ref);
+    if(!colorDialog->exec()) return;
+    customColors.ch2ref = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.ch2ref.name()+"; color : "+idealForegroundColor(customColors.ch2ref)+"; }";
     ui->ch2RefButton->setStyleSheet(ssheet);
@@ -211,9 +208,9 @@ void CustomTheme::on_ch2RefButton_clicked()
 
 void CustomTheme::on_ch1FftButton_clicked()
 {
-
-    customColors.ch1fft = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.ch1fft);
+    if(!colorDialog->exec()) return;
+    customColors.ch1fft = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.ch1fft.name()+"; color : "+idealForegroundColor(customColors.ch1fft)+"; }";
     ui->ch1FftButton->setStyleSheet(ssheet);
@@ -221,9 +218,9 @@ void CustomTheme::on_ch1FftButton_clicked()
 
 void CustomTheme::on_ch2FftButton_clicked()
 {
-
-    customColors.ch2fft = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.ch2fft);
+    if(!colorDialog->exec()) return;
+    customColors.ch2fft = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.ch2fft.name()+"; color : "+idealForegroundColor(customColors.ch2fft)+"; }";
     ui->ch2FftButton->setStyleSheet(ssheet);
@@ -231,9 +228,9 @@ void CustomTheme::on_ch2FftButton_clicked()
 
 void CustomTheme::on_gridButton_clicked()
 {
-
-    customColors.grid = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.grid);
+    if(!colorDialog->exec()) return;
+    customColors.grid = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.grid.name()+"; color : "+idealForegroundColor(customColors.grid)+"; }";
     ui->gridButton->setStyleSheet(ssheet);
@@ -241,9 +238,9 @@ void CustomTheme::on_gridButton_clicked()
 
 void CustomTheme::on_axesButton_clicked()
 {
-
-    customColors.axes = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.axes);
+    if(!colorDialog->exec()) return;
+    customColors.axes = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.axes.name()+"; color : "+idealForegroundColor(customColors.axes)+"; }";
     ui->axesButton->setStyleSheet(ssheet);
@@ -251,9 +248,9 @@ void CustomTheme::on_axesButton_clicked()
 
 void CustomTheme::on_bit0Button_clicked()
 {
-
-    customColors.bit[0] = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.bit[0]);
+    if(!colorDialog->exec()) return;
+    customColors.bit[0] = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.bit[0].name()+"; color : "+idealForegroundColor(customColors.bit[0])+"; }";
     ui->bit0Button->setStyleSheet(ssheet);
@@ -261,9 +258,9 @@ void CustomTheme::on_bit0Button_clicked()
 
 void CustomTheme::on_bit1Button_clicked()
 {
-
-    customColors.bit[1] = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.bit[1]);
+    if(!colorDialog->exec()) return;
+    customColors.bit[1] = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.bit[1].name()+"; color : "+idealForegroundColor(customColors.bit[1])+"; }";
     ui->bit1Button->setStyleSheet(ssheet);
@@ -271,9 +268,9 @@ void CustomTheme::on_bit1Button_clicked()
 
 void CustomTheme::on_bit2Button_clicked()
 {
-
-    customColors.bit[2] = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.bit[2]);
+    if(!colorDialog->exec()) return;
+    customColors.bit[2] = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.bit[2].name()+"; color : "+idealForegroundColor(customColors.bit[2])+"; }";
     ui->bit2Button->setStyleSheet(ssheet);
@@ -281,9 +278,9 @@ void CustomTheme::on_bit2Button_clicked()
 
 void CustomTheme::on_bit3Button_clicked()
 {
-
-    customColors.bit[3] = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.bit[3]);
+    if(!colorDialog->exec()) return;
+    customColors.bit[3] = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.bit[3].name()+"; color : "+idealForegroundColor(customColors.bit[3])+"; }";
     ui->bit3Button->setStyleSheet(ssheet);
@@ -291,9 +288,9 @@ void CustomTheme::on_bit3Button_clicked()
 
 void CustomTheme::on_bit4Button_clicked()
 {
-
-    customColors.bit[4] = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.bit[4]);
+    if(!colorDialog->exec()) return;
+    customColors.bit[4] = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.bit[4].name()+"; color : "+idealForegroundColor(customColors.bit[4])+"; }";
     ui->bit4Button->setStyleSheet(ssheet);
@@ -301,9 +298,9 @@ void CustomTheme::on_bit4Button_clicked()
 
 void CustomTheme::on_bit5Button_clicked()
 {
-
-    customColors.bit[5] = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.bit[5]);
+    if(!colorDialog->exec()) return;
+    customColors.bit[5] = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.bit[5].name()+"; color : "+idealForegroundColor(customColors.bit[5])+"; }";
     ui->bit5Button->setStyleSheet(ssheet);
@@ -311,9 +308,9 @@ void CustomTheme::on_bit5Button_clicked()
 
 void CustomTheme::on_bit6Button_clicked()
 {
-
-    customColors.bit[6] = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.bit[6]);
+    if(!colorDialog->exec()) return;
+    customColors.bit[6] = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.bit[6].name()+"; color : "+idealForegroundColor(customColors.bit[6])+"; }";
     ui->bit6Button->setStyleSheet(ssheet);
@@ -321,9 +318,9 @@ void CustomTheme::on_bit6Button_clicked()
 
 void CustomTheme::on_bit7Button_clicked()
 {
-
-    customColors.bit[7] = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.bit[7]);
+    if(!colorDialog->exec()) return;
+    customColors.bit[7] = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.bit[7].name()+"; color : "+idealForegroundColor(customColors.bit[7])+"; }";
     ui->bit7Button->setStyleSheet(ssheet);
@@ -331,9 +328,9 @@ void CustomTheme::on_bit7Button_clicked()
 
 void CustomTheme::on_bit0RefButton_clicked()
 {
-
-    customColors.bitref[0] = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.bitref[0]);
+    if(!colorDialog->exec()) return;
+    customColors.bitref[0] = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.bitref[0].name()+"; color : "+idealForegroundColor(customColors.bitref[0])+"; }";
     ui->bit0RefButton->setStyleSheet(ssheet);
@@ -341,9 +338,9 @@ void CustomTheme::on_bit0RefButton_clicked()
 
 void CustomTheme::on_bit1RefButton_clicked()
 {
-
-    customColors.bitref[1] = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.bitref[1]);
+    if(!colorDialog->exec()) return;
+    customColors.bitref[1] = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.bitref[1].name()+"; color : "+idealForegroundColor(customColors.bitref[1])+"; }";
     ui->bit1RefButton->setStyleSheet(ssheet);
@@ -351,9 +348,9 @@ void CustomTheme::on_bit1RefButton_clicked()
 
 void CustomTheme::on_bit2RefButton_clicked()
 {
-
-    customColors.bitref[2] = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.bitref[2]);
+    if(!colorDialog->exec()) return;
+    customColors.bitref[2] = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.bitref[2].name()+"; color : "+idealForegroundColor(customColors.bitref[2])+"; }";
     ui->bit2RefButton->setStyleSheet(ssheet);
@@ -361,9 +358,9 @@ void CustomTheme::on_bit2RefButton_clicked()
 
 void CustomTheme::on_bit3RefButton_clicked()
 {
-
-    customColors.bitref[3] = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.bitref[3]);
+    if(!colorDialog->exec()) return;
+    customColors.bitref[3] = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.bitref[3].name()+"; color : "+idealForegroundColor(customColors.bitref[3])+"; }";
     ui->bit3RefButton->setStyleSheet(ssheet);
@@ -371,9 +368,9 @@ void CustomTheme::on_bit3RefButton_clicked()
 
 void CustomTheme::on_bit4RefButton_clicked()
 {
-
-    customColors.bitref[4] = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.bitref[4]);
+    if(!colorDialog->exec()) return;
+    customColors.bitref[4] = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.bitref[4].name()+"; color : "+idealForegroundColor(customColors.bitref[4])+"; }";
     ui->bit4RefButton->setStyleSheet(ssheet);
@@ -381,9 +378,9 @@ void CustomTheme::on_bit4RefButton_clicked()
 
 void CustomTheme::on_bit5RefButton_clicked()
 {
-
-    customColors.bitref[5] = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.bitref[5]);
+    if(!colorDialog->exec()) return;
+    customColors.bitref[5] = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.bitref[5].name()+"; color : "+idealForegroundColor(customColors.bitref[5])+"; }";
     ui->bit5RefButton->setStyleSheet(ssheet);
@@ -391,9 +388,9 @@ void CustomTheme::on_bit5RefButton_clicked()
 
 void CustomTheme::on_bit6RefButton_clicked()
 {
-
-    customColors.bitref[6] = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.bitref[6]);
+    if(!colorDialog->exec()) return;
+    customColors.bitref[6] = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.bitref[6].name()+"; color : "+idealForegroundColor(customColors.bitref[6])+"; }";
     ui->bit6RefButton->setStyleSheet(ssheet);
@@ -401,9 +398,9 @@ void CustomTheme::on_bit6RefButton_clicked()
 
 void CustomTheme::on_bit7RefButton_clicked()
 {
-
-    customColors.bitref[7] = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.bitref[7]);
+    if(!colorDialog->exec()) return;
+    customColors.bitref[7] = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.bitref[7].name()+"; color : "+idealForegroundColor(customColors.bitref[7])+"; }";
     ui->bit7RefButton->setStyleSheet(ssheet);
@@ -411,9 +408,9 @@ void CustomTheme::on_bit7RefButton_clicked()
 
 void CustomTheme::on_backgroundButton_clicked()
 {
-
-    customColors.background = QBrush(colorDialog->getColor());
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.background.color());
+    if(!colorDialog->exec()) return;
+    customColors.background = QBrush(colorDialog->currentColor());
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.background.color().name()+"; color : "+idealForegroundColor(customColors.background.color())+"; }";
     ui->backgroundButton->setStyleSheet(ssheet);
@@ -421,8 +418,9 @@ void CustomTheme::on_backgroundButton_clicked()
 
 void CustomTheme::on_labelButton_clicked()
 {
-    customColors.label = colorDialog->getColor();
-    colorDialog->close();
+    colorDialog->setCurrentColor(customColors.label);
+    if(!colorDialog->exec()) return;
+    customColors.label = colorDialog->currentColor();
     QString ssheet;
     ssheet = "QPushButton { background-color : "+customColors.label.name()+"; color : "+idealForegroundColor(customColors.label)+"; }";
     ui->labelButton->setStyleSheet(ssheet);

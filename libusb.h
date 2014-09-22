@@ -83,6 +83,10 @@ typedef unsigned __int32  uint32_t;
 #define LIBUSB_DEPRECATED_FOR(f)
 #endif /* __GNUC__ */
 
+#ifdef Q_OS_WIN
+#pragma warning( disable : 4200 )
+#endif
+
 /** \def LIBUSB_CALL
  * \ingroup misc
  * libusbx's Windows calling convention.

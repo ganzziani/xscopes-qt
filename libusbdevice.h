@@ -4,16 +4,15 @@
 #include <QFuture>
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 #include <QtConcurrent/QtConcurrent>
-#define NOMINMAX
 #else
 #include <QtConcurrentRun>
 #endif
 #include "libusb.h"
 #include "libusbdeviceinfo.h"
 #include <QDebug>
+#include "serialportconnection.h"
 
 typedef uint8_t byte;
-
 
 class LibUsbDevice : public QObject
 {
@@ -21,10 +20,10 @@ class LibUsbDevice : public QObject
 public:
     explicit LibUsbDevice(QObject *parent = 0);
     void initializeDevice();
-    void openDevice();
+    void openDevice(QString="");
     void closeDevice();
     void eventThread();
-    bool controlReadTransfer(uint8_t command, uint16_t value = 0, uint16_t index = 0 );
+    bool controlReadTransfer(uint8_t command, uint16_t value = 0, uint16_t index = 0);
     void asyncBulkReadTransfer();
     void awgBulkWriteTransfer();
     void controlWriteTransfer(uint16_t index, uint8_t value);
@@ -37,9 +36,12 @@ public:
     void saveDeviceSettings();
     void restoreSettings();
 
-
     QString getStringFromUnsignedChar( unsigned char *,int);
+    void reset();
 
+public slots:
+    void newDataAvailable(int);
+    void turnOnAutoMode();
 public:
     bool isDeviceConnected,isInitialiazed;
     QString cstatus;
@@ -59,11 +61,9 @@ public:
     byte awgBuffer[256];
     bool enableEventThread,hasHotPlugSupport;
     QFuture<void> future;
-    
-signals:
-    
-public slots:
-    
+
+    SerialPortConnection serial;
+    bool wayOfConnecting;   //0 - usb, 1 - serial port
 };
 
 #endif // LIBUSBDEVICE_H

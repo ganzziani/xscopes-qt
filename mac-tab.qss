@@ -1,0 +1,7 @@
+QTabBar::tab{
+     min-width: 1px;
+     padding-top: 3px;
+     padding-bottom: 3px;
+     font-size: 10px;
+     margin-left: 1px;
+ }

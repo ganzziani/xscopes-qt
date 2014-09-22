@@ -1,0 +1,8 @@
+QTabBar::tab{
+     min-width: 6ex;
+     padding-left: 8px;
+     padding-right: 8px;
+     padding-top: 3px;
+     padding-bottom: 3px;
+     margin-right: 1px;
+ }

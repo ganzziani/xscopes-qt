@@ -40,6 +40,11 @@
 #include "fft.h"
 #include "sniffer.h"
 
+#include <QFile>
+#include <QTextStream>
+#include <QtSerialPort/QSerialPortInfo>
+#include <QtSerialPort/QSerialPort>
+
 enum WindowFunction {
     Rectangular,
     Hamming,
@@ -118,6 +123,7 @@ private:
     void setupItemLabels(QCustomPlot *);
     void setupScatterStyles(bool);
     void saveWavetoFile();
+    QString saveWavetoString();
     void closeEvent(QCloseEvent *);
     void selectWaveForm(uint8_t);
     void updateSweepCursors();
@@ -156,8 +162,9 @@ private:
     int mapRange(int value, int oldMax, int oldMin, int newMax, int newMin);
     double mapRangeF(double value, double oldMax, double oldMin, double newMax, double newMin);
 
-
-    
+    void logToFile(QString);
+    void checkIfInvertIcon();
+    void invertTriggerIcon();
 private slots:
     void on_playButton_clicked();
     void plotData();
@@ -171,7 +178,6 @@ private slots:
     void itemDoubleClick(QCPAbstractItem*,QMouseEvent*);
     void zoom(QWheelEvent*);
     void setTheme(int, CustomColors* customColors = NULL);
-
 
     void on_connectButton_clicked();
 
@@ -317,8 +323,6 @@ private slots:
 
     void on_comboBoxCPHA_currentIndexChanged(int index);
 
-
-
     void on_forceButton_clicked();
 
     void on_ch1GainSlider_valueChanged(int value);
@@ -381,7 +385,6 @@ private slots:
 
     void on_elasticMode_clicked();
 
-
     void on_checkBoxCursorAuto_clicked();
 
     void on_checkBoxCursorTrack_clicked();
@@ -397,8 +400,6 @@ private slots:
     void on_startSnifferButton_clicked();
 
     void on_protocolTabWidget_currentChanged(int index);
-
-    void on_chdSizeSlider_valueChanged(int value);
 
     void on_captureButton_clicked();
 
@@ -421,6 +422,18 @@ private slots:
     void on_restoreSettingButton_clicked();
 
     void on_pauseSnifferButton_clicked();
+
+    void on_pushButton_4_clicked();
+
+    void checkForAvailableComPorts();
+    void on_radioButton_clicked();
+
+    void on_radioButton_2_clicked();
+
+    void on_doubleSpinBoxDesiredFreq_editingFinished();
+    void updateTriggerPos();
+    void updateCh1Label();
+    void updateCh2Label();
 
 private:
     Ui::XprotolabInterface *ui;
@@ -470,6 +483,24 @@ private:
     int initPosCh2;
     int initPosScroll, lastTriggerSource;
     bool bitTriggerSource;
+
+    bool logging;
+    QFile *logFile;
+    QTextStream *ts;
+    int loggingCounter;
+    QString logsToSave;
+    int lastFrame;
+
+    bool recordingWaves;
+    QFile *recordWaveFile;
+    QTextStream *recordWaveTextStream;
+    QString dataToSave;
+    QList<QVector<double> > loadedWave;
+    QList<int> loadedFrequency;
+    bool loadRecordedWave;
+    int freqBeforeLoaded;
+    double m_diff;
+    bool m_repaint;
 };
 
 #endif // XPROTOLABINTERFACE_H

@@ -16,6 +16,10 @@
   <property name="windowTitle">
    <string>Custom Theme</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="xprotolabinterface.qrc">
+    <normaloff>:/Bitmaps/Bitmaps/GT-logo-256.png</normaloff>:/Bitmaps/Bitmaps/GT-logo-256.png</iconset>
+  </property>
   <property name="modal">
    <bool>true</bool>
   </property>
@@ -438,13 +442,27 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="6">
+     <item row="4" column="3">
       <widget class="QPushButton" name="applyButton">
        <property name="minimumSize">
         <size>
-         <width>0</width>
-         <height>35</height>
+         <width>80</width>
+         <height>30</height>
         </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton {
+    border-image: url(&quot;:/Bitmaps/Bitmaps/btn-86-up.png&quot;);
+    min-width: 80px;
+    min-height: 30px;
+    border-width: 0px;
+ }
+QPushButton:pressed {
+    border-image: url(&quot;:/Bitmaps/Bitmaps/btn-86-down.png&quot;);
+    min-width: 80px;
+    min-height: 30px;
+    border-width: 0px;
+ }</string>
        </property>
        <property name="text">
         <string>Apply</string>
@@ -457,13 +475,27 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="7">
+     <item row="4" column="4">
       <widget class="QPushButton" name="cancelButton">
        <property name="minimumSize">
         <size>
-         <width>0</width>
-         <height>35</height>
+         <width>80</width>
+         <height>30</height>
         </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton {
+    border-image: url(&quot;:/Bitmaps/Bitmaps/btn-86-up.png&quot;);
+    min-width: 80px;
+    min-height: 30px;
+    border-width: 0px;
+ }
+QPushButton:pressed {
+    border-image: url(&quot;:/Bitmaps/Bitmaps/btn-86-down.png&quot;);
+    min-width: 80px;
+    min-height: 30px;
+    border-width: 0px;
+ }</string>
        </property>
        <property name="text">
         <string>Cancel</string>
@@ -477,6 +509,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="xprotolabinterface.qrc"/>
+ </resources>
  <connections/>
 </ui>

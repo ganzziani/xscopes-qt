@@ -50,5 +50,41 @@
         <file>Bitmaps/window2r.png</file>
         <file>Bitmaps/chan1-zero.png</file>
         <file>Bitmaps/chan2-zero.png</file>
+        <file>Bitmaps/app-bg.png</file>
+        <file>Bitmaps/btn-86-disable.png</file>
+        <file>Bitmaps/btn-86-down.png</file>
+        <file>Bitmaps/btn-86-up.png</file>
+        <file>Bitmaps/ico-record.png</file>
+        <file>Bitmaps/ico-record-active.png</file>
+        <file>Bitmaps/menu-bg.png</file>
+        <file>Bitmaps/app-content-bg.png</file>
+        <file>Bitmaps/arrow-down-down.png</file>
+        <file>Bitmaps/arrow-down-up.png</file>
+        <file>Bitmaps/arrow-left-down.png</file>
+        <file>Bitmaps/arrow-left-up.png</file>
+        <file>Bitmaps/arrow-right-down.png</file>
+        <file>Bitmaps/arrow-right-up.png</file>
+        <file>Bitmaps/arrow-up-down.png</file>
+        <file>Bitmaps/arrow-up-up.png</file>
+        <file>Bitmaps/scrollbar-h.png</file>
+        <file>Bitmaps/scrollbar-h-down.png</file>
+        <file>Bitmaps/scrollbar-v.png</file>
+        <file>Bitmaps/scrollbar-v-down.png</file>
+        <file>Bitmaps/about-bg.png</file>
+        <file>Bitmaps/app-name.png</file>
+        <file>Bitmaps/separator-h.png</file>
+        <file>Bitmaps/separator-v.png</file>
+        <file>Bitmaps/ico-save.png</file>
+        <file>Bitmaps/ico-screenshot.png</file>
+        <file>Bitmaps/gt.icns</file>
+        <file>Bitmaps/gt.ico</file>
+        <file>Bitmaps/GT-logo-256.png</file>
+        <file>Bitmaps/separator-bg.png</file>
+        <file>win-css.qss</file>
+        <file>mac-css.qss</file>
+        <file>mac-tab.qss</file>
+        <file>win-tab.qss</file>
+        <file>Bitmaps/scrollbar2-v.png</file>
+        <file>Bitmaps/scrollbar2-v-down.png</file>
     </qresource>
 </RCC>

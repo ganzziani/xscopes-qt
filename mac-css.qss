@@ -1,0 +1,185 @@
+QWidget#XprotolabInterface{
+        background-color: #EBECEF;
+        border: 3px solid #c8c9d0;
+}
+QWidget#widget_2{
+        background-image: url(":/Bitmaps/Bitmaps/about-bg.png");
+        background-repeat: none;
+}
+QWidget{
+    font-size: 12px;
+}
+ QMenu {
+     background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:0, stop:0 rgba(217, 218, 224, 255), stop:1 rgba(200, 201, 208, 255));
+        border-bottom: 1px solid #565961;
+        border-left: 1px solid #565961;
+        border-right: 1px solid #565961;
+        padding-left: 10px;
+ }
+QMenu::separator {
+        height: 2px;
+     border-image: url(":/Bitmaps/Bitmaps/separator-h.png");
+ }
+QMenuBar{
+        background-image: url(":/Bitmaps/Bitmaps/separator-bg.png");
+        background-color: #c8c9d0;
+        background-repeat: none;
+}
+QMenuBar::item {
+        padding: 3px 8px;
+     background: transparent;
+ }
+
+ QMenuBar::item:pressed {
+     border-top: 1px solid black;
+     border-left: 1px solid black;
+     border-right: 1px solid black;
+ }
+QPushButton {
+    border-image: url(":/Bitmaps/Bitmaps/btn-86-up.png");
+        min-width: 80px;
+        min-height: 30px;
+        border-width: 0px;
+        margin-left: 10px;
+ }
+QPushButton:pressed {
+    border-image: url(":/Bitmaps/Bitmaps/btn-86-down.png");
+        min-width: 80px;
+        min-height: 30px;
+        border-width: 0px;
+ }
+ QPushButton:disabled {
+    border-image: url(":/Bitmaps/Bitmaps/btn-86-disable.png");
+        min-width: 80px;
+        min-height: 30px;
+        border-width: 0px;
+ }
+
+QTabBar::tab{
+     min-width: 12ex;
+     padding-left: 8px;
+     padding-right: 8px;
+         padding-top: 5px;
+        padding-bottom: 5px;
+        margin-right: 1px;
+ }
+ QTabBar::tab:selected {
+    background-color: #FFFFFF;
+        border:1px solid #565961;
+        border-bottom: 0px;
+ }
+ QTabBar::tab:!selected {
+    margin-top: 2px;
+        background-color: #F7F7F9;
+        border:1px solid #92949a;
+ }
+
+QScrollBar:horizontal {
+     border: 0px;
+     background: #F5F5F5;
+     height: 17px;
+     margin: 0px 20px 0 20px;
+ }
+ QScrollBar::add-line:horizontal {
+     border: 0px;
+     width: 20px;
+     subcontrol-position: right;
+     subcontrol-origin: margin;
+ }
+
+ QScrollBar::sub-line:horizontal {
+     border: 0px;
+     width: 20px;
+     subcontrol-position: left;
+     subcontrol-origin: margin;
+ }
+ QScrollBar:left-arrow:horizontal {
+     background-image: url(":/Bitmaps/Bitmaps/arrow-left-up.png");
+ }
+ QScrollBar:left-arrow:horizontal:pressed {
+     background-image: url(":/Bitmaps/Bitmaps/arrow-left-down.png");
+ }
+ QScrollBar:right-arrow:horizontal {
+     background-image: url(":/Bitmaps/Bitmaps/arrow-right-up.png");
+ }
+ QScrollBar:right-arrow:horizontal:pressed {
+     background-image: url(":/Bitmaps/Bitmaps/arrow-right-down.png");
+ }
+
+QScrollBar:vertical {
+     border: 0px;
+     background: #F5F5F5;
+     width: 17px;
+     margin: 20px 0px 20 0px;
+ }
+ QScrollBar::add-line:vertical {
+     border: 0px;
+     height: 20px;
+     subcontrol-position: bottom;
+     subcontrol-origin: margin;
+ }
+
+ QScrollBar::sub-line:vertical {
+     border: 0px;
+     height: 20px;
+     subcontrol-position: top;
+     subcontrol-origin: margin;
+ }
+ QScrollBar:up-arrow:vertical {
+     background-image: url(":/Bitmaps/Bitmaps/arrow-up-up.png");
+ }
+ QScrollBar:up-arrow:vertical:pressed {
+     background-image: url(":/Bitmaps/Bitmaps/arrow-up-down.png");
+ }
+ QScrollBar:down-arrow:vertical {
+     background-image: url(":/Bitmaps/Bitmaps/arrow-down-up.png");
+ }
+ QScrollBar:down-arrow:vertical:pressed {
+     background-image: url(":/Bitmaps/Bitmaps/arrow-down-down.png");
+ }
+
+QScrollBar::handle:vertical {
+    background-color: "#DEE4F2";
+    border: 1px solid #ACAFB5;
+    border-radius: 5;
+    margin: 0 3 0 3;
+}
+
+QScrollBar::handle:vertical:pressed {
+    background-color: "#A6B9EE";
+    border: 1px solid #000000;
+    border-radius: 5;
+    margin: 0 3 0 3;
+}
+QScrollBar::handle:horizontal{
+    background-color: "#DEE4F2";
+    border: 1px solid #ACAFB5;
+    border-radius: 5;
+    margin: 3 0 3 0;
+}
+
+QScrollBar::handle:horizontal:pressed {
+    background-color: "#A6B9EE";
+    border: 1px solid #000000;
+    border-radius: 5;
+    margin: 3 0 3 0;
+}
+QGroupBox{
+    background-color: #00FFFFFF;
+}
+QWidget#osciloscopeTab{
+    background-color: #FFFFFF;
+}
+QWidget#awgTab{
+    background-color: #FFFFFF;
+}
+QWidget#protocolSnifferTab{
+    background-color: #FFFFFF;
+}
+QWidget#optionsTab{
+    background-color: #FFFFFF;
+}
+QWidget#tab{
+    background-color: #FFFFFF;
+}
+

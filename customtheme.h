@@ -41,9 +41,6 @@ private slots:
 
     void on_cancelButton_clicked();
 
-
-
-
     void on_ch1Button_clicked();
 
     void on_ch1RefButton_clicked();

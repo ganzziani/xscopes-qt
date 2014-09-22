@@ -252,17 +252,17 @@ void QCPPainter::makeNonCosmetic()
 
 /*! \class QCPScatterStyle
   \brief Represents the visual appearance of scatter points
-  
+
   This class holds information about shape, color and size of scatter points. In plottables like
   QCPGraph it is used to store how scatter points shall be drawn. For example, \ref
   QCPGraph::setScatterStyle takes a QCPScatterStyle instance.
-  
+
   A scatter style consists of a shape (\ref setShape), a line color (\ref setPen) and possibly a
   fill (\ref setBrush), if the shape provides a fillable area. Further, the size of the shape can
   be controlled with \ref setSize.
 
   \section QCPScatterStyle-defining Specifying a scatter style
-  
+
   You can set all these configurations either by calling the respective functions on an instance:
   \code
   QCPScatterStyle myScatter;
@@ -272,22 +272,22 @@ void QCPPainter::makeNonCosmetic()
   myScatter.setSize(5);
   customPlot->graph(0)->setScatterStyle(myScatter);
   \endcode
-  
+
   Or you can use one of the various constructors that take different parameter combinations, making
   it easy to specify a scatter style in a single call, like so:
   \code
   customPlot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::blue, Qt::white, 5));
   \endcode
-  
+
   \section QCPScatterStyle-undefinedpen Leaving the color/pen up to the plottable
-  
+
   There are two constructors which leave the pen undefined: \ref QCPScatterStyle() and \ref
   QCPScatterStyle(ScatterShape shape, double size). If those constructors are used, a call to \ref
   isPenDefined will return false. It leads to scatter points that inherit the pen from the
   plottable that uses the scatter style. Thus, if such a scatter style is passed to QCPGraph, the line
   color of the graph (\ref QCPGraph::setPen) will be used by the scatter points. This makes
   it very convenient to set up typical scatter settings:
-  
+
   \code
   customPlot->graph(0)->setScatterStyle(QCPScatterStyle::ssPlus);
   \endcode
@@ -297,15 +297,15 @@ void QCPPainter::makeNonCosmetic()
   into a QCPScatterStyle instance (that's the \ref QCPScatterStyle(ScatterShape shape, double size)
   constructor with a default for \a size). In those cases, C++ allows directly supplying a \ref
   ScatterShape, where actually a QCPScatterStyle is expected.
-  
+
   \section QCPScatterStyle-custompath-and-pixmap Custom shapes and pixmaps
-  
+
   QCPScatterStyle supports drawing custom shapes and arbitrary pixmaps as scatter points.
 
   For custom shapes, you can provide a QPainterPath with the desired shape to the \ref
   setCustomPath function or call the constructor that takes a painter path. The scatter shape will
   automatically be set to \ref ssCustom.
-  
+
   For pixmaps, you call \ref setPixmap with the desired QPixmap. Alternatively you can use the
   constructor that takes a QPixmap. The scatter shape will automatically be set to \ref ssPixmap.
   Note that \ref setSize does not influence the appearance of the pixmap.
@@ -314,21 +314,21 @@ void QCPPainter::makeNonCosmetic()
 /* start documentation of inline functions */
 
 /*! \fn bool QCPScatterStyle::isNone() const
-  
+
   Returns whether the scatter shape is \ref ssNone.
-  
+
   \see setShape
 */
 
 /*! \fn bool QCPScatterStyle::isPenDefined() const
-  
+
   Returns whether a pen has been defined for this scatter style.
-  
+
   The pen is undefined if a constructor is called that does not carry \a pen as parameter. Those are
   \ref QCPScatterStyle() and \ref QCPScatterStyle(ScatterShape shape, double size). If the pen is
   left undefined, the scatter color will be inherited from the plottable that uses this scatter
   style.
-  
+
   \see setPen
 */
 
@@ -336,7 +336,7 @@ void QCPPainter::makeNonCosmetic()
 
 /*!
   Creates a new QCPScatterStyle instance with size set to 6. No shape, pen or brush is defined.
-  
+
   Since the pen is undefined (\ref isPenDefined returns false), the scatter color will be inherited
   from the plottable that uses this scatter style.
 */
@@ -352,7 +352,7 @@ QCPScatterStyle::QCPScatterStyle() :
 /*!
   Creates a new QCPScatterStyle instance with shape set to \a shape and size to \a size. No pen or
   brush is defined.
-  
+
   Since the pen is undefined (\ref isPenDefined returns false), the scatter color will be inherited
   from the plottable that uses this scatter style.
 */
@@ -394,7 +394,7 @@ QCPScatterStyle::QCPScatterStyle(ScatterShape shape, const QColor &color, const 
 /*!
   Creates a new QCPScatterStyle instance with shape set to \a shape, the pen set to \a pen, the
   brush to \a brush, and size to \a size.
-  
+
   \warning In some cases it might be tempting to directly use a pen style like <tt>Qt::NoPen</tt> as \a pen
   and a color like <tt>Qt::blue</tt> as \a brush. Notice however, that the corresponding call\n
   <tt>QCPScatterStyle(QCPScatterShape::ssCircle, Qt::NoPen, Qt::blue, 5)</tt>\n
@@ -432,7 +432,7 @@ QCPScatterStyle::QCPScatterStyle(const QPixmap &pixmap) :
 /*!
   Creates a new QCPScatterStyle instance with a custom shape that is defined via \a customPath. The
   scatter shape is set to \ref ssCustom.
-  
+
   The custom shape line will be drawn with \a pen and filled with \a brush. The size has a slightly
   different meaning than for built-in scatter points: The custom path will be drawn scaled by a
   factor of \a size/6.0. Since the default \a size is 6, the custom path will appear at a its
@@ -450,7 +450,7 @@ QCPScatterStyle::QCPScatterStyle(const QPainterPath &customPath, const QPen &pen
 
 /*!
   Sets the size (pixel diameter) of the drawn scatter points to \a size.
-  
+
   \see setShape
 */
 void QCPScatterStyle::setSize(double size)
@@ -460,10 +460,10 @@ void QCPScatterStyle::setSize(double size)
 
 /*!
   Sets the shape to \a shape.
-  
+
   Note that the calls \ref setPixmap and \ref setCustomPath automatically set the shape to \ref
   ssPixmap and \ref ssCustom, respectively.
-  
+
   \see setSize
 */
 void QCPScatterStyle::setShape(QCPScatterStyle::ScatterShape shape)
@@ -473,10 +473,10 @@ void QCPScatterStyle::setShape(QCPScatterStyle::ScatterShape shape)
 
 /*!
   Sets the pen that will be used to draw scatter points to \a pen.
-  
+
   If the pen was previously undefined (see \ref isPenDefined), the pen is considered defined after
   a call to this function, even if \a pen is <tt>Qt::NoPen</tt>.
-  
+
   \see setBrush
 */
 void QCPScatterStyle::setPen(const QPen &pen)
@@ -488,7 +488,7 @@ void QCPScatterStyle::setPen(const QPen &pen)
 /*!
   Sets the brush that will be used to fill scatter points to \a brush. Note that not all scatter
   shapes have fillable areas. For example, \ref ssPlus does not while \ref ssCircle does.
-  
+
   \see setPen
 */
 void QCPScatterStyle::setBrush(const QBrush &brush)
@@ -498,9 +498,9 @@ void QCPScatterStyle::setBrush(const QBrush &brush)
 
 /*!
   Sets the pixmap that will be drawn as scatter point to \a pixmap.
-  
+
   Note that \ref setSize does not influence the appearance of the pixmap.
-  
+
   The scatter shape is automatically set to \ref ssPixmap.
 */
 void QCPScatterStyle::setPixmap(const QPixmap &pixmap)
@@ -511,7 +511,7 @@ void QCPScatterStyle::setPixmap(const QPixmap &pixmap)
 
 /*!
   Sets the custom shape that will be drawn as scatter point to \a customPath.
-  
+
   The scatter shape is automatically set to \ref ssCustom.
 */
 void QCPScatterStyle::setCustomPath(const QPainterPath &customPath)
@@ -523,10 +523,10 @@ void QCPScatterStyle::setCustomPath(const QPainterPath &customPath)
 /*!
   Applies the pen and the brush of this scatter style to \a painter. If this scatter style has an
   undefined pen (\ref isPenDefined), sets the pen of \a painter to \a defaultPen instead.
-  
+
   This function is used by plottables (or any class that wants to draw scatters) just before a
   number of scatters with this style shall be drawn with the \a painter.
-  
+
   \see drawShape
 */
 void QCPScatterStyle::applyTo(QCPPainter *painter, const QPen &defaultPen) const
@@ -537,10 +537,10 @@ void QCPScatterStyle::applyTo(QCPPainter *painter, const QPen &defaultPen) const
 
 /*!
   Draws the scatter shape with \a painter at position \a pos.
-  
+
   This function does not modify the pen or the brush on the painter, as \ref applyTo is meant to be
   called before scatter points are drawn with \ref drawShape.
-  
+
   \see applyTo
 */
 void QCPScatterStyle::drawShape(QCPPainter *painter, QPointF pos) const
@@ -3644,7 +3644,7 @@ void QCPLineEnding::draw(QCPPainter *painter, const QVector2D &pos, const QVecto
     {
       QPointF points[4] = {pos.toPointF(),
                            (pos-lengthVec+widthVec).toPointF(),
-                           (pos-lengthVec*0.8).toPointF(),
+                           (pos-lengthVec*0.8f).toPointF(),
                            (pos-lengthVec-widthVec).toPointF()
                           };
       painter->setPen(miterPen);
@@ -3717,13 +3717,13 @@ void QCPLineEnding::draw(QCPPainter *painter, const QVector2D &pos, const QVecto
       if (qFuzzyIsNull(painter->pen().widthF()) && !painter->modes().testFlag(QCPPainter::pmNonCosmetic))
       {
         // if drawing with cosmetic pen (perfectly thin stroke, happens only in vector exports), draw bar exactly on tip of line
-        painter->drawLine((pos+widthVec+lengthVec*0.2*(mInverted?-1:1)).toPointF(),
-                          (pos-widthVec-lengthVec*0.2*(mInverted?-1:1)).toPointF());
+        painter->drawLine((pos+widthVec+lengthVec*0.2f*(mInverted?-1:1)).toPointF(),
+                          (pos-widthVec-lengthVec*0.2f*(mInverted?-1:1)).toPointF());
       } else
       {
         // if drawing with thick (non-cosmetic) pen, shift bar a little in line direction to prevent line from sticking through bar slightly
-        painter->drawLine((pos+widthVec+lengthVec*0.2*(mInverted?-1:1)+dir.normalized()*qMax(1.0, (double)painter->pen().widthF())*0.5).toPointF(),
-                          (pos-widthVec-lengthVec*0.2*(mInverted?-1:1)+dir.normalized()*qMax(1.0, (double)painter->pen().widthF())*0.5).toPointF());
+        painter->drawLine((pos+widthVec+lengthVec*0.2f*(mInverted?-1:1)+dir.normalized()*qMax(1.0, (double)painter->pen().widthF())*0.5).toPointF(),
+                          (pos-widthVec-lengthVec*0.2f*(mInverted?-1:1)+dir.normalized()*qMax(1.0, (double)painter->pen().widthF())*0.5).toPointF());
       }
       break;
     }
@@ -8798,7 +8798,8 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mMultiSelectModifier(Qt::ControlModifier),
   mPaintBuffer(size()),
   mMouseEventElement(0),
-  mReplotting(false)
+  mReplotting(false),
+  m_infinity(false)
 {
   setAttribute(Qt::WA_NoMousePropagation);
   setAttribute(Qt::WA_OpaquePaintEvent);
@@ -10127,6 +10128,7 @@ void QCustomPlot::deselectAll()
   signals on two QCustomPlots to make them replot synchronously, it won't cause an infinite
   recursion.
 */
+
 void QCustomPlot::replot()
 {
   if (mReplotting) // incase signals loop back to replot slot
@@ -10484,7 +10486,6 @@ void QCustomPlot::mousePressEvent(QMouseEvent *event)
   mMouseEventElement = layoutElementAt(event->pos());
   if (mMouseEventElement)
     mMouseEventElement->mousePressEvent(event);
-  
   QWidget::mousePressEvent(event);
 }
 
@@ -12187,11 +12188,28 @@ void QCPGraph::drawLinePlot(QCPPainter *painter, QVector<QPointF> *lineData) con
         !painter->modes().testFlag(QCPPainter::pmVectorized)&&
         !painter->modes().testFlag(QCPPainter::pmNoCaching))
     {
-      for (int i=1; i<lineData->size(); ++i)
-        painter->drawLine(lineData->at(i-1), lineData->at(i));
+        double div=mParentPlot->width()/220.0;
+        double prev_x = 0.0;
+        for(int i=1;i<lineData->size();i++){
+            painter->drawLine(lineData->at(i-1),lineData->at(i));
+            if(mParentPlot->m_infinity){
+                painter->drawLine(QPointF(prev_x,lineData->at(i-1).y()),QPointF(prev_x+div*10,lineData->at(i-1).y()));
+                painter->drawLine(QPointF(prev_x,lineData->at(i-1).y()+div),QPointF(prev_x+div*5,lineData->at(i-1).y()+div));
+            }
+            prev_x = lineData->at(i).x();
+        }
     } else
-    {  
-      painter->drawPolyline(QPolygonF(*lineData));
+    {
+        double div=mParentPlot->width()/220.0;
+        double prev_x = 0.0;
+        for(int i=0;i<lineData->size()-1;i++){
+            painter->drawLine(lineData->at(i),lineData->at(i+1));
+            if(mParentPlot->m_infinity){
+                painter->drawLine(QPointF(prev_x,lineData->at(i).y()),QPointF(prev_x+div*5,lineData->at(i).y()));
+                painter->drawLine(QPointF(prev_x,lineData->at(i).y()+div),QPointF(prev_x+div*5,lineData->at(i).y()+div));
+            }
+            prev_x = lineData->at(i).x();
+        }
     }
   }
 }
@@ -13438,7 +13456,6 @@ void QCPCurve::draw(QCPPainter *painter)
     painter->setBrush(mainBrush());
     painter->drawPolygon(QPolygonF(*lineData));
   }
-  
   // draw curve line:
   if (mLineStyle != lsNone && mainPen().style() != Qt::NoPen && mainPen().color().alpha() != 0)
   {
@@ -13455,7 +13472,8 @@ void QCPCurve::draw(QCPPainter *painter)
         painter->drawLine(lineData->at(i-1), lineData->at(i));
     } else
     {  
-      painter->drawPolyline(QPolygonF(*lineData));
+        for(int i=0;i<lineData->size()-1;i++)
+            painter->drawLine(lineData->at(i),lineData->at(i+1));
     }
   }
   
@@ -16820,8 +16838,8 @@ void QCPItemBracket::draw(QCPPainter *painter)
         painter->setBrush(Qt::NoBrush);
         QPainterPath path;
         path.moveTo((centerVec+widthVec+lengthVec).toPointF());
-        path.cubicTo((centerVec+widthVec*1-lengthVec*0.8).toPointF(), (centerVec+0.4*widthVec+1*lengthVec).toPointF(), centerVec.toPointF());
-        path.cubicTo((centerVec-0.4*widthVec+1*lengthVec).toPointF(), (centerVec-widthVec*1-lengthVec*0.8).toPointF(), (centerVec-widthVec+lengthVec).toPointF());
+        path.cubicTo((centerVec+widthVec*1-lengthVec*0.8f).toPointF(), (centerVec+0.4f*widthVec+1*lengthVec).toPointF(), centerVec.toPointF());
+        path.cubicTo((centerVec-0.4f*widthVec+1*lengthVec).toPointF(), (centerVec-widthVec*1-lengthVec*0.8f).toPointF(), (centerVec-widthVec+lengthVec).toPointF());
         painter->drawPath(path);
         break;
       }
@@ -16832,11 +16850,11 @@ void QCPItemBracket::draw(QCPPainter *painter)
         QPainterPath path;
         path.moveTo((centerVec+widthVec+lengthVec).toPointF());
         
-        path.cubicTo((centerVec+widthVec*1-lengthVec*0.8).toPointF(), (centerVec+0.4*widthVec+0.8*lengthVec).toPointF(), centerVec.toPointF());
-        path.cubicTo((centerVec-0.4*widthVec+0.8*lengthVec).toPointF(), (centerVec-widthVec*1-lengthVec*0.8).toPointF(), (centerVec-widthVec+lengthVec).toPointF());
+        path.cubicTo((centerVec+widthVec*1-lengthVec*0.8f).toPointF(), (centerVec+0.4f*widthVec+0.8f*lengthVec).toPointF(), centerVec.toPointF());
+        path.cubicTo((centerVec-0.4f*widthVec+0.8f*lengthVec).toPointF(), (centerVec-widthVec*1-lengthVec*0.8f).toPointF(), (centerVec-widthVec+lengthVec).toPointF());
         
-        path.cubicTo((centerVec-widthVec*1-lengthVec*0.5).toPointF(), (centerVec-0.2*widthVec+1.2*lengthVec).toPointF(), (centerVec+lengthVec*0.2).toPointF());
-        path.cubicTo((centerVec+0.2*widthVec+1.2*lengthVec).toPointF(), (centerVec+widthVec*1-lengthVec*0.5).toPointF(), (centerVec+widthVec+lengthVec).toPointF());
+        path.cubicTo((centerVec-widthVec*1-lengthVec*0.5f).toPointF(), (centerVec-0.2f*widthVec+1.2f*lengthVec).toPointF(), (centerVec+lengthVec*0.2f).toPointF());
+        path.cubicTo((centerVec+0.2f*widthVec+1.2f*lengthVec).toPointF(), (centerVec+widthVec*1-lengthVec*0.5f).toPointF(), (centerVec+widthVec+lengthVec).toPointF());
         
         painter->drawPath(path);
         break;

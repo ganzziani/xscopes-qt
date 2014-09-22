@@ -265,7 +265,7 @@ public:
   QCPScatterStyle(ScatterShape shape, const QPen &pen, const QBrush &brush, double size);
   QCPScatterStyle(const QPixmap &pixmap);
   QCPScatterStyle(const QPainterPath &customPath, const QPen &pen, const QBrush &brush=Qt::NoBrush, double size=6);
-  
+
   // getters:
   double size() const { return mSize; }
   ScatterShape shape() const { return mShape; }
@@ -297,7 +297,7 @@ protected:
   QBrush mBrush;
   QPixmap mPixmap;
   QPainterPath mCustomPath;
-  
+
   // non-property members:
   bool mPenDefined;
 };
@@ -426,7 +426,7 @@ public:
   
   // non-property methods:
   bool realVisibility() const;
-  
+
 protected:
   // property members:
   bool mVisible;
@@ -1604,7 +1604,8 @@ public:
   
   QCPAxis *xAxis, *yAxis, *xAxis2, *yAxis2;
   QCPLegend *legend;
-  
+
+  bool m_infinity;
 signals:
   void mouseDoubleClick(QMouseEvent *event);
   void mousePress(QMouseEvent *event);
@@ -1626,7 +1627,7 @@ signals:
   void selectionChangedByUser();
   void beforeReplot();
   void afterReplot();
-  
+
 protected:
   // property members:
   QRect mViewport;
@@ -1653,7 +1654,7 @@ protected:
   QPixmap mPaintBuffer;
   QPoint mMousePressPos;
   QCPLayoutElement *mMouseEventElement;
-  bool mReplotting;
+  bool mReplotting;  
   
   // reimplemented virtual methods:
   virtual QSize minimumSizeHint() const;

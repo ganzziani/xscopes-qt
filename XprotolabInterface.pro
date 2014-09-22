@@ -4,9 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
-
-
+QT       += core gui serialport concurrent
 
 TARGET = xscope
 TEMPLATE = app
@@ -18,7 +16,8 @@ SOURCES += main.cpp\
     libusbdevice.cpp \
     fft.cpp \
     complex.cpp \
-    customtheme.cpp
+    customtheme.cpp \
+    serialportconnection.cpp
 
 HEADERS  += xprotolabinterface.h \
     qcustomplot.h \
@@ -28,7 +27,8 @@ HEADERS  += xprotolabinterface.h \
     fft.h \
     complex.h \
     sniffer.h \
-    customtheme.h
+    customtheme.h \
+    serialportconnection.h
 
 FORMS    += xprotolabinterface.ui \
     customtheme.ui
@@ -44,10 +44,18 @@ DEPENDPATH += $$PWD/libs
 
 win32: PRE_TARGETDEPS += $$PWD/libs/libusb-1.0.lib
 
-greaterThan(QT_MAJOR_VERSION, 4):LIBS += -lQt5Concurrent
+#greaterThan(QT_MAJOR_VERSION, 4):LIBS += -lQt5Concurrent
 greaterThan(QT_MAJOR_VERSION, 4):QT += widgets
 greaterThan(QT_MAJOR_VERSION, 4):QT += printsupport
 
-unix:macx: LIBS += -lusb-1.0
+unix:macx: LIBS += $$PWD/libs/libusb-1.0.dylib
 
-OTHER_FILES +=  
+OTHER_FILES += \    
+    win-css.qss \
+    mac-css.qss \
+    mac-tab.qss \
+    win-tab.qss
+
+macx {
+    ICON = "Bitmaps/gt.icns"
+}

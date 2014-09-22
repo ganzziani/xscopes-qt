@@ -6,8 +6,57 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::XprotolabInterface)
 {
+    logging=false;
+    logFile=new QFile("log.txt");
+    if (logFile->open(QIODevice::WriteOnly | QIODevice::Text)){
+        ts=new QTextStream(logFile);
+    }
+    loggingCounter=0;
+    logsToSave="";
+    lastFrame=0;
+    m_diff=-1;
+
+    recordingWaves=false;
+    recordWaveFile=new QFile();
+    loadRecordedWave=false;
+
+    m_repaint = false;
+
     ui->setupUi(this);
+
+    QFile file_css;
+    #if defined(Q_OS_MAC)
+        file_css.setFileName(":/Bitmaps/mac-css.qss");
+    #else
+        file_css.setFileName(":/Bitmaps/win-css.qss");
+    #endif
+    file_css.open(QFile::ReadOnly);
+
+    QString styleSheet = QLatin1String(file_css.readAll());
+    this->setStyleSheet(styleSheet);
+    file_css.close();
+
+    QFile file_tab;
+    #if defined(Q_OS_MAC)
+        file_tab.setFileName(":/Bitmaps/mac-tab.qss");
+    #else
+        file_tab.setFileName(":/Bitmaps/win-tab.qss");
+    #endif
+    file_tab.open(QFile::ReadOnly);
+
+    QString tabStyleSheet = QLatin1String(file_tab.readAll());
+    ui->tabWidget1->setStyleSheet(tabStyleSheet);
+    ui->mainTabWidget->setStyleSheet(tabStyleSheet);
+
+    file_tab.close();
+
+    ui->labelHertz->setStyleSheet("QLabel{font-size: 32px};");
+    ui->connectLabel->setStyleSheet("QLabel{font-size: 12px};");
+
     readAppSettings();
+
+    checkForAvailableComPorts();
+
     rangeMax = 512;
     xmax = 256;
     offset = rangeMax/2- ZERO_POS;
@@ -32,17 +81,39 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     connect(ui->plotterWidget, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(selectItem(QMouseEvent*)));
     connect(ui->plotterWidget, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(deselectItem(QMouseEvent*)));
     connect(ui->plotterWidget, SIGNAL(itemDoubleClick(QCPAbstractItem*,QMouseEvent*)), this, SLOT(itemDoubleClick(QCPAbstractItem*,QMouseEvent*)));
-    usbDevice.initializeDevice();
+
     on_connectButton_clicked();
     initializing = false;
     connect(&dataTimer, SIGNAL(timeout()), this, SLOT(plotData()));
     dataTimer.start(4); // Interval 0 means to refresh as fast as possible
 
+    updateCh1Label();
+    updateCh2Label();
 }
 
 XprotolabInterface::~XprotolabInterface()
-{
+{    
+    if(logFile->isOpen()){
+        logToFile(logsToSave);
+        logFile->close();
+        delete logFile;
+        delete ts;
+    }
+    if(recordWaveFile->isOpen()){
+        recordWaveFile->close();
+        delete recordWaveFile;
+        delete recordWaveTextStream;
+    }
     delete ui;
+}
+
+void XprotolabInterface::checkForAvailableComPorts(){
+    ui->comboBox_9->view()->setTextElideMode(Qt::ElideLeft);
+    foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts()) {
+        if(!info.isBusy() && info.isValid() && !info.isNull()){
+            ui->comboBox_9->addItem(info.portName());
+        }
+    }    
 }
 
 void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
@@ -70,11 +141,8 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot)
     customPlot->axisRect()->setupFullAxesBox();
     customPlot->axisRect()->setRangeDrag(Qt::Horizontal);
 
-
-
    // make left and bottom axes transfer their ranges to right and top axes:
    connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
-   //connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->yAxis2, SLOT(setRange(QCPRange)));
 
    customPlot->setInteractions(QCP::iSelectPlottables);
 }
@@ -130,9 +198,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors)
         ui->plotterWidget->xAxis->grid()->setPen(gridPen);
         ui->plotterWidget->yAxis->grid()->setPen(gridPen);
 
-//        customPlot->xAxis->grid()->setZeroLinePen(QPen(Qt::white, 2));
-//        customPlot->yAxis->grid()->setZeroLinePen(QPen(Qt::white, 2));
-
         axesPen = QPen(Qt::white, 1);
         ui->plotterWidget->xAxis->setTickPen(axesPen);
         ui->plotterWidget->yAxis->setTickPen(axesPen);
@@ -154,11 +219,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors)
         textLabelDeltaVoltage->setColor("#4be51c");
         textLabelVoltageB->setColor("#4be51c");
         textLabelVoltageA->setColor("#4be51c");
-        //    QLinearGradient plotGradient;
-        //    plotGradient.setStart(0, 0);
-        //    plotGradient.setFinalStop(0, 350);
-        //    plotGradient.setColorAt(0, QColor(0, 50, 200));
-        //    plotGradient.setColorAt(1, QColor(50, 0, 100));
 
     }
     else if(theme == Light)
@@ -209,9 +269,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors)
         gridPen = QPen(QColor("C8C8C8"), 1, Qt::DotLine);
         ui->plotterWidget->xAxis->grid()->setPen(gridPen);
         ui->plotterWidget->yAxis->grid()->setPen(gridPen);
-
-//        customPlot->xAxis->grid()->setZeroLinePen(QPen(Qt::white, 2));
-//        customPlot->yAxis->grid()->setZeroLinePen(QPen(Qt::white, 2));
 
         axesPen = QPen(Qt::black, 1);
         ui->plotterWidget->xAxis->setTickPen(axesPen);
@@ -266,7 +323,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors)
         for(int i=0;i<8;i++)
         {
             chdPen[i] = QPen(customColors->bit[i], 1.5);
-            //chdPen[i] = QPen(Qt::red, 1.5);
             chdGraph[i]->setPen(chdPen[i]);
 
             chdRefPen[i] = QPen(customColors->bitref[i], 1.5);
@@ -284,9 +340,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors)
         ui->plotterWidget->xAxis->grid()->setPen(gridPen);
         ui->plotterWidget->yAxis->grid()->setPen(gridPen);
 
-//        customPlot->xAxis->grid()->setZeroLinePen(QPen(Qt::white, 2));
-//        customPlot->yAxis->grid()->setZeroLinePen(QPen(Qt::white, 2));
-
         axesPen = QPen(customColors->axes, 1);
         ui->plotterWidget->xAxis->setTickPen(axesPen);
         ui->plotterWidget->yAxis->setTickPen(axesPen);
@@ -301,7 +354,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors)
         ui->plotterWidget->xAxis2->setBasePen(axesPen);
         ui->plotterWidget->yAxis2->setBasePen(axesPen);
 
-
         ui->plotterWidget->setBackground(customColors->background);
 
         textLabelDeltaTime->setColor(customColors->label);
@@ -309,7 +361,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors)
         textLabelDeltaVoltage->setColor(customColors->label);
         textLabelVoltageB->setColor(customColors->label);
         textLabelVoltageA->setColor(customColors->label);
-
     }
     on_intensitySlider_valueChanged(0);
     ui->plotterWidget->replot();
@@ -382,14 +433,6 @@ void XprotolabInterface::setupScatterStyles(bool lStyle)
         ch2PGraphs[i]->setScatterStyle(sstyle);
         ch2PGraphs[i]->setLineStyle((QCPGraph::LineStyle)lineStyle);
     }
-
-//    for(int i=0;i<8;i++)
-//    {
-//        chdGraph[i]->setScatterStyle(sstyle);
-//        chdGraph[i]->setLineStyle((QCPGraph::LineStyle)lineStyle);
-//        chdRefGraph[i]->setScatterStyle(sstyle);
-//        chdRefGraph[i]->setLineStyle((QCPGraph::LineStyle)lineStyle);
-//    }
 }
 
 void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
@@ -415,7 +458,6 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     customPlot->addItem(hCursorB);
     hCursorB->point1->setCoords(0,hCursorBPos);
     hCursorB->point2->setCoords(10, hCursorBPos); // point to (4, 1.6) in x-y-plot coordinates
-    //hCursorA->setHead(QCPLineEnding::esFlatArrow);
     hCursorB->setPen(QPen(QColor("#1692e5"), 1, Qt::DotLine));
     hCursorB->setSelectable(false);
 
@@ -431,7 +473,6 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     customPlot->addItem(vCursorA);
     vCursorA->point1->setCoords(0,0);
     vCursorA->point2->setCoords(0,10); // point to (4, 1.6) in x-y-plot coordinates
-    //hCursorA->setHead(QCPLineEnding::esFlatArrow);
     vCursorA->setPen(QPen(QColor("#e04e4e"), 1, Qt::DotLine));
     vCursorA->setSelectable(false);
 
@@ -439,7 +480,6 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     customPlot->addItem(vCursorB);
     vCursorB->point1->setCoords(vCursorBPos,rangeMax);
     vCursorB->point2->setCoords(vCursorBPos,rangeMax-10); // point to (4, 1.6) in x-y-plot coordinates
-    //hCursorA->setHead(QCPLineEnding::esFlatArrow);
     vCursorB->setPen(QPen(QColor("#e04e4e"), 1, Qt::DotLine));
     vCursorB->setSelectable(false);
 
@@ -466,7 +506,6 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     ch1Zero->setPen(QPen(QColor("#f9a94c"), 1, Qt::DotLine));
     ch1Zero->setSelectable(false);
 
-
     ch1ZeroHead = new QCPItemPixmap(customPlot);
     customPlot->addItem(ch1ZeroHead);
     ch1ZeroHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/chan1-zero.png"));
@@ -481,12 +520,10 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     ch1Zero->point1->setType(QCPItemPosition::ptAbsolute);
     ch1Zero->point2->setType(QCPItemPosition::ptAbsolute);
 
-
     ch2Zero = new QCPItemStraightLine(customPlot);
     customPlot->addItem(ch2Zero);
     ch2Zero->setPen(QPen(QColor("#f9a94c"), 1, Qt::DotLine));
     ch2Zero->setSelectable(false);
-
 
     ch2ZeroHead = new QCPItemPixmap(customPlot);
     customPlot->addItem(ch2ZeroHead);
@@ -501,7 +538,6 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot)
     ch2Zero->point2->setPixelPoint(QPointF(10,hCursorBPos+9));
     ch2Zero->point1->setType(QCPItemPosition::ptAbsolute);
     ch2Zero->point2->setType(QCPItemPosition::ptAbsolute);
-
 
     triggerPixmap = new QCPItemPixmap(customPlot);
     customPlot->addItem(triggerPixmap);
@@ -563,7 +599,6 @@ void XprotolabInterface::setupTracers(QCustomPlot *customPlot)
 
 void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
 {
-
     for(int i =0;i<8;i++)
     {
         textLabelBit[i] = new QCPItemText(customPlot);
@@ -575,8 +610,6 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
         textLabelBit[i]->setSelectable(false);
         textLabelBit[i]->setClipToAxisRect(false);
         textLabelBit[i]->setVisible(false);
-       // textLabelBit[i]->position->setType(QCPItemPosition::ptAbsolute);
-       // textLabelBit[i]->setPen(QPen(Qt::red)); // show black border around text
     }
 
     textLabelDeltaTime = new QCPItemText(customPlot);
@@ -631,7 +664,7 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
 
 void XprotolabInterface::plotData()
 {
-    if(!usbDevice.dataAvailable)
+    if(!usbDevice.dataAvailable && !m_repaint)
     {
         return;
     }
@@ -643,7 +676,7 @@ void XprotolabInterface::plotData()
     else if(mode!=OSCILLOSCOPE||usbDevice.dataLength>770)
         return;
     QVector<double> key;
-    double ch1,ch2,minV,maxV, aTrack,bTrack;
+    double ch1,ch2,minV=0,maxV=0, aTrack,bTrack;
     byte minX1 = 0, minX2 = 255,samples = 255, a, mid, *p;
     QVector<double> ch1Buffer,ch2Buffer,fft1,fft2,ch1RefBuff,ch2RefBuff;
     QVector<double> bit[8],bitRefBuff[8];
@@ -653,6 +686,7 @@ void XprotolabInterface::plotData()
     phaseTracerBA->setVisible(false);
     phaseTracerBB->setVisible(false);
     int step = 1,i=0;
+
     if(ui->samplingSlider->value()<11)
     {
         step = 2;
@@ -711,10 +745,6 @@ void XprotolabInterface::plotData()
             else if(maxV<ch2)
                 maxV = ch2;
         }
-//        if(usbDevice.chData[i]==128&&minX1==0&&xtime<128)
-//            minX1 = xtime;
-//        if(usbDevice.chData[i]==128&&minX2==0&&minX1!=0)
-//            minX2 = xtime;//minX2 = (xtime-minX1)*2;
 
 
         {
@@ -729,7 +759,6 @@ void XprotolabInterface::plotData()
                     textLabelBit[m]->position->setCoords(246, pos-5);
                     if(m+2==ui->comboBoxTrigSource->currentIndex()&&ui->checkBoxCHDTrace->isChecked())
                         moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost-ui->horizontalScrollBar->value())*2),ui->plotterWidget->yAxis->coordToPixel(pos)));
-
                 }
                 else
                 {
@@ -822,7 +851,6 @@ void XprotolabInterface::plotData()
             ch1PGraphs[k]->clearData();
             ch2PGraphs[k]->clearData();
         }
-
     }
     else
     {
@@ -857,6 +885,29 @@ void XprotolabInterface::plotData()
             bit[k] = bitSaveBuffer[k];
         }
     }
+    if(loadRecordedWave){
+        if(loadedWave.count()>=10){
+            usbDevice.controlWriteTransfer(0,(byte)loadedFrequency.at(0));
+            ui->samplingSlider->setValue(loadedFrequency.at(0));
+            loadedFrequency.removeFirst();
+            ch1Buffer.clear();
+            ch1Buffer = loadedWave.at(0);
+            loadedWave.removeFirst();
+            ch2Buffer.clear();
+            ch2Buffer = loadedWave.at(0);
+            loadedWave.removeFirst();
+            for(int k = 0; k<8; k++)
+            {
+                bit[k].clear();
+                bit[k] = loadedWave.at(0);
+                loadedWave.removeFirst();
+            }
+        }else{
+            loadRecordedWave=false;
+            ui->samplingSlider->setValue(freqBeforeLoaded);
+            ui->label_13->setText("");
+        }
+    }
     if(saveWave)
     {
         saveWave = false;
@@ -871,7 +922,38 @@ void XprotolabInterface::plotData()
         }
         saveWavetoFile();
     }
+    QString tmp_wave;
 
+    int currentFrame=QString::number(usbDevice.chData[768]).toInt();
+
+    if(lastFrame!=currentFrame){
+        lastFrame=currentFrame;
+        if(logging || recordingWaves){
+            ch1SaveBuffer.clear();
+            ch1SaveBuffer = ch1Buffer;
+            ch2SaveBuffer.clear();
+            ch2SaveBuffer = ch2Buffer;
+            for(int k = 0; k<8; k++)
+            {
+                bitSaveBuffer[k].clear();
+                bitSaveBuffer[k] = bit[k];
+            }
+            tmp_wave=saveWavetoString();
+        }
+        if(logging){
+            logsToSave+=tmp_wave;
+            loggingCounter++;
+            if(loggingCounter==200){
+                logToFile(logsToSave);
+                loggingCounter=0;
+                logsToSave="";
+            }
+        }
+        if(recordingWaves){
+            dataToSave+=QString::number(ui->samplingSlider->value())+"<*>\n";
+            dataToSave+=tmp_wave;
+        }
+    }
     if(ui->refCH1->isChecked() && !ch1RefBuffer.isEmpty())
     {
         for(int k=0;k<ch1RefBuffer.size();k++)
@@ -917,7 +999,6 @@ void XprotolabInterface::plotData()
         }
         ch1Graph->setData(key, ch2Buffer);
         ch1Graph->rescaleValueAxis(true);
-       //ui->plotterWidget->axisRect()->axis(QCPAxis::atBottom)->setRange(key.first(), key.last());
     }
     else
     {
@@ -1068,10 +1149,6 @@ void XprotolabInterface::plotData()
                         fft1.push_back(magnitude);
                     if(ui->checkBoxFFTCH2->isChecked())
                         fft2.push_back(magnitude2);
-//                    if(ui->checkBoxFFTCH1->isChecked()&&ui->checkBoxFFTCH2->isChecked())
-//                    {
-//                        ch1BarGraph->moveAbove(ch2BarGraph);
-//                    }
                 }
                 else
                 {
@@ -1080,7 +1157,6 @@ void XprotolabInterface::plotData()
                         magnitude = 16*log(magnitude)/log(2.0);
                     else
                         magnitude = magnitude*0.05;
-                   // magnitude = magnitude*0.5;
                     fft1.push_back(magnitude);
                 }
 
@@ -1101,8 +1177,6 @@ void XprotolabInterface::plotData()
                     ch1BarGraph->clearData();
                     ch1BarGraph->setData(key, fft1);
                 }
-
-               // ch1BarGraph->rescaleKeyAxis(true);
             }
             else
             {
@@ -1156,7 +1230,6 @@ void XprotolabInterface::plotData()
             unit = "Hz";
         freq = freq*1000;
         textLabelFrequency->setText(("1/ΔT = "+QString::number(freq, 'g', 4)+" "+unit));
-       // ui->timeLabel->setText("Time = "+rateText[ui->samplingSlider->value()].toLatin1());
     }
     else
     {
@@ -1225,10 +1298,6 @@ void XprotolabInterface::plotData()
                 hCursorAHead->topLeft->setCoords(-3,hCursorAPosCh2+14);
                 hCursorBHead->topLeft->setCoords(-3,hCursorBPosCh2+14);
             }
-
-
-//            vCursorAHead->topLeft->setPixelPoint(QPointF(ui->plotterWidget->xAxis->coordToPixel(minX1),10));
-//            vCursorBHead->topLeft->setPixelPoint(QPointF(ui->plotterWidget->xAxis->coordToPixel(minX2),10));
         }
         else if(ui->checkBoxCursorTrack->isChecked())
         {
@@ -1267,14 +1336,16 @@ void XprotolabInterface::plotData()
                 hCursorBHead->topLeft->setCoords(-3,hCursorBPosCh2+14);
 
             }
-
-
         }
     }
     ch1ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
     ch2ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
+
+    ui->plotterWidget->m_infinity = ui->checkBoxPersistence->isChecked();
     ui->plotterWidget->replot();
+
     usbDevice.dataAvailable = false;
+    m_repaint = false;
 }
 
 void XprotolabInterface::moveCursor(QMouseEvent *event)
@@ -1395,29 +1466,17 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
         }
         else if(currentSelected == isTriggerPixmap)
         {
+            m_diff = -1;
             triggerLevel = ui->plotterWidget->yAxis->pixelToCoord(event->y());
             triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->x());
-            //triggerPost+=ui->horizontalScrollBar->value();
             if(triggerPost>255)
                 triggerPost = 255;
-            //if(triggerPost<0)    Variable is unsigned integer so test will always fail
-            //    triggerPost = 0;
             triggerPost = triggerPost/2+ ui->horizontalScrollBar->value();
             if(triggerLevel<rangeMax/4)
               triggerLevel = rangeMax/4;
             else if(triggerLevel>rangeMax*3/4)
               triggerLevel = rangeMax*3/4;
             setTriggerLevelPosition(event->pos(),Other);
-//            static int times = 0;
-
-//            if(times <10)
-//            {
-//                times++;
-//                return;
-//            }
-//            triggerPixmap->topLeft->setPixelPoint(QPointF(curPos,event->posF().ry()));
-
-//            times = 0;
         }
         else if(currentSelected == isTriggerWin1Pixmap)
         {
@@ -1430,8 +1489,6 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
             triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->x());
             if(triggerPost>255)
                 triggerPost = 255;
-            //if(triggerPost<0)     Variable is unsigned integer so test will always fail
-            //    triggerPost = 0;
             triggerPost = triggerPost/2+ ui->horizontalScrollBar->value();
 
             if(triggerWin1Level<rangeMax/4)
@@ -1451,8 +1508,6 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
             triggerPost = ui->plotterWidget->xAxis->pixelToCoord(event->x());
             if(triggerPost>255)
                 triggerPost = 255;
-            //if(triggerPost<0)     Variable is unsigned integer so test will always fail
-            //    triggerPost = 0;
             triggerPost = triggerPost/2+ ui->horizontalScrollBar->value();
 
             if(triggerWin2Level<rangeMax/4)
@@ -1462,6 +1517,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event)
             setTriggerLevelPosition(event->pos(),Window2);
         }
 
+        m_repaint = true;
     }
 }
 
@@ -1516,8 +1572,6 @@ void XprotolabInterface::moveWinTrigger(double curPosX,double curPosY1, double c
     }
     triggerWin1Pixmap->topLeft->setPixelPoint(QPointF(curPosX,curPosY1));
     triggerWin2Pixmap->topLeft->setPixelPoint(QPointF(curPosX,curPosY2));
-
-
 }
 
 void XprotolabInterface::selectItem(QMouseEvent *event)
@@ -1616,7 +1670,7 @@ void XprotolabInterface::setTriggerLevelPosition(QPointF pos, int type)
         curPosY = ui->plotterWidget->visibleRegion().boundingRect().bottom()-32;
     else if(curPosY<0)
         curPosY=0;
-    int value,tlevel;
+    int value=0,tlevel;
     if(ui->comboBoxTrigSource->currentIndex()==0)
     {
         value = ui->ch1PositionSlider->value();
@@ -1675,7 +1729,6 @@ void XprotolabInterface::setTriggerLevelPosition(QPointF pos, int type)
         if(ui->comboBoxTrigSource->currentIndex()<2)
             setTriggerLevel(tlevel);
     }
-
     setTriggerPost();
 }
 
@@ -1702,7 +1755,6 @@ void XprotolabInterface::setFFTWindow(int type)
         default:
             break;
         }
-
         fftWindow[i] = x;
     }
 }
@@ -1711,7 +1763,6 @@ void XprotolabInterface::sniffProtocol()
 {
     if(usbDevice.dataLength<1289)
         return;
-
 
     bool static toggleC = ui->checkBoxCircular->isChecked();
     bool static toggleA = ui->checkBoxASCII->isChecked();
@@ -1795,14 +1846,9 @@ void XprotolabInterface::sniffProtocol()
                 rxData.append(" ");
                 bdata.clear();
             }
-
-
         }
         if(protocol == RS232)
         {
-            //double vsize;
-            //vsize = ui->rxTextEdit->height()/ui->rxTextEdit->fontPointSize();
-
             ui->rxTextEdit->setPlainText(rxData);
             ui->rxTextEdit->textCursor().movePosition(QTextCursor::Down);
         }
@@ -1823,7 +1869,6 @@ void XprotolabInterface::sniffProtocol()
             if(max>640)
                 max=640;
         }
-
 
         for(n=i,j=0; j<max; n++,j++)
         {
@@ -1854,7 +1899,6 @@ void XprotolabInterface::sniffProtocol()
                   txData.append(" ");
                   bdata.clear();
               }
-
         }
         if(protocol == RS232)
             ui->txTextEdit->setPlainText(txData);
@@ -1919,11 +1963,8 @@ void XprotolabInterface::sniffProtocol()
                     if(ack) i2cData.append(">");  // Ack
 
                     else    i2cData.append(")");  // No Ack
-
                 }
-
             }
-
             else
             {          // Data
                 bdata.append(data);
@@ -1936,7 +1977,6 @@ void XprotolabInterface::sniffProtocol()
                     i2cData.append("-");  // No Ack
 
             }
-
             i2cData.append(" ");
 
         }
@@ -1954,15 +1994,59 @@ void XprotolabInterface::xAxisChanged(QCPRange range)
 
 void XprotolabInterface::on_playButton_clicked()
 {
-//    if(usbDevice.isDeviceConnected)
-//       usbDevice.asyncBulkReadTransfer();
-//    else
-//    {
-//        usbDevice.openDevice();
-//        usbDevice.asyncBulkReadTransfer();
-//    }
-    usbDevice.startScope();
-
+    ui->label_13->setText("Reading data from file. Please wait");
+    QString fpath=QFileDialog::getOpenFileName(0,"Choose file with recorded wave","","Xscope files (*.xsp)");
+    qApp->setActiveWindow(this);
+    if(fpath!=""){        
+        loadedWave.clear();
+        loadedFrequency.clear();
+        QString buffer;        
+        QFile waveData(fpath);        
+        if (waveData.open(QFile::ReadOnly))
+        {
+            freqBeforeLoaded=ui->samplingSlider->value();
+            buffer = waveData.readAll();
+            while(!buffer.isEmpty()){
+                QStringList rawParsedData = buffer.split("<*>");
+                rawParsedData.removeAll("\n");
+                rawParsedData.removeAll("\r");
+                int freq=rawParsedData[0].toInt();
+                loadedFrequency.push_back(freq);
+                rawParsedData.removeFirst();
+                QStringList parsedData = rawParsedData[0].split(",");
+                QVector<double> tmp;
+                for(int i=1;i<parsedData.length()-1;i++)
+                {
+                    tmp.push_back(parsedData[i].toDouble());
+                }
+                loadedWave.push_back(tmp);
+                parsedData.clear();
+                parsedData = rawParsedData[1].split(",");
+                QVector<double> tmp2;
+                for(int i=1;i<parsedData.length()-1;i++)
+                {
+                    tmp2.push_back(parsedData[i].toDouble());
+                }
+                loadedWave.push_back(tmp2);
+                QVector<double> tmp3[8];
+                for(int k =0;k<8;k++)
+                {
+                    parsedData.clear();
+                    parsedData = rawParsedData[k+2].split(",");
+                    for(int i=1;i<parsedData.length()-1;i++)
+                    {
+                        tmp3[k].push_back(parsedData[i].toDouble());
+                    }
+                    loadedWave.push_back(tmp3[k]);
+                }
+                buffer=buffer.mid(buffer.indexOf("----------")+10);
+            }
+        }
+        ui->label_13->setText("Load recorded wave");
+        loadRecordedWave=true;
+    }else{
+        ui->label_13->setText("");
+    }
 }
 
 void XprotolabInterface::on_autoButton_clicked()
@@ -1976,15 +2060,34 @@ void XprotolabInterface::on_connectButton_clicked()
 {
     if(!usbDevice.isDeviceConnected)
     {
-         usbDevice.openDevice();
+         usbDevice.wayOfConnecting=ui->radioButton_2->isChecked();
+         usbDevice.initializeDevice();
+         usbDevice.openDevice(ui->comboBox_9->currentText());
          if(usbDevice.isDeviceConnected)
          {
+             ui->connectButton->setText("Close connection");
              ui->currentFirwareVersion->setText(usbDevice.requestFirmwareVersion());
              if(ui->currentFirwareVersion->text().toDouble()<ui->latestFirmWareVersion->text().toDouble())
                  QMessageBox::warning(this,tr("Upgrade Firmware"),tr("Please upgrade your device firmware"));
              readDeviceSettings();
              usbDevice.asyncBulkReadTransfer();
+             if(usbDevice.wayOfConnecting){
+                ui->connectLabel->setText(tr("USB Connected"));
+                this->setWindowTitle("Gabotronics Xscope Interface - USB Connected");
+             }else{
+                 ui->connectLabel->setText(tr("Serial port Connected"));
+                 this->setWindowTitle("Gabotronics Xscope Interface - Serial port Connected");
+             }
+             ui->connectIcon->setPixmap(QPixmap(":/Bitmaps/Bitmaps/led-on.png"));
          }
+    }else{
+        usbDevice.closeDevice();
+        usbDevice.reset();
+
+        ui->connectButton->setText("Connect");
+        ui->connectLabel->setText(tr("Not Connected"));
+        this->setWindowTitle("Gabotronics Xscope Interface - Not Connected");
+        ui->connectIcon->setPixmap(QPixmap(":/Bitmaps/Bitmaps/led-off.png"));
     }
 }
 
@@ -1992,11 +2095,15 @@ void XprotolabInterface::readDeviceSettings()
 {
     if(!usbDevice.controlReadTransfer('u',0,14))
         return;
+
     double freq;
     byte data;
 
+    logToFile("Device Settings: ");
+
     // Sampling rate
-    data = usbDevice.inBuffer[0];
+    data = usbDevice.inBuffer[0];    
+    logToFile("Sampling rate: "+QString::number(data));
     if(data >= ui->samplingSlider->minimum() && data <= ui->samplingSlider->maximum())
     {
         ui->samplingSlider->setValue(data);
@@ -2005,6 +2112,7 @@ void XprotolabInterface::readDeviceSettings()
 
     // GPIO1 CH1 Option
     data = usbDevice.inBuffer[1];
+    logToFile("GPIO1 CH1 Option: "+QString::number(data));
     ui->checkBoxCH1Trace->setChecked(((data & (byte)(1 << 0)) != 0));
     ui->checkBoxCH1Invert->setChecked(((data & (byte)(1 << 4)) != 0));
     ui->checkBoxCH1Average->setChecked(((data & (byte)(1 << 5)) != 0));
@@ -2016,6 +2124,7 @@ void XprotolabInterface::readDeviceSettings()
 
     // GPIO2 CH2 Option
     data = usbDevice.inBuffer[2];
+    logToFile("GPIO2 CH2 Option: "+QString::number(data));
     ui->checkBoxCH2Trace->setChecked((data & (byte)(1 << 0)) != 0);
     ui->checkBoxCH2Invert->setChecked((data & (byte)(1 << 4)) != 0);
     ui->checkBoxCH2Average->setChecked((data & (byte)(1 << 5)) != 0);
@@ -2027,6 +2136,7 @@ void XprotolabInterface::readDeviceSettings()
 
     // GPIO3 CHD Option
     data = usbDevice.inBuffer[3]; // option
+    logToFile("GPIO3 CHD Option: "+QString::number(data));
     ui->checkBoxCHDTrace->setChecked((data & (byte)(1 << 0)) != 0);
     if((data & (byte)(1 << 1)) != 0)
     {
@@ -2053,6 +2163,7 @@ void XprotolabInterface::readDeviceSettings()
 
     // GPIO4 Mask
     data = usbDevice.inBuffer[4]; // mask
+    logToFile("GPIO4 Mask: "+QString::number(data));
     ui->checkBoxCHD0->setChecked((data & (byte)(1 << 0)) != 0);bitChecked[0] = ui->checkBoxCHD0->isChecked();
     ui->checkBoxCHD1->setChecked((data & (byte)(1 << 1)) != 0);bitChecked[1] = ui->checkBoxCHD1->isChecked();
     ui->checkBoxCHD2->setChecked((data & (byte)(1 << 2)) != 0);bitChecked[2] = ui->checkBoxCHD2->isChecked();
@@ -2064,6 +2175,7 @@ void XprotolabInterface::readDeviceSettings()
 
     // GPIO5 Trigger
     data = usbDevice.inBuffer[5];   // Trigger
+    logToFile("GPIO5 Trigger: "+QString::number(data));
     if((data & (byte)(1 << 0)) != 0)
         ui->radioButtonNormal->setChecked(true);
     else if((data & (byte)(1 << 1)) != 0)
@@ -2112,6 +2224,7 @@ void XprotolabInterface::readDeviceSettings()
 
     // GPIO6 Mcursors
     data=usbDevice.inBuffer[6];
+    logToFile("GPIO6 Mcursors: "+QString::number(data));
     ui->rollMode->setChecked((data & (byte)(1 << 0)) != 0);  // Roll scope on slow sampling rates
     if ((data & (byte)(1 << 1)) != 0)
         ui->checkBoxCursorAuto->setChecked(true);   // Auto cursors
@@ -2176,9 +2289,6 @@ void XprotolabInterface::readDeviceSettings()
         textLabelDeltaTime->setVisible(false);
         textLabelFrequency->setVisible(false);
     }
-
-//    if ((data & (byte)(1 << 6)) != 0)
-//        ui->checkBoxRefWave->setChecked(true);   // Reference waveforms on
     if ((data & (byte)(1 << 7)) != 0)
         ui->radioButtonSniffSingle->setChecked(true);
     else
@@ -2186,6 +2296,7 @@ void XprotolabInterface::readDeviceSettings()
 
     // GPIO7 display
     data = usbDevice.inBuffer[7];
+    logToFile("GPIO7 display: "+QString::number(data));
     ui->comboBoxGrid->setCurrentIndex(data & 0x3);
     int index = ui->comboBoxGrid->currentIndex();
     if(ui->comboBoxTheme->currentIndex()==Dark)
@@ -2244,31 +2355,18 @@ void XprotolabInterface::readDeviceSettings()
     ui->checkBoxInvert->setChecked((data & (byte)(1 << 3)) != 0);
     ui->checkBoxFlip->setChecked((data & (byte)(1 << 4)) != 0);
     ui->checkBoxPersistence->setChecked((data & (byte)(1 << 5)) != 0);
-    byte width;
-    if(ui->checkBoxPersistence->isChecked())
-        width = 1;
-    else
-        width = 2;
-    ch1Pen.setWidth(width);
+    double width = 2;
+    ch1Pen.setWidthF(width);
     ch1Graph->setPen(ch1Pen);
-    ch2Pen.setWidth(width);
+    ch2Pen.setWidthF(width);
     ch2Graph->setPen(ch2Pen);
     ui->checkBoxVectors->setChecked((data & (byte)(1 << 6)) != 0);
     setupScatterStyles(ui->checkBoxVectors->isChecked());
     ui->checkBoxShowSettings->setChecked((data & (byte)(1 << 6)) != 0);
 
-    // Grid settings (2 bits)
-    /*
-    if ((data & (byte)(1 << 2)) != 0) radioTrigNormal.Checked = true;    // Average on successive traces
-    if ((data & (byte)(1 << 3)) != 0) radioTrigNormal.Checked = true;    // Invert display
-    if ((data & (byte)(1 << 4)) != 0) radioTrigNormal.Checked = true;    // Flip display
-    if ((data & (byte)(1 << 5)) != 0) radioTrigNormal.Checked = true;    // Persistent Display
-    if ((data & (byte)(1 << 6)) != 0) radioTrigNormal.Checked = true;    // Continuous Drawing
-    if ((data & (byte)(1 << 7)) != 0) radioTrigNormal.Checked = true;    // Show scope settings (time/div volts/div)
-    */
-
     // GPIO8 MFFT
     data = usbDevice.inBuffer[8];
+    logToFile("GPIO8 MFFT: "+QString::number(data));
     if((data & (byte)(1 << 0)) != 0)
     {
         ui->radioButtonHamming->setChecked(true);
@@ -2300,6 +2398,7 @@ void XprotolabInterface::readDeviceSettings()
 
     // GPIO9 Sweep
     data = usbDevice.inBuffer[9];
+    logToFile("GPIO9 Sweep: "+QString::number(data));
     ui->checkBoxAccelDirection->setChecked((data & (byte)(1 << 0)) != 0);
     ui->checkBoxAccelerate->setChecked((data & (byte)(1 << 1)) != 0);
     ui->checkBoxDirection->setChecked((data & (byte)(1 << 2)) != 0);
@@ -2311,6 +2410,7 @@ void XprotolabInterface::readDeviceSettings()
 
     // GPIOA Sniffer Controls
     data = usbDevice.inBuffer[10]; // param
+    logToFile("GPIOA Sniffer Controls: "+QString::number(data));
     ui->comboBoxBaud->setCurrentIndex(data & 0x07);
     if((data & (byte)(1 << 3)) != 0)
         ui->comboBoxCPOL->setCurrentIndex(1);
@@ -2336,6 +2436,7 @@ void XprotolabInterface::readDeviceSettings()
 
     // GPIOB MStatus
     data = usbDevice.inBuffer[11];
+    logToFile("GPIOB MStatus: "+QString::number(data));
     if((data & (byte)(1 << 3)) != 0)
     {
        ui->startSnifferButton->setText(tr("STOP"));
@@ -2359,6 +2460,7 @@ void XprotolabInterface::readDeviceSettings()
        ui->stopButton->setText(tr("START"));
     // M 12 Gain CH1
     data = usbDevice.inBuffer[12];
+    logToFile("M 12 Gain CH1: "+QString::number(data));
     if((byte)data >= ui->ch1GainSlider->minimum() && (byte)data <= ui->ch1GainSlider->maximum())
     {
         ui->ch1GainSlider->setValue((byte)data);
@@ -2367,6 +2469,7 @@ void XprotolabInterface::readDeviceSettings()
 
     // M 13 Gain CH2
     data = usbDevice.inBuffer[13];
+    logToFile("M 13 Gain CH2: "+QString::number(data));
     if((byte)data >= ui->ch2GainSlider->minimum() && (byte)data <= ui->ch2GainSlider->maximum())
     {
         ui->ch2GainSlider->setValue((byte)data);
@@ -2375,22 +2478,24 @@ void XprotolabInterface::readDeviceSettings()
 
     // M 14 HPos
     data = usbDevice.inBuffer[14];
+    logToFile("M 14 HPos: "+QString::number(data));
     if((byte)data >= ui->horizontalScrollBar->minimum() && (byte)data <= ui->horizontalScrollBar->maximum())
         ui->horizontalScrollBar->setValue((byte)data);
 
     // M 15 Vertical cursor A
     data = usbDevice.inBuffer[15];
-    if((byte)data>=0 && (byte)data<128)
+    logToFile("M 15 Vertical cursor A: "+QString::number(data));
+    if((byte)data<128)
     {
         vCursorAPos = xmax*data/128;
         vCursorAHead->topLeft->setCoords(vCursorAPos,10);
-       // vCursorAHead->end->setCoords(vCursorAPos,rangeMax-10);
         vCursorA->point1->setCoords(0,0);
         vCursorA->point2->setCoords(0,10);
     }
     // M 16 Vertical cursor B
     data = usbDevice.inBuffer[16];
-    if((byte)data>=0 && (byte)data<128)
+    logToFile("M 16 Vertical cursor B: "+QString::number(data));
+    if((byte)data<128)
     {
         vCursorBPos = xmax*data/128;
         vCursorBHead->topLeft->setCoords(vCursorBPos,10);
@@ -2399,7 +2504,8 @@ void XprotolabInterface::readDeviceSettings()
     }
     // M 17 CH1 Horizontal cursor A
     data = usbDevice.inBuffer[17];
-    if((byte)data>=0 && (byte)data<128)
+    logToFile("M 17 CH1 Horizontal cursor A: "+QString::number(data));
+    if((byte)data<128)
     {
         hCursorAPosCh1 = mapRange(data,128,0,rangeMax*3/4,rangeMax/4);
         hCursorAHead->topLeft->setCoords(-3,hCursorAPosCh1);
@@ -2408,7 +2514,8 @@ void XprotolabInterface::readDeviceSettings()
     }
     // M 18 CH1 Horizontal cursor B
     data = usbDevice.inBuffer[18];
-    if((byte)data>=0 && (byte)data<128)
+    logToFile("M 18 CH1 Horizontal cursor B: "+QString::number(data));
+    if((byte)data<128)
     {
         hCursorBPosCh1 = mapRange(data,64,0,rangeMax*3/4,rangeMax/4);;
         hCursorBHead->topLeft->setCoords(-3,hCursorBPosCh1);
@@ -2417,7 +2524,8 @@ void XprotolabInterface::readDeviceSettings()
     }
     // M 19 CH2 Horizontal cursor A
     data = usbDevice.inBuffer[19];
-    if((byte)data>=0 && (byte)data<128)
+    logToFile("M 19 CH2 Horizontal cursor A: "+QString::number(data));
+    if((byte)data<128)
     {
         hCursorAPosCh2 = mapRange(data,128,0,rangeMax*3/4,rangeMax/4);
         hCursorAHead->topLeft->setCoords(-3,hCursorAPosCh2);
@@ -2426,7 +2534,8 @@ void XprotolabInterface::readDeviceSettings()
     }
     // M 20 CH2 Horizontal cursor B
     data = usbDevice.inBuffer[20];
-    if((byte)data>=0 && (byte)data<128)
+    logToFile("M 20 CH2 Horizontal cursor B: "+QString::number(data));
+    if((byte)data<128)
     {
         hCursorBPosCh2 = mapRange(data,64,0,rangeMax*3/4,rangeMax/4);
         hCursorBHead->topLeft->setCoords(-3,hCursorBPosCh2);
@@ -2435,13 +2544,16 @@ void XprotolabInterface::readDeviceSettings()
     }
     // M 21 Trigger Hold
     data = usbDevice.inBuffer[21];
+    logToFile("M 21 Trigger Hold: "+QString::number(data));
     ui->doubleSpinBoxTrigHold->setValue(data);
     // M 22 23 Post Trigger
     uint16_t temp = ((unsigned short)usbDevice.inBuffer[22]) * 256 + usbDevice.inBuffer[23];
-    temp = qFromBigEndian(temp);
+    logToFile("M 22 23 Post Trigger: "+QString::number(temp));
+    temp = qFromBigEndian(temp);    
     triggerPost = temp;
     // M 24 Trigger source
     data = usbDevice.inBuffer[24];   // Trigger source
+    logToFile("M 24 Trigger source: "+QString::number(data));
     if (data <= 10)
     {
         ui->comboBoxTrigSource->setCurrentIndex(data);
@@ -2456,44 +2568,55 @@ void XprotolabInterface::readDeviceSettings()
     // M 25 Trigger Level
     int tlevel, tlevelWin1,tlevelWin2;
     tlevel = usbDevice.inBuffer[25];
+    logToFile("M 25 Trigger Level: "+QString::number(tlevel));
     // M 26 Window Trigger level 1
     tlevelWin1 = usbDevice.inBuffer[26];
+    logToFile("M 26 Window Trigger level 1: "+QString::number(tlevelWin1));
     // M 27 Window Trigger level 2
     tlevelWin2 = usbDevice.inBuffer[27];
+    logToFile("M 27 Window Trigger level 2: "+QString::number(tlevelWin2));
     // M 28 Trigger Timeout
     data = usbDevice.inBuffer[28];
+    logToFile("M 28 Trigger Timeout: "+QString::number(data));
     ui->doubleSpinBoxTrigAuto->setValue(((double)data + 1) * 0.04096);
 
     // M 29 Channel 1 position
     data = (byte)(ui->ch1PositionSlider->minimum() - (char)usbDevice.inBuffer[29]);
+    logToFile("M 29 Channel 1 position: "+QString::number(data));
     ui->ch1PositionSlider->setValue(mapRange((char)data,0,ZERO_POS,ZERO_POS,-ZERO_POS)*-1);
     ui->ch1PositionSlider->setSliderPosition(mapRange((char)data,0,-ZERO_POS,ZERO_POS,-ZERO_POS)*-1);
 
     // M 30 Channel 2 position
     data = (byte)(ui->ch2PositionSlider->minimum() - (char)usbDevice.inBuffer[30]);
+    logToFile("M 30 Channel 2 position: "+QString::number(data));
     ui->ch2PositionSlider->setValue(mapRange((char)data,0,ZERO_POS,ZERO_POS,-ZERO_POS)*-1);
     ui->ch2PositionSlider->setSliderPosition(mapRange((char)data,0,-ZERO_POS,ZERO_POS,-ZERO_POS)*-1);
 
 
     // M 31 Channel D position
     data = (byte)( ui->chdPositionSlider->maximum() - (usbDevice.inBuffer[31] / 8));
+    logToFile("M 31 Channel D position: "+QString::number(data));
     if ((char)data >= ui->chdPositionSlider->minimum() && (char)data <= ui->chdPositionSlider->maximum())
         ui->chdPositionSlider->setValue((char)data);
 
     // M 32 Decode Protocol
     data = usbDevice.inBuffer[32]; // decode
+    logToFile("M 32 Decode Protocol: "+QString::number(data));
     ui->protocolTabWidget->setCurrentIndex(data);
 
     // M 33 Sweep Start Frequency
+    logToFile("M 33 Sweep Start Frequency: "+QString::number(usbDevice.inBuffer[33]));
     ui->sweepStartFreqSlider->setValue(usbDevice.inBuffer[33]);
     ui->sweepStartFreqSlider->setSliderPosition(usbDevice.inBuffer[33]);
 
     // M 34 Sweep End Frequency
+    logToFile("M 34 Sweep End Frequency: "+QString::number(usbDevice.inBuffer[34]));
     ui->sweepEndFreqSlider->setValue(usbDevice.inBuffer[34]);
     ui->sweepEndFreqSlider->setSliderPosition(usbDevice.inBuffer[34]);
 
     // M 35 Sweep Speed
     data = usbDevice.inBuffer[35];
+    logToFile("M 35 Sweep Speed: "+QString::number(data));
     if(data == 0)
         data = 1;
     ui->sweepSpeedSlider->setValue(data);
@@ -2502,6 +2625,7 @@ void XprotolabInterface::readDeviceSettings()
 
     // M 36 Amplitude range: [-128,0]
     data = (byte)(-usbDevice.inBuffer[36]);
+    logToFile("M 36 Amplitude range: [-128,0]: "+QString::number(data));
     if (data >= ui->amplitudeSlider->minimum() && data <= ui->amplitudeSlider->maximum())
     {
         ui->amplitudeSlider->setValue(data);
@@ -2511,6 +2635,7 @@ void XprotolabInterface::readDeviceSettings()
 
     // M 37 Waveform type
     data = usbDevice.inBuffer[37];
+    logToFile("M 37 Waveform type: "+QString::number(data));
     if(data == 0)
         ui->radioButtonNoise->setChecked(true);
     else if(data == 1)
@@ -2526,6 +2651,7 @@ void XprotolabInterface::readDeviceSettings()
 
     // 38 Duty cycle range: [1,255]
     data = usbDevice.inBuffer[38];
+    logToFile("38 Duty cycle range: [1,255]: "+QString::number(data));
     if (data == 0)
         data++;
     ui->dutyCycleSlider->setValue(data);
@@ -2534,6 +2660,7 @@ void XprotolabInterface::readDeviceSettings()
 
     // M 39 Offset
     data = usbDevice.inBuffer[39];
+    logToFile("M 39 Offset: "+QString::number(data));
     ui->offsetSlider->setValue(-(char)data);
     ui->offsetSlider->setSliderPosition(data);
     ui->doubleSpinBoxOffset->setValue((double)(-(char)data) * (0.50016 / 32));
@@ -2543,20 +2670,16 @@ void XprotolabInterface::readDeviceSettings()
             (    65536 * ((qint64)usbDevice.inBuffer[42])) +
             (      256 * ((qint64)usbDevice.inBuffer[41])) +
             (        1 * ((qint64)usbDevice.inBuffer[40]))   ) / 100;
+logToFile("40 Desired frequency: "+QString::number(freq));
 
-
-
-   // }
-//    catch ()// )
-//    {
-////        checkBoxStop.Checked = false;
-////        checkBoxStop.Enabled = false;
-//        return;
-//    }
     updateSweepCursors();
     ui->ch1Label->setText("CH1 = "+gainText[ui->ch1GainSlider->value()]);
     ui->ch2Label->setText("CH2 = "+gainText[ui->ch2GainSlider->value()]);
     ui->timeLabel->setText("Time = "+(rateText[ui->samplingSlider->value()]));
+    if(ui->samplingSlider->value()>=11)
+        logging=true;
+    else
+        logging=false;
     if(freq < 1)
         freq = 1;
     if(freq > 100000)
@@ -2620,15 +2743,9 @@ void XprotolabInterface::readDeviceSettings()
     triggerWin2Level = tlevelWin2 + value;
     triggerWin2Pixmap->topLeft->setCoords(hpos,triggerWin2Level);
 
-    ui->connectLabel->setText(tr("USB Connected"));
-    ui->connectIcon->setPixmap(QPixmap(":/Bitmaps/Bitmaps/led-on.png"));
-//    ch1ZeroHead->topLeft->setCoords(2,ch1ZeroPos);
-//    ch2ZeroHead->topLeft->setCoords(2,ch2ZeroPos);
-//    ch1ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
-//    ch2ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
+    logToFile("------------------------------------------");
+    QTimer::singleShot(100,this,SLOT(updateTriggerPos()));
 }
-
-
 
 void XprotolabInterface::closeEvent(QCloseEvent *event)
 {
@@ -2639,15 +2756,7 @@ void XprotolabInterface::closeEvent(QCloseEvent *event)
 
 void XprotolabInterface::zoom(QWheelEvent* event)
 {
-    //int numDegrees = event->delta() / 8;
-    //int numSteps = numDegrees / 15;
     int value = 0;
-
-
-    if (event->orientation() == Qt::Vertical)
-    {
-
-    }
     event->accept();
     rangeMax = value;
     ui->plotterWidget->yAxis->setRange(0,value);
@@ -2660,11 +2769,14 @@ void XprotolabInterface::on_samplingSlider_valueChanged(int value)
     if(!usbDevice.isDeviceConnected)
         return;
     usbDevice.controlWriteTransfer(0,(byte)value);
+    usbDevice.serial.samplingValue=value;
     ui->timeLabel->setText("Time = "+rateText[ui->samplingSlider->value()]);
     if(value>=11)
         triggerPixmap->topLeft->setPixelPoint(QPointF(10,ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
     else
         triggerPixmap->topLeft->setPixelPoint(QPointF(ui->plotterWidget->xAxis->coordToPixel(triggerPost),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
+
+    updateTriggerPos();
 }
 
 void XprotolabInterface::on_openCSVButton_clicked()
@@ -2738,6 +2850,10 @@ void XprotolabInterface::sendCH1Controls()
 void XprotolabInterface::on_checkBoxCH1Invert_clicked()
 {
     sendCH1Controls();
+    updateCh1Label();
+    updateCh2Label();
+
+    invertTriggerIcon();
 }
 
 void XprotolabInterface::on_checkBoxCH1Trace_clicked()
@@ -2753,16 +2869,19 @@ void XprotolabInterface::on_checkBoxCH1Average_clicked()
 void XprotolabInterface::on_checkBoxCH1Math_clicked()
 {
     sendCH1Controls();
+    updateCh1Label();
 }
 
 void XprotolabInterface::on_radioButtonCH1Sub_clicked()
 {
    sendCH1Controls();
+   updateCh1Label();
 }
 
 void XprotolabInterface::on_radioButtonCH1Multiply_clicked()
 {
     sendCH1Controls();
+    updateCh1Label();
 }
 
 
@@ -2785,6 +2904,10 @@ void XprotolabInterface::sendCH2Controls()
 void XprotolabInterface::on_checkBoxCH2Invert_clicked()
 {
     sendCH2Controls();
+    updateCh1Label();
+    updateCh2Label();
+
+    invertTriggerIcon();
 }
 
 void XprotolabInterface::on_checkBoxCH2Trace_clicked()
@@ -2800,16 +2923,19 @@ void XprotolabInterface::on_checkBoxCH2Average_clicked()
 void XprotolabInterface::on_checkBoxCH2Math_clicked()
 {
     sendCH2Controls();
+    updateCh2Label();
 }
 
 void XprotolabInterface::on_radioButtonCH2Sub_clicked()
 {
     sendCH2Controls();
+    updateCh2Label();
 }
 
 void XprotolabInterface::on_radioButtonCH2Multiply_clicked()
 {
     sendCH2Controls();
+    updateCh2Label();
 }
 
 void XprotolabInterface::sendCHDControls()
@@ -2924,12 +3050,14 @@ void XprotolabInterface::on_checkBoxCHD7_clicked()
 void XprotolabInterface::sendTriggerControls()
 {
     byte field = 0;
-    if(ui->radioButtonNormal->isChecked()||ui->radioButtonSingle->isChecked())
+    if(ui->radioButtonNormal->isChecked()){
         field += (1 << 0);   // Trigger
-    else if(ui->radioButtonSingle->isChecked())
+    }else if(ui->radioButtonSingle->isChecked()){
+        field += (1 << 0);
         field += (1 << 1);
-    else if(ui->radioButtonAuto->isChecked())
+    }else if(ui->radioButtonAuto->isChecked()){
         field += (1 << 2);
+    }
     if(ui->radioButtonFalling->isChecked() || ui->radioButtonNegative->isChecked())
         field += (1 << 3);   // Trigger direction
     if(ui->checkBoxCircular->isChecked())
@@ -2945,14 +3073,16 @@ void XprotolabInterface::sendTriggerControls()
 
 void XprotolabInterface::on_radioButtonRising_clicked()
 {
-    sendTriggerControls();
+    sendTriggerControls();    
     setTriggerIcon(Rising);
+    checkIfInvertIcon();
 }
 
 void XprotolabInterface::on_radioButtonFalling_clicked()
 {
     sendTriggerControls();
     setTriggerIcon(Falling);
+    checkIfInvertIcon();
 }
 
 void XprotolabInterface::on_radioButtonDual_clicked()
@@ -2965,12 +3095,14 @@ void XprotolabInterface::on_radioButtonPositive_clicked()
 {
     sendTriggerControls();
     setTriggerIcon(Positive);
+    checkIfInvertIcon();
 }
 
 void XprotolabInterface::on_radioButtonNegative_clicked()
 {
     sendTriggerControls();
     setTriggerIcon(Negative);
+    checkIfInvertIcon();
 }
 
 void XprotolabInterface::on_radioButtonWindow_clicked()
@@ -3071,12 +3203,11 @@ void XprotolabInterface::sendCursorControls()
         vCursorA->setVisible(false);
         vCursorB->setVisible(false);
     }
-//    if(ui->checkBoxRefWave->isChecked())
-//        field += (1 << 6);     // Reference waveforms on
     if(ui->radioButtonSniffSingle->isChecked())
         field+=(1 << 7);   // Single Sniffer
     usbDevice.controlWriteTransfer(6, field);
 
+    m_repaint = true;
 }
 
 void XprotolabInterface::on_rollMode_clicked()
@@ -3138,14 +3269,10 @@ void XprotolabInterface::sendDisplayControls()
     if(ui->checkBoxShowSettings->isChecked())
         field += (1 << 7);   // Edge
     usbDevice.controlWriteTransfer(7, field);
-    byte width;
-    if(ui->checkBoxPersistence->isChecked())
-        width = 1;
-    else
-        width = 2;
-    ch1Pen.setWidth(width);
+    double width = 2;
+    ch1Pen.setWidthF(width);
     ch1Graph->setPen(ch1Pen);
-    ch2Pen.setWidth(width);
+    ch2Pen.setWidthF(width);
     ch2Graph->setPen(ch2Pen);
 }
 
@@ -3433,12 +3560,6 @@ void XprotolabInterface::on_comboBoxCPHA_currentIndexChanged(int)
 void XprotolabInterface::sendMStatusControls()
 {
     byte field = 0;
-//    if(update == 1)
-//        field += (1 << 0);
-//    if(updateAWG == 1)
-//        field += (1 << 1);
-//    if(updateMSO == 1)
-//        field += (1 << 2);
     if(ui->startSnifferButton->text()==tr("START"))
     {
         field += (1 << 3);
@@ -3458,10 +3579,6 @@ void XprotolabInterface::sendMStatusControls()
         field += (1 << 4);
     else if(mode != OSCILLOSCOPE)
         field += (1 << 5);
-//    if(metervdc== 1)
-//        field += (1 << 6);
-//    if(metervpp== 1)
-//        field += (1 << 7);
     usbDevice.controlWriteTransfer(11, field);
 }
 
@@ -3526,7 +3643,9 @@ void XprotolabInterface::on_horizontalScrollBar_valueChanged(int position)
     if(!usbDevice.isDeviceConnected)
         return;
     usbDevice.controlWriteTransfer(14, (byte)(position));
-    usbDevice.dataAvailable = true;
+
+    m_repaint = true;
+
     int value = 0;
     if(ui->samplingSlider->value()<11)
     {
@@ -3583,9 +3702,6 @@ void XprotolabInterface::sendHorizontalCursorCH1A()
 // M 18 CH1 Horizontal cursor B
 void XprotolabInterface::sendHorizontalCursorCH1B()
 {
-//    byte value;
-//    value = 64*hCursorBPos/rangeMax;
-//    value = 64-value;
     int oldvalue = hCursorBPosCh1;
     if(oldvalue>(rangeMax*3/4))
         oldvalue = rangeMax*3/4;
@@ -3722,7 +3838,6 @@ void XprotolabInterface::on_doubleSpinBoxTrigAuto_valueChanged(double value)
 {
     byte data;
     data = (byte)((value / 0.04096) - 1);
-   // ui->doubleSpinBoxTrigAuto->setValue(((double)data + 1) * 40.96);
     usbDevice.controlWriteTransfer(28, data);
 }
 
@@ -3739,9 +3854,7 @@ void XprotolabInterface::on_ch1PositionSlider_valueChanged(int value)
         moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((2*triggerPost)-(ui->horizontalScrollBar->value()*2)),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-(initPosCh1-value)))) ;
         moveWinTrigger(ui->plotterWidget->xAxis->coordToPixel((2*triggerPost)-(ui->horizontalScrollBar->value()*2)),ui->plotterWidget->yAxis->coordToPixel(triggerWin1Level-(initPosCh1-value)),ui->plotterWidget->yAxis->coordToPixel(triggerWin2Level-(initPosCh1-value))) ;
     }
-//    if(checkBoxStop.Checked) {
-//        Invalidate(new Rectangle(0, 0, 512, 512));
-//    }
+    m_repaint = true;
 }
 
 // M 30 Channel 2 position
@@ -3757,8 +3870,8 @@ void XprotolabInterface::on_ch2PositionSlider_valueChanged(int value)
     {
         moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel(2*triggerPost-ui->horizontalScrollBar->value()*2),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-(initPosCh2-value)))) ;
         moveWinTrigger(ui->plotterWidget->xAxis->coordToPixel((2*triggerPost)-(ui->horizontalScrollBar->value()*2)),ui->plotterWidget->yAxis->coordToPixel(triggerWin1Level-(initPosCh2-value)),ui->plotterWidget->yAxis->coordToPixel(triggerWin2Level-(initPosCh2-value))) ;
-
     }
+    m_repaint = true;
 }
 
 // M 31 Channel position
@@ -3795,8 +3908,6 @@ void XprotolabInterface::on_chdPositionSlider_valueChanged(int value)
         moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost-ui->horizontalScrollBar->value())*2),ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
     }
 }
-
-
 
 void XprotolabInterface::updateSweepCursors()
 {
@@ -3860,27 +3971,16 @@ void XprotolabInterface::on_protocolTabWidget_currentChanged(int index)
 
 {
     byte field = 0;
-//    if(update == 1)
-//        field += (1 << 0);
-//    if(updateAWG == 1)
-//        field += (1 << 1);
-//    if(updateMSO == 1)
-//        field += (1 << 2);
     mode = OSCILLOSCOPE;
     enableSnifferControls(true);
     ui->pauseSnifferButton->setEnabled(false);
     ui->pauseSnifferButton->setText(tr("Pause"));
     field += (1 << 5);
-//    if(metervdc== 1)
-//        field += (1 << 6);
-//    if(metervpp== 1)
-//        field += (1 << 7);
     usbDevice.controlWriteTransfer(11, field);
     ui->startSnifferButton->setText("START");
 
     setDecodeProtocol(index);
 }
-
 
 // M 33 Sweep Start Frequency
 
@@ -3922,9 +4022,6 @@ void XprotolabInterface::on_doubleSpinBoxAmp_valueChanged(double value)
 {
     byte data;
     data = (byte)(value * 32);       // Amplitude
-//    ui->amplitudeSlider->setValue(data);
-//    ui->amplitudeSlider->setSliderPosition(data);
-    //ui->doubleSpinBoxAmp->setValue((double)(ui->amplitudeSlider->value()) / 32);
     data = (byte)(-data);
     usbDevice.controlWriteTransfer(36, data);
 }
@@ -3979,9 +4076,6 @@ void XprotolabInterface::on_doubleSpinBoxDuty_valueChanged(double value)
     data = (byte)(value * 100000 * 128 / 5000064);       // Duty
     if(data == 0)
         data = 1;
-//    ui->dutyCycleSlider->setValue(data);
-//    ui->dutyCycleSlider->setSliderPosition(data);
-    //ui->doubleSpinBoxDuty->setValue((double)((ui->dutyCycleSlider->value()) * (50.00064 / 128)));
     usbDevice.controlWriteTransfer(38, data);
 }
 
@@ -3996,8 +4090,6 @@ void XprotolabInterface::on_doubleSpinBoxOffset_valueChanged(double value)
 {
     char data;
     data = (char)(-value * 100000 * 32 / 50016);       // Offset
-    //ui->offsetSlider->setValue(-data);
-   // ui->doubleSpinBoxOffset->setValue((double)(ui->offsetSlider->value() * 0.50016 / 32));
     usbDevice.controlWriteTransfer(39, (byte)data);
 }
 
@@ -4010,6 +4102,7 @@ void XprotolabInterface::on_offsetSlider_valueChanged(int value)
 
 void XprotolabInterface::on_doubleSpinBoxDesiredFreq_valueChanged(double value)
 {
+    if(ui->doubleSpinBoxDesiredFreq->hasFocus()) return;
     byte i, cycles;
     qint64 fLevel = 1600000;
     qint64 period;
@@ -4038,7 +4131,6 @@ void XprotolabInterface::on_doubleSpinBoxDesiredFreq_valueChanged(double value)
     }
     ui->actualFreqText->setText(QString::number(actualFreq));//.ToString("##.000");
     usbDevice.controlReadTransfer('c', (uint16_t)(desiredFreq >> 16), (uint16_t)(desiredFreq & 0x0000FFFF));
-
 }
 
 void XprotolabInterface::updateFrequency()
@@ -4131,15 +4223,7 @@ void XprotolabInterface::setupValues()
     triggerIconPathsR << tempP+"risingr.png" << tempP+"fallingr.png" << tempP+"dualr.png" << tempP+"positiver.png" << tempP+"negativer.png" << tempP+"window1r.png" << tempP+"window2r.png";
 }
 
-
-
-
-
 //    customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->yAxis);    // red line
-
-
-
-
 
 void XprotolabInterface::on_comboBoxTheme_activated(int theme)
 {
@@ -4151,11 +4235,6 @@ void XprotolabInterface::on_comboBoxTheme_activated(int theme)
         setTheme(theme);
 }
 
-void XprotolabInterface::on_chdSizeSlider_valueChanged(int value)
-{
-
-}
-
 void XprotolabInterface::on_captureButton_clicked()
 {
     captureRef = true;
@@ -4163,14 +4242,13 @@ void XprotolabInterface::on_captureButton_clicked()
 
 void XprotolabInterface::on_screenShotButton_clicked()
 {
-    QPixmap sshot = QPixmap::grabWidget(ui->widget,0,0,-1,ui->widget->height()-20);
+    QPixmap sshot = ui->widget->grab(QRect(QPoint(0,0),QSize(-1,ui->widget->height()-20)));
     QString fileName = "sshot"+QTime::currentTime().toString()+".png";
     fileName.replace(":", "");
     if(filePath.isEmpty())
     {
         filePath=QFileDialog::getExistingDirectory(this,tr("Choose Destination Folder"),defaultDir);
     }
-
     if(filePath.isEmpty())
         return;
     defaultDir = filePath;
@@ -4270,15 +4348,99 @@ void XprotolabInterface::saveWavetoFile()
     ui->notifLabel->setText("File "+fileName+" created!");
 }
 
+QString XprotolabInterface::saveWavetoString()
+{
+        QString out;
+        out += "CH1,";
+        for(int i=0;i<ch1SaveBuffer.size();i++)
+        {
+            out += QString::number(ch1SaveBuffer[i]);
+            out += ",";
+        }
+        out += "<*>\n";
+        out += "CH2,";
+        for(int i=0;i<ch2SaveBuffer.size();i++)
+        {
+            out += QString::number(ch2SaveBuffer[i]);
+            out += ",";
+        }
+        out += "<*>\n";
+        out += "Bit0,";
+        for(int i=0;i<bitSaveBuffer[0].size();i++)
+        {
+            out += QString::number(bitSaveBuffer[0].at(i));
+            out += ",";
+        }
+        out += "<*>\n";
+        out += "Bit1,";
+        for(int i=0;i<bitSaveBuffer[1].size();i++)
+        {
+            out += QString::number(bitSaveBuffer[1].at(i));
+            out += ",";
+        }
+        out += "<*>\n";
+        out += "Bit2,";
+        for(int i=0;i<bitSaveBuffer[2].size();i++)
+        {
+            out += QString::number(bitSaveBuffer[2].at(i));
+            out += ",";
+        }
+        out += "<*>\n";
+        out += "Bit3,";
+        for(int i=0;i<bitSaveBuffer[3].size();i++)
+        {
+            out += QString::number(bitSaveBuffer[3].at(i));
+            out += ",";
+        }
+        out += "<*>\n";
+        out += "Bit4,";
+        for(int i=0;i<bitSaveBuffer[4].size();i++)
+        {
+            out += QString::number(bitSaveBuffer[4].at(i));
+            out += ",";
+        }
+        out += "<*>\n";
+        out += "Bit5,";
+        for(int i=0;i<bitSaveBuffer[5].size();i++)
+        {
+            out += QString::number(bitSaveBuffer[5].at(i));
+            out += ",";
+        }
+        out += "<*>\n";
+        out += "Bit6,";
+        for(int i=0;i<bitSaveBuffer[6].size();i++)
+        {
+            out += QString::number(bitSaveBuffer[6].at(i));
+            out += ",";
+        }
+        out += "<*>\n";
+        out += "Bit7,";
+        for(int i=0;i<bitSaveBuffer[7].size();i++)
+        {
+            out += QString::number(bitSaveBuffer[7].at(i));
+            out += ",";
+        }
+
+    ch1SaveBuffer.clear();
+    ch2SaveBuffer.clear();
+    for(int k=0;k<8;k++)
+    {
+        bitSaveBuffer[k].clear();
+    }
+    out+="----------";
+    return out;
+}
+
 void XprotolabInterface::on_loadWave_clicked()
 {
     on_clearWaveButton_clicked();
     QString buffer;
     QString fpath;
     fpath=QFileDialog::getOpenFileName(this, tr("Open File"),
-                                       defaultDir,"Xscope files (*.xsp)");
-    if(fpath.isEmpty())
-        return;
+                                       defaultDir,"Xscope files (*.xsp)");    
+    if(fpath.isEmpty()){
+        return;   
+    }
     QFile waveData(fpath);
     if (waveData.open(QFile::ReadOnly))
     {
@@ -4307,7 +4469,6 @@ void XprotolabInterface::on_loadWave_clicked()
             }
         }
         displayLoadedWave = true;
-
     }
 }
 
@@ -4366,9 +4527,7 @@ void XprotolabInterface::on_intensitySlider_valueChanged(int value)
                 ch1PGraphs[i]->setPen(t1Pen);
                 ch2PGraphs[i]->setPen(t2Pen);
             }
-
         }
-
     }
 }
 
@@ -4416,7 +4575,6 @@ void XprotolabInterface::enableSnifferControls(bool value)
     ui->comboBoxCPHA->setEnabled(value);
     ui->comboBoxCPOL->setEnabled(value);
     ui->modeGroupBox->setEnabled(value);
-
 }
 
 void XprotolabInterface::setTriggerIcon(int iconNum)
@@ -4462,7 +4620,6 @@ void XprotolabInterface::setTriggerIcon(int iconNum)
         else
             triggerPixmap->setPixmap(QPixmap(triggerIconPathsR[iconNum]));
     }
-
 }
 
 void XprotolabInterface::itemDoubleClick(QCPAbstractItem *item, QMouseEvent *event)
@@ -4478,17 +4635,18 @@ void XprotolabInterface::itemDoubleClick(QCPAbstractItem *item, QMouseEvent *eve
       if (ok)
       {
         plItem->setText(newName);
-
       }
     }
 }
-
 
 void XprotolabInterface::on_restoreSettingButton_clicked()
 {
     if(!usbDevice.isDeviceConnected)
         return;
     ui->restoreSettingButton->setEnabled(false);
+    if(!usbDevice.wayOfConnecting){
+        usbDevice.serial.write("p");
+    }
     usbDevice.restoreSettings();
     QTimer::singleShot(1000,this,SLOT(readDeviceSettings()));
     ui->restoreSettingButton->setEnabled(true);
@@ -4507,4 +4665,191 @@ void XprotolabInterface::on_pauseSnifferButton_clicked()
         usbDevice.startScope();
         ui->pauseSnifferButton->setText(tr("Pause"));
     }
+}
+void XprotolabInterface::logToFile(QString s){
+    if(logFile->isOpen()){
+        (*ts)<<s<<"\n";
+        ts->flush();
+    }
+}
+
+void XprotolabInterface::on_pushButton_4_clicked()
+{
+    if(!recordingWaves){
+        ui->pushButton_4->setText("Stop");
+        ui->pushButton_4->setIcon(QIcon(":/Bitmaps/Bitmaps/ico-record-active.png"));
+        ui->label_13->setText("Recording wave.");
+        recordingWaves=true;
+        recordWaveFile->setFileName("record"+QDateTime::currentDateTime().toString("yyyy-MM-ddhh-mm-ss")+".xsp");
+        if(!recordWaveFile->open(QIODevice::Text | QIODevice::WriteOnly)){
+            recordingWaves=false;
+            return;
+        }
+        recordWaveTextStream=new QTextStream(recordWaveFile);
+        dataToSave="";
+    }else{
+        ui->pushButton_4->setText("Record");
+        ui->pushButton_4->setIcon(QIcon(":/Bitmaps/Bitmaps/ico-record.png"));
+        ui->label_13->setText("");
+        (*recordWaveTextStream)<<dataToSave;
+        recordingWaves=false;
+        delete recordWaveTextStream;
+        recordWaveFile->close();
+        ui->label_13->setText("");
+        QMessageBox msgBox(QMessageBox::Information,"Success","File "+recordWaveFile->fileName()+" saved.");
+        msgBox.setWindowIcon(QIcon(":/Bitmaps/Bitmaps/gt.ico"));
+        msgBox.exec();
+    }
+}
+
+void XprotolabInterface::on_radioButton_clicked()
+{
+    ui->comboBox_9->setEnabled(true);
+}
+
+void XprotolabInterface::on_radioButton_2_clicked()
+{
+    ui->comboBox_9->setEnabled(false);
+}
+
+void XprotolabInterface::on_doubleSpinBoxDesiredFreq_editingFinished()
+{
+    if(!ui->doubleSpinBoxDesiredFreq->hasFocus()) return;
+    double value=ui->doubleSpinBoxDesiredFreq->value();
+    byte i, cycles;
+    qint64 fLevel = 1600000;
+    qint64 period;
+    qint64 desiredFreq;
+    double actualFreq;
+    desiredFreq = (int)(value * 100);
+
+    // Find Period and number of cycles depending on the desired frequency
+    for(i = 0, cycles = 64; i < 6; i++)
+    {
+        if(desiredFreq > fLevel)
+            break;
+        fLevel = (int)(fLevel >> 1);
+        cycles = (byte)(cycles >> 1);
+    }
+    period = (int)(((6250000 * cycles) / desiredFreq) - 1);
+    if(period < 31)
+        period = 31;
+    actualFreq = (double)(cycles * 50 * (125000000L / (period + 1))) / 100000;
+    if(desiredFreq < 100000)
+        ui->labelHertz->setText("Hz");
+    else
+    {
+        actualFreq = actualFreq / 1000;
+        ui->labelHertz->setText("kHz");
+    }
+    ui->actualFreqText->setText(QString::number(actualFreq));//.ToString("##.000");
+    usbDevice.controlReadTransfer('c', (uint16_t)(desiredFreq >> 16), (uint16_t)(desiredFreq & 0x0000FFFF));
+}
+
+void XprotolabInterface::updateTriggerPos(){
+    int value;
+    if(ui->comboBoxTrigSource->currentIndex()==0)
+        value=ui->ch1PositionSlider->value();
+    else if(ui->comboBoxTrigSource->currentIndex()==1)
+        value=ui->ch2PositionSlider->value();
+    if(ui->comboBoxTrigSource->currentIndex()==0&&!initializing)
+    {
+        if(ui->comboBoxTrigSource->currentIndex()==0){
+            if(!ui->checkBoxCH1Invert->isChecked()){
+                moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((2*triggerPost)-(ui->horizontalScrollBar->value()*2)),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-(initPosCh1-value)))) ;
+            }else{
+                if(m_diff==-1)
+                    m_diff=triggerLevel-ch1ZeroPos;
+                moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((2*triggerPost)-(ui->horizontalScrollBar->value()*2)),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-(initPosCh1-value)-2*m_diff)));
+            }
+            moveWinTrigger(ui->plotterWidget->xAxis->coordToPixel((2*triggerPost)-(ui->horizontalScrollBar->value()*2)),ui->plotterWidget->yAxis->coordToPixel(triggerWin1Level-(initPosCh1-value)),ui->plotterWidget->yAxis->coordToPixel(triggerWin1Level-(initPosCh1-value)));
+        }else if(ui->comboBoxTrigSource->currentIndex()==1){
+             if(!ui->checkBoxCH2Invert->isChecked()){
+                moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((2*triggerPost)-(ui->horizontalScrollBar->value()*2)),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-(initPosCh2-value)))) ;
+             }else{
+                if(m_diff==-1)
+                    m_diff=triggerLevel-ch2ZeroPos;
+                moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((2*triggerPost)-(ui->horizontalScrollBar->value()*2)),ui->plotterWidget->yAxis->coordToPixel(triggerLevel-(initPosCh2-value)-2*m_diff)));
+            }
+            moveWinTrigger(ui->plotterWidget->xAxis->coordToPixel((2*triggerPost)-(ui->horizontalScrollBar->value()*2)),ui->plotterWidget->yAxis->coordToPixel(triggerWin2Level-(initPosCh2-value)),ui->plotterWidget->yAxis->coordToPixel(triggerWin2Level-(initPosCh2-value)));
+        }
+    }
+}
+void XprotolabInterface::updateCh1Label(){
+    updateTriggerPos();
+    QString tmp_text="";
+    if(ui->checkBoxCH1Invert->isChecked()){
+        tmp_text+="-CH1";
+    }else{
+        tmp_text+="CH1";
+    }
+    QString tmp_label2="";
+    if(ui->checkBoxCH2Invert->isChecked()){
+        tmp_label2="-CH2";
+    }else{
+        tmp_label2="CH2";
+    }
+    if(ui->checkBoxCH1Math->isChecked()){
+        if(ui->radioButtonCH1Sub->isChecked()){
+            if(ui->checkBoxCH2Invert->isChecked()){
+                tmp_text+=" + CH2";
+            }else{
+                tmp_text+=" - CH2";
+            }
+        }else if(ui->radioButtonCH1Multiply->isChecked()){
+                tmp_text+=" X "+tmp_label2;
+        }
+    }
+    tmp_text+=" = "+gainText[ui->ch1GainSlider->value()];
+    ui->ch1Label->setText(tmp_text);
+}
+void XprotolabInterface::updateCh2Label(){
+    updateTriggerPos();
+    QString tmp_text="";
+    if(ui->checkBoxCH2Invert->isChecked()){
+        tmp_text+="-CH2";
+    }else{
+        tmp_text+="CH2";
+    }
+    if(ui->checkBoxCH2Math->isChecked()){
+        if(ui->radioButtonCH2Sub->isChecked()){
+            if(ui->checkBoxCH1Invert->isChecked()){
+                tmp_text+=" + CH1";
+            }else{
+                tmp_text+=" - CH1";
+            }
+        }else if(ui->radioButtonCH2Multiply->isChecked()){
+            if(ui->checkBoxCH2Invert->isChecked()){
+                tmp_text+=" X -CH1";
+            }else{
+                tmp_text+=" X CH1";
+            }
+        }
+    }
+    tmp_text+=" = "+gainText[ui->ch2GainSlider->value()];
+    ui->ch2Label->setText(tmp_text);
+}
+
+void XprotolabInterface::checkIfInvertIcon(){
+    bool invert = false;
+    if(ui->comboBoxTrigSource->currentIndex()==0 && ui->checkBoxCH1Invert->isChecked())
+        invert = true;
+    else if(ui->comboBoxTrigSource->currentIndex()==1 && ui->checkBoxCH2Invert->isChecked())
+        invert = true;
+
+    if(invert){
+        invertTriggerIcon();
+    }
+}
+void XprotolabInterface::invertTriggerIcon(){
+    if(trigIcon == Dual || trigIcon == Window)
+        return;
+    else if(trigIcon == Rising)
+        setTriggerIcon(Falling);
+    else if(trigIcon == Falling)
+        setTriggerIcon(Rising);
+    else if(trigIcon == Positive)
+        setTriggerIcon(Negative);
+    else if(trigIcon == Negative)
+        setTriggerIcon(Positive);
 }
