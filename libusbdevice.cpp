@@ -16,6 +16,7 @@ LibUsbDevice::LibUsbDevice(QObject *parent) :
     hasHotPlugSupport = false;
     deviceFound = NULL;
     connect(&serial,SIGNAL(newData(int)),this,SLOT(newDataAvailable(int)));
+    connect(&serial,SIGNAL(clear()),this,SLOT(clearData()));
 }
 void LibUsbDevice::reset(){
     enableEventThread = true;
@@ -28,6 +29,15 @@ void LibUsbDevice::reset(){
     dataAvailable = false;
     hasHotPlugSupport = false;
     deviceFound = NULL;
+}
+
+void LibUsbDevice::clearData(){
+    for(int i = 0; i < LEN_BULK_IN_BUFFER; i++)
+        chData[i] = 0;
+    for(int i = 0; i < LEN_CONTROL_BUFFER; i++)
+        inBuffer[i] = 0;
+    for(int i = 0; i < 256; i++)
+        awgBuffer[i] = 0;
 }
 
 extern "C" int LIBUSB_CALL hotplugAttachCallback (libusb_context *, libusb_device *, libusb_hotplug_event, void *ref)
@@ -79,7 +89,8 @@ extern "C" void LIBUSB_CALL asyncBulkWriteTransferCallback(struct libusb_transfe
 }
 
 void LibUsbDevice::initializeDevice()
-{
+{    
+    clearData();
     if(wayOfConnecting){
         int status;
         status = libusb_init(&context); //initialize the library for the session we just declared
@@ -121,6 +132,7 @@ void LibUsbDevice::openDevice(QString nameOfPort)
         size_t i = 0;
         int status;
         status = libusb_get_device_list(context, &devs);
+
         if (status < 0)
         {
             cstatus = tr("Cannot open device!");
@@ -134,6 +146,7 @@ void LibUsbDevice::openDevice(QString nameOfPort)
             {
                 break;
             }
+
             if (deviceDesc.idVendor == VENDOR_ID && deviceDesc.idProduct == PRODUCT_ID)
             {
                 status = libusb_open(dev, &deviceHandle);
@@ -174,8 +187,7 @@ void LibUsbDevice::openDevice(QString nameOfPort)
         }
         isDeviceConnected = true;
     }else{        
-        serial.connectToPort(nameOfPort);
-        isDeviceConnected=true;
+        isDeviceConnected = serial.connectToPort(nameOfPort);
     }
 }
 
@@ -276,20 +288,11 @@ bool LibUsbDevice::controlReadTransfer(uint8_t command, uint16_t value , uint16_
         serial.serial->clear();
         serial.write("p");
 
-        /*serial.write(QString(command));
+        serial.write(QString(command));
         serial.write(QString(qToLittleEndian(index)));
-        serial.write(QString(qToLittleEndian(value)));*/
-            QByteArray ba;
-            ba[0]=qToLittleEndian(command);
-            ba[1]=qToLittleEndian(index);
-            ba[2]=qToLittleEndian(index >> 8);
-            ba[3]=qToLittleEndian(value);
-            ba[4]=qToLittleEndian(value >> 8);
-
-            serial.writeByteArray(ba);
+        serial.write(QString(qToLittleEndian(value)));
 
         while(serial.serial->bytesAvailable()<44){
-            qDebug()<<serial.serial->bytesAvailable();
             serial.serial->waitForReadyRead(1000);
         }
         char tmp[LEN_CONTROL_BUFFER];
@@ -297,7 +300,7 @@ bool LibUsbDevice::controlReadTransfer(uint8_t command, uint16_t value , uint16_
         for(int i=0;i<size;i++){
             inBuffer[i]=tmp[i];
         }
-        QTimer::singleShot(1000,this,SLOT(turnOnAutoMode()));
+        turnOnAutoMode();
         if (size >= 0)
         {
             if(size<LEN_CONTROL_BUFFER)
@@ -338,8 +341,6 @@ void LibUsbDevice::asyncBulkReadTransfer()
     }else{
         serial.wsk=chData;
         serial.finish=false;
-        if(!future.isRunning())
-            future = QtConcurrent::run(&serial,&SerialPortConnection::run);
     }
 }
 
@@ -405,33 +406,39 @@ QString LibUsbDevice::requestFirmwareVersion()
         qDebug()<<"Device not connected";
         return NULL;
     }    
-        int bytesRead=0;
-        unsigned char buffer[4];
-        if(wayOfConnecting){
-            bytesRead = libusb_control_transfer(deviceHandle,0xC0,'a',0,0,buffer,4,1000);
-        }else{
-            serial.serial->clear();
-            serial.write("a");
-            char tmp[4];
-            while(serial.serial->bytesAvailable()!=4){
-                serial.serial->waitForReadyRead(1000);
+    int bytesRead=0;
+    unsigned char buffer[4];
+    if(wayOfConnecting){
+        bytesRead = libusb_control_transfer(deviceHandle,0xC0,'a',0,0,buffer,4,1000);
+    }else{
+        serial.serial->clear();
+        serial.write("a");
+        char tmp[4];
+        int counter = 0;
+        while(serial.serial->bytesAvailable()!=4){
+            serial.serial->waitForReadyRead(1000);
+            counter ++;
+
+            if(counter == 5){
+                return "-1";
             }
-            bytesRead=serial.serial->read(tmp,4);
-            for(int i=0;i<bytesRead;i++){
-                buffer[i]=tmp[i];
-            }
-            qDebug()<<"VERSION: "<<getStringFromUnsignedChar(buffer,4);
         }
-        if (bytesRead > 0)
-        {
-            return getStringFromUnsignedChar(buffer,4);
+        bytesRead=serial.serial->read(tmp,4);
+        for(int i=0;i<bytesRead;i++){
+            buffer[i]=tmp[i];
         }
-        else
-        {
-            cstatus = tr("Read Error!");
-            qDebug()<<"read error: "<<bytesRead;
-            return NULL;
-        }
+        qDebug()<<"VERSION: "<<getStringFromUnsignedChar(buffer,4);
+    }
+    if (bytesRead > 0)
+    {
+        return getStringFromUnsignedChar(buffer,4);
+    }
+    else
+    {
+        cstatus = tr("Read Error!");
+        qDebug()<<"read error: "<<bytesRead;
+        return NULL;
+    }
 }
 
 void LibUsbDevice::stopScope()
@@ -524,8 +531,43 @@ void LibUsbDevice::newDataAvailable(int size){
     dataAvailable=true;
     dataLength=size;
 }
+
 void LibUsbDevice::turnOnAutoMode(){
-    serial.serial->clear();
-    serial.sendData=true;
-    serial.write("q");
+    if(!wayOfConnecting){
+        serial.serial->clear();
+        serial.sendData=true;
+        serial.write("q");
+    }
+}
+void LibUsbDevice::turnOffAutoMode(){
+    if(!wayOfConnecting){
+        serial.serial->clear();
+        serial.sendData=false;
+        serial.write("p");
+        serial.serial->readAll();
+    }
+}
+
+int LibUsbDevice::requestMM(unsigned char * buffer){
+    if(!isDeviceConnected){
+        qDebug()<<"Device not connected";
+        return -1;
+    }
+    int bytesRead=0;
+    if(wayOfConnecting){
+        bytesRead = libusb_control_transfer(deviceHandle,0xC0,'m',0,0,buffer,4,1000);
+    }else{
+        turnOffAutoMode();
+        serial.write("m");
+
+        while(serial.serial->bytesAvailable()<4){
+            serial.serial->waitForReadyRead(1000);
+        }
+        char tmp[4];
+        bytesRead = serial.serial->read(tmp,4);
+        for(int i = 0; i < bytesRead; i++){
+            buffer[i] = tmp[i];
+        }
+    }
+    return bytesRead;
 }

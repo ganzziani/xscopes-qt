@@ -16,12 +16,6 @@
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
-  <property name="maximumSize">
-   <size>
-    <width>16777215</width>
-    <height>16777215</height>
-   </size>
-  </property>
   <property name="font">
    <font>
     <pointsize>9</pointsize>
@@ -33,9 +27,6 @@
   <property name="windowIcon">
    <iconset resource="xprotolabinterface.qrc">
     <normaloff>:/Bitmaps/Bitmaps/GT-logo-256.png</normaloff>:/Bitmaps/Bitmaps/GT-logo-256.png</iconset>
-  </property>
-  <property name="styleSheet">
-   <string notr="true"/>
   </property>
   <property name="documentMode">
    <bool>false</bool>
@@ -93,8 +84,8 @@
                <widget class="QLabel" name="ch1ColorLabel">
                 <property name="maximumSize">
                  <size>
-                  <width>10</width>
-                  <height>10</height>
+                  <width>15</width>
+                  <height>15</height>
                  </size>
                 </property>
                 <property name="text">
@@ -104,7 +95,7 @@
                  <bool>true</bool>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing</set>
                 </property>
                 <property name="wordWrap">
                  <bool>false</bool>
@@ -113,6 +104,12 @@
               </item>
               <item>
                <widget class="QLabel" name="ch1Label">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>15</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -131,6 +128,9 @@
                 <property name="scaledContents">
                  <bool>true</bool>
                 </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                </property>
                 <property name="wordWrap">
                  <bool>true</bool>
                 </property>
@@ -144,8 +144,8 @@
                <widget class="QLabel" name="ch2ColorLabel">
                 <property name="maximumSize">
                  <size>
-                  <width>10</width>
-                  <height>10</height>
+                  <width>15</width>
+                  <height>15</height>
                  </size>
                 </property>
                 <property name="text">
@@ -155,7 +155,7 @@
                  <bool>true</bool>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 <set>Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing</set>
                 </property>
                 <property name="wordWrap">
                  <bool>true</bool>
@@ -164,6 +164,12 @@
               </item>
               <item>
                <widget class="QLabel" name="ch2Label">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>15</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -182,6 +188,9 @@
                 <property name="scaledContents">
                  <bool>true</bool>
                 </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                </property>
                 <property name="wordWrap">
                  <bool>true</bool>
                 </property>
@@ -191,6 +200,12 @@
             </item>
             <item>
              <widget class="QLabel" name="timeLabel">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>15</height>
+               </size>
+              </property>
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
@@ -210,10 +225,13 @@
                <bool>true</bool>
               </property>
               <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
               </property>
               <property name="wordWrap">
                <bool>true</bool>
+              </property>
+              <property name="indent">
+               <number>-1</number>
               </property>
              </widget>
             </item>
@@ -245,6 +263,12 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>525</width>
+         <height>0</height>
+        </size>
        </property>
        <property name="maximumSize">
         <size>
@@ -434,7 +458,7 @@
                    <string/>
                   </property>
                   <property name="currentIndex">
-                   <number>0</number>
+                   <number>1</number>
                   </property>
                   <widget class="QWidget" name="ch1Tab">
                    <attribute name="title">
@@ -482,7 +506,7 @@
                              <number>-128</number>
                             </property>
                             <property name="maximum">
-                             <number>128</number>
+                             <number>127</number>
                             </property>
                             <property name="singleStep">
                              <number>16</number>
@@ -806,7 +830,7 @@
                              <number>-128</number>
                             </property>
                             <property name="maximum">
-                             <number>128</number>
+                             <number>127</number>
                             </property>
                             <property name="singleStep">
                              <number>16</number>
@@ -1770,7 +1794,7 @@
                              <number>-128</number>
                             </property>
                             <property name="maximum">
-                             <number>128</number>
+                             <number>127</number>
                             </property>
                             <property name="singleStep">
                              <number>16</number>
@@ -1828,7 +1852,7 @@
                              <number>-128</number>
                             </property>
                             <property name="maximum">
-                             <number>128</number>
+                             <number>127</number>
                             </property>
                             <property name="singleStep">
                              <number>16</number>
@@ -1889,7 +1913,7 @@
                              <number>-128</number>
                             </property>
                             <property name="maximum">
-                             <number>128</number>
+                             <number>127</number>
                             </property>
                             <property name="singleStep">
                              <number>16</number>
@@ -2054,7 +2078,7 @@
                        <item>
                         <widget class="QComboBox" name="comboBoxTrigSource">
                          <property name="editable">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="maxVisibleItems">
                           <number>999</number>
@@ -2495,9 +2519,522 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="Meter">
+        <attribute name="title">
+         <string>Meter</string>
+        </attribute>
+        <layout class="QHBoxLayout" name="horizontalLayout_25">
+         <item>
+          <widget class="QTabWidget" name="mmTabWidget">
+           <property name="currentIndex">
+            <number>2</number>
+           </property>
+           <widget class="QWidget" name="tab_2">
+            <attribute name="title">
+             <string>VDC</string>
+            </attribute>
+            <widget class="QWidget" name="verticalLayoutWidget_2">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>30</y>
+               <width>451</width>
+               <height>251</height>
+              </rect>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_106">
+              <property name="spacing">
+               <number>30</number>
+              </property>
+              <item>
+               <widget class="QGroupBox" name="groupBox_15">
+                <property name="title">
+                 <string>Channel 1</string>
+                </property>
+                <widget class="QLabel" name="vdcChannel1">
+                 <property name="geometry">
+                  <rect>
+                   <x>10</x>
+                   <y>20</y>
+                   <width>431</width>
+                   <height>81</height>
+                  </rect>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>50</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string> 0.000V</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="groupBox_16">
+                <property name="title">
+                 <string>Channel 2</string>
+                </property>
+                <widget class="QLabel" name="vdcChannel2">
+                 <property name="geometry">
+                  <rect>
+                   <x>10</x>
+                   <y>20</y>
+                   <width>431</width>
+                   <height>81</height>
+                  </rect>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>50</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string> 0.000V</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+           <widget class="QWidget" name="tab_3">
+            <attribute name="title">
+             <string>VPP</string>
+            </attribute>
+            <widget class="QWidget" name="verticalLayoutWidget_3">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>30</y>
+               <width>451</width>
+               <height>251</height>
+              </rect>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_107">
+              <property name="spacing">
+               <number>30</number>
+              </property>
+              <item>
+               <widget class="QGroupBox" name="groupBox_17">
+                <property name="title">
+                 <string>Channel 1</string>
+                </property>
+                <widget class="QLabel" name="vppChannel1">
+                 <property name="geometry">
+                  <rect>
+                   <x>10</x>
+                   <y>20</y>
+                   <width>431</width>
+                   <height>81</height>
+                  </rect>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>50</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string> 0.000V</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="groupBox_18">
+                <property name="title">
+                 <string>Channel 2</string>
+                </property>
+                <widget class="QLabel" name="vppChannel2">
+                 <property name="geometry">
+                  <rect>
+                   <x>10</x>
+                   <y>20</y>
+                   <width>431</width>
+                   <height>81</height>
+                  </rect>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>50</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string> 0.000V</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+           <widget class="QWidget" name="tab_4">
+            <attribute name="title">
+             <string>Frequency Counter</string>
+            </attribute>
+            <widget class="QWidget" name="verticalLayoutWidget">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>30</y>
+               <width>461</width>
+               <height>361</height>
+              </rect>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_97">
+              <property name="spacing">
+               <number>50</number>
+              </property>
+              <item>
+               <widget class="QGroupBox" name="groupBox_9">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="title">
+                 <string>Source</string>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_118">
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_3">
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_109">
+                     <item>
+                      <widget class="QLabel" name="label_34">
+                       <property name="text">
+                        <string>EXT</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR10">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                       <property name="checked">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_110">
+                     <item>
+                      <widget class="QLabel" name="label_35">
+                       <property name="text">
+                        <string>7</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR7">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_111">
+                     <item>
+                      <widget class="QLabel" name="label_36">
+                       <property name="text">
+                        <string>6</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR6">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_112">
+                     <item>
+                      <widget class="QLabel" name="label_39">
+                       <property name="text">
+                        <string>5</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR5">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_113">
+                     <item>
+                      <widget class="QLabel" name="label_48">
+                       <property name="text">
+                        <string>4</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR4">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_114">
+                     <item>
+                      <widget class="QLabel" name="label_49">
+                       <property name="text">
+                        <string>3</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR3">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_115">
+                     <item>
+                      <widget class="QLabel" name="label_69">
+                       <property name="text">
+                        <string>2</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR2">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_116">
+                     <item>
+                      <widget class="QLabel" name="label_71">
+                       <property name="text">
+                        <string>1</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR1">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_117">
+                     <item>
+                      <widget class="QLabel" name="label_73">
+                       <property name="text">
+                        <string>0</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR0">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="groupBox_20">
+                <property name="title">
+                 <string>Type</string>
+                </property>
+                <widget class="QRadioButton" name="radioFreq">
+                 <property name="geometry">
+                  <rect>
+                   <x>70</x>
+                   <y>40</y>
+                   <width>121</width>
+                   <height>17</height>
+                  </rect>
+                 </property>
+                 <property name="text">
+                  <string>Measure Frequency</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+                <widget class="QRadioButton" name="radioPulse">
+                 <property name="geometry">
+                  <rect>
+                   <x>260</x>
+                   <y>40</y>
+                   <width>91</width>
+                   <height>17</height>
+                  </rect>
+                 </property>
+                 <property name="text">
+                  <string>Count Pulses</string>
+                 </property>
+                </widget>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="groupBox_19">
+                <property name="title">
+                 <string/>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_108">
+                 <item>
+                  <widget class="QLabel" name="frequencyValue">
+                   <property name="font">
+                    <font>
+                     <pointsize>45</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>00000.000kHz</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <zorder>verticalLayoutWidget</zorder>
+            <zorder>groupBox_19</zorder>
+           </widget>
+          </widget>
+         </item>
+        </layout>
+       </widget>
        <widget class="QWidget" name="awgTab">
         <attribute name="title">
-         <string>Arbitrary Waveform Generator</string>
+         <string>Waveform Generator</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_72">
          <item>
@@ -4658,6 +5195,23 @@ Frequency</string>
                     </property>
                    </widget>
                   </item>
+                  <item>
+                   <widget class="QPushButton" name="rescanButton">
+                    <property name="text">
+                     <string>Re-scan</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="infoLabel">
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </item>
                 <item>
@@ -4747,6 +5301,12 @@ Frequency</string>
                         <height>0</height>
                        </size>
                       </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>150</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
                      </widget>
                     </item>
                    </layout>
@@ -4778,7 +5338,7 @@ Frequency</string>
                     <item>
                      <widget class="QLabel" name="connectLabel">
                       <property name="sizePolicy">
-                       <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                         <horstretch>0</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
@@ -4797,7 +5357,7 @@ Frequency</string>
                        <set>Qt::AlignCenter</set>
                       </property>
                       <property name="wordWrap">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                      </widget>
                     </item>
@@ -4805,6 +5365,9 @@ Frequency</string>
                      <spacer name="horizontalSpacer_13">
                       <property name="orientation">
                        <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeType">
+                       <enum>QSizePolicy::Ignored</enum>
                       </property>
                       <property name="sizeHint" stdset="0">
                        <size>
@@ -4833,33 +5396,82 @@ Frequency</string>
                <layout class="QVBoxLayout" name="verticalLayout_91">
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_93">
+                  <property name="spacing">
+                   <number>10</number>
+                  </property>
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_91">
+                    <property name="spacing">
+                     <number>6</number>
+                    </property>
                     <item>
                      <widget class="QLabel" name="label_75">
                       <property name="text">
                        <string>Current Version</string>
                       </property>
+                      <property name="alignment">
+                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                      </property>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLineEdit" name="currentFirwareVersion"/>
+                     <widget class="QLineEdit" name="currentFirwareVersion">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>100</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                      </property>
+                      <property name="readOnly">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
                     </item>
                    </layout>
                   </item>
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_92">
+                    <property name="spacing">
+                     <number>0</number>
+                    </property>
+                    <property name="sizeConstraint">
+                     <enum>QLayout::SetNoConstraint</enum>
+                    </property>
                     <item>
                      <widget class="QLabel" name="label_76">
                       <property name="text">
                        <string>Latest Version</string>
                       </property>
+                      <property name="alignment">
+                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                      </property>
                      </widget>
                     </item>
                     <item>
                      <widget class="QLineEdit" name="latestFirmWareVersion">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>100</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
                       <property name="text">
-                       <string>2.22</string>
+                       <string>2.37</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                      </property>
+                      <property name="readOnly">
+                       <bool>true</bool>
                       </property>
                      </widget>
                     </item>
@@ -4951,8 +5563,8 @@ Frequency</string>
            <rect>
             <x>20</x>
             <y>320</y>
-            <width>291</width>
-            <height>21</height>
+            <width>461</width>
+            <height>31</height>
            </rect>
           </property>
           <property name="text">
@@ -4964,12 +5576,17 @@ Frequency</string>
            <rect>
             <x>0</x>
             <y>250</y>
-            <width>411</width>
+            <width>481</width>
             <height>71</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>20</pointsize>
+           </font>
+          </property>
           <property name="text">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://gabotronics.com&quot;&gt;&lt;span style=&quot; font-size:20pt; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;www.gabotronics.com&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://gabotronics.com&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;www.gabotronics.com&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="textFormat">
            <enum>Qt::RichText</enum>
@@ -5007,8 +5624,8 @@ background-position: center;</string>
            <rect>
             <x>30</x>
             <y>210</y>
-            <width>131</width>
-            <height>21</height>
+            <width>451</width>
+            <height>31</height>
            </rect>
           </property>
           <property name="font">
@@ -5020,7 +5637,7 @@ background-position: center;</string>
            <number>1</number>
           </property>
           <property name="text">
-           <string>&lt;b&gt;Version:&lt;/b&gt; 1.0.0.2</string>
+           <string>&lt;b&gt;Version:&lt;/b&gt; 1.1.0.0</string>
           </property>
          </widget>
         </widget>

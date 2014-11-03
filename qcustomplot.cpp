@@ -8798,9 +8798,9 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mMultiSelectModifier(Qt::ControlModifier),
   mPaintBuffer(size()),
   mMouseEventElement(0),
-  mReplotting(false),
-  m_infinity(false)
+  mReplotting(false)
 {
+  m_infinity = false;
   setAttribute(Qt::WA_NoMousePropagation);
   setAttribute(Qt::WA_OpaquePaintEvent);
   setMouseTracking(true);
@@ -10155,6 +10155,31 @@ void QCustomPlot::replot()
   mReplotting = false;
 }
 
+void QCustomPlot::clearScene(){
+    mPaintBuffer.fill(mBackgroundBrush.style() == Qt::SolidPattern ? mBackgroundBrush.color() : Qt::transparent);
+
+    QCPPainter painter;
+    painter.begin(&mPaintBuffer);
+
+    if (painter.isActive())
+    {
+      painter.setRenderHint(QPainter::HighQualityAntialiasing); // to make Antialiasing look good if using the OpenGL graphicssystem
+      if (mBackgroundBrush.style() != Qt::SolidPattern && mBackgroundBrush.style() != Qt::NoBrush)
+        painter.fillRect(mViewport, mBackgroundBrush);
+
+        QList<QCPAxisRect*> rects = axisRects();
+        for (int i=0; i<rects.size(); ++i)
+        {
+          QList<QCPAxis*> axes = rects.at(i)->axes();
+          for (int k=0; k<axes.size(); ++k)
+            axes.at(k)->setupTickVectors();
+        }
+        drawBackground(&painter);
+        painter.end();
+    }
+    this->update();
+}
+
 /*!
   Rescales the axes such that all plottables (like graphs) in the plot are fully visible.
   
@@ -10424,6 +10449,8 @@ void QCustomPlot::resizeEvent(QResizeEvent *event)
   mPaintBuffer = QPixmap(event->size());
   setViewport(rect());
   replot();
+
+  emit sizeChanged();
 }
 
 /*! \internal
@@ -16108,6 +16135,8 @@ QCPItemPixmap::QCPItemPixmap(QCustomPlot *parentPlot) :
   bottomLeft(createAnchor("bottomLeft", aiBottomLeft)),
   left(createAnchor("left", aiLeft))
 {
+  moveY = 0;
+  moveX = 0;
   topLeft->setCoords(0, 1);
   bottomRight->setCoords(1, 0);
   
@@ -16302,6 +16331,12 @@ QRect QCPItemPixmap::getFinalRect(bool *flippedHorz, bool *flippedVert) const
     *flippedHorz = flipHorz;
   if (flippedVert)
     *flippedVert = flipVert;
+
+  result.setY(result.y() - moveY);
+  result.setHeight(result.height() - moveY);
+  result.setX(result.x() - moveX);
+  result.setWidth(result.width() - moveX);
+
   return result;
 }
 

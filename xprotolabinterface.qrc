@@ -86,5 +86,12 @@
         <file>win-tab.qss</file>
         <file>Bitmaps/scrollbar2-v.png</file>
         <file>Bitmaps/scrollbar2-v-down.png</file>
+        <file>customtheme.qss</file>
+        <file>colorDialogStyle.qss</file>
+        <file>Bitmaps/btn-172-down.png</file>
+        <file>Bitmaps/btn-172-up.png</file>
+        <file>Bitmaps/btn-172-disable.png</file>
+        <file>Bitmaps/cour.ttf</file>
+        <file>Bitmaps/hcursorB.png</file>
     </qresource>
 </RCC>

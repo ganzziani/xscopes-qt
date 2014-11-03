@@ -37,11 +37,14 @@ public:
     void restoreSettings();
 
     QString getStringFromUnsignedChar( unsigned char *,int);
-    void reset();
+    void reset();    
 
+    int requestMM(unsigned char * buffer);
 public slots:
     void newDataAvailable(int);
     void turnOnAutoMode();
+    void turnOffAutoMode();
+    void clearData();
 public:
     bool isDeviceConnected,isInitialiazed;
     QString cstatus;

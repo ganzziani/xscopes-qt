@@ -1601,11 +1601,13 @@ public:
   QPixmap toPixmap(int width=0, int height=0, double scale=1.0);
   void toPainter(QCPPainter *painter, int width=0, int height=0);
   Q_SLOT void replot();
+  Q_SLOT void clearScene();
   
   QCPAxis *xAxis, *yAxis, *xAxis2, *yAxis2;
   QCPLegend *legend;
 
   bool m_infinity;
+
 signals:
   void mouseDoubleClick(QMouseEvent *event);
   void mousePress(QMouseEvent *event);
@@ -1627,6 +1629,8 @@ signals:
   void selectionChangedByUser();
   void beforeReplot();
   void afterReplot();
+
+  void sizeChanged();
 
 protected:
   // property members:
@@ -2489,6 +2493,8 @@ public:
   QCPItemAnchor * const bottom;
   QCPItemAnchor * const bottomLeft;
   QCPItemAnchor * const left;
+
+  int moveY, moveX;
   
 protected:
   enum AnchorIndex {aiTop, aiTopRight, aiRight, aiBottom, aiBottomLeft, aiLeft};
