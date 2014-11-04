@@ -1,0 +1,17 @@
+QPushButton {
+    border-image: url(":/Bitmaps/Bitmaps/btn-172-up.png");
+    min-width: 80px;
+    min-height: 30px;
+    border-width: 0px;
+    color: "#000000";
+    padding-right: 0px;
+    padding-left: 0px;
+    text-align: center;
+}
+
+QPushButton:pressed {
+    border-image: url(":/Bitmaps/Bitmaps/btn-172-down.png");
+    min-width: 80px;
+    min-height: 30px;
+    border-width: 0px;
+}

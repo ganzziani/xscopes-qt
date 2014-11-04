@@ -1,0 +1,116 @@
+QPushButton {
+    background-color: "#FBFBFB";
+    border-width: 1px;
+    border-color: "#D4D4D4";
+    min-width: 100px;
+    min-height: 30px;
+    color: "#888888";
+    text-align: left;
+    padding-left: 35px;
+    padding-right: 20px;
+    font-size: 11px;
+}
+
+QPushButton:pressed {
+    background-color: "#E9E8E8";
+    border-width: 1px;
+    border-color: "#D4D4D4";
+}
+
+QPushButton:hover:!pressed {
+    background-color: "#F3F3F3";
+    border-width: 1px;
+    border-color: "#D4D4D4";
+}
+
+QLabel {
+    color: "#888888";
+    font: 18pt;
+}
+
+QPushButton#cancelButton {
+    border-image: url(":/Bitmaps/Bitmaps/btn-172-up.png");
+    min-width: 80px;
+    min-height: 30px;
+    border-width: 0px;
+    color: "#000000";
+    padding-right: 0px;
+    padding-left: 0px;
+    text-align: center;
+}
+
+QPushButton#cancelButton:pressed {
+    border-image: url(":/Bitmaps/Bitmaps/btn-172-down.png");
+    min-width: 80px;
+    min-height: 30px;
+    border-width: 0px;
+}
+
+QPushButton#applyButton {
+    border-image: url(":/Bitmaps/Bitmaps/btn-172-up.png");
+    min-width: 80px;
+    min-height: 30px;
+    border-width: 0px;
+    color: "#000000";
+    padding-right: 0px;
+    padding-left: 0px;
+    text-align: center;
+}
+
+QPushButton#applyButton:pressed {
+    border-image: url(":/Bitmaps/Bitmaps/btn-172-down.png");
+    min-width: 80px;
+    min-height: 30px;
+    border-width: 0px;
+}
+
+QScrollBar:vertical {
+    border: 0px;
+    background: #F5F5F5;
+    width: 17px;
+    margin: 20px 0px 20 0px;
+}
+
+QScrollBar::add-line:vertical {
+    border: 0px;
+    height: 20px;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical {
+    border: 0px;
+    height: 20px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+QScrollBar:up-arrow:vertical {
+    background-image: url(":/Bitmaps/Bitmaps/arrow-up-up.png");
+}
+
+QScrollBar:up-arrow:vertical:pressed {
+    background-image: url(":/Bitmaps/Bitmaps/arrow-up-down.png");
+}
+
+QScrollBar:down-arrow:vertical {
+    background-image: url(":/Bitmaps/Bitmaps/arrow-down-up.png");
+}
+
+QScrollBar:down-arrow:vertical:pressed {
+    background-image: url(":/Bitmaps/Bitmaps/arrow-down-down.png");
+}
+
+QScrollBar::handle:vertical {
+    background-color: "#DEE4F2";
+    border: 1px solid #ACAFB5;
+    border-radius: 5;
+    margin: 0 3 0 3;
+}
+
+QScrollBar::handle:vertical:pressed {
+    background-color: "#A6B9EE";
+    border: 1px solid #000000;
+    border-radius: 5;
+    margin: 0 3 0 3;
+}
