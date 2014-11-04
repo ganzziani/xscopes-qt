@@ -211,3 +211,23 @@ QWidget#tab {
     background-color: #FFFFFF;
 }
 
+QLabel#vdcChannel1 {
+    font-size: 50px;
+}
+
+QLabel#vdcChannel2 {
+    font-size: 50px;
+}
+
+QLabel#vppChannel1 {
+    font-size: 50px;
+}
+
+QLabel#vppChannel2 {
+    font-size: 50px;
+}
+
+QLabel#frequencyValue {
+    font-size: 50px;
+}
+

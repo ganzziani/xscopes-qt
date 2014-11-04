@@ -5,3 +5,7 @@ QTabBar::tab{
     font-size: 10px;
     margin-left: 1px;
 }
+
+QLabel#label_19 {
+    font-size: 30px;
+}

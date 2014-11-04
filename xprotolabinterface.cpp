@@ -134,6 +134,7 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
         m_mmTabFont2.setPixelSize(50);
     }
 #endif
+
     ui->vdcChannel1->setFont(m_mmTabFont);
     ui->vdcChannel2->setFont(m_mmTabFont);
     ui->vppChannel1->setFont(m_mmTabFont);
@@ -169,7 +170,7 @@ void XprotolabInterface::checkForAvailableComPorts(){
 bool XprotolabInterface::checkIfCorrectPort(QString name){
     #ifdef Q_OS_WIN
         return name.toLower().startsWith("com");
-    #elif Q_OS_MAC
+    #elif defined(Q_OS_MAC)
         return name.toLower().startsWith("bluetooth");
     #else
         return name.toLower().startsWith("tty");
@@ -668,6 +669,11 @@ void XprotolabInterface::setupTracers(QCustomPlot *customPlot)
 void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot)
 {
     QFont m_monospaceFont = QFont("Courier New", 10, QFont::DemiBold);
+
+    #ifdef Q_OS_MAC
+        m_monospaceFont.setPixelSize(13);
+    #endif
+
     for(int i =0;i<8;i++)
     {
         textLabelBit[i] = new QCPItemText(customPlot);

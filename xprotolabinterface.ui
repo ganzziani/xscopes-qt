@@ -458,7 +458,7 @@
                    <string/>
                   </property>
                   <property name="currentIndex">
-                   <number>1</number>
+                   <number>0</number>
                   </property>
                   <widget class="QWidget" name="ch1Tab">
                    <attribute name="title">
@@ -2527,84 +2527,8 @@
          <item>
           <widget class="QTabWidget" name="mmTabWidget">
            <property name="currentIndex">
-            <number>2</number>
+            <number>0</number>
            </property>
-           <widget class="QWidget" name="tab_2">
-            <attribute name="title">
-             <string>VDC</string>
-            </attribute>
-            <widget class="QWidget" name="verticalLayoutWidget_2">
-             <property name="geometry">
-              <rect>
-               <x>20</x>
-               <y>30</y>
-               <width>451</width>
-               <height>251</height>
-              </rect>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_106">
-              <property name="spacing">
-               <number>30</number>
-              </property>
-              <item>
-               <widget class="QGroupBox" name="groupBox_15">
-                <property name="title">
-                 <string>Channel 1</string>
-                </property>
-                <widget class="QLabel" name="vdcChannel1">
-                 <property name="geometry">
-                  <rect>
-                   <x>10</x>
-                   <y>20</y>
-                   <width>431</width>
-                   <height>81</height>
-                  </rect>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <pointsize>50</pointsize>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string> 0.000V</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
-                 </property>
-                </widget>
-               </widget>
-              </item>
-              <item>
-               <widget class="QGroupBox" name="groupBox_16">
-                <property name="title">
-                 <string>Channel 2</string>
-                </property>
-                <widget class="QLabel" name="vdcChannel2">
-                 <property name="geometry">
-                  <rect>
-                   <x>10</x>
-                   <y>20</y>
-                   <width>431</width>
-                   <height>81</height>
-                  </rect>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <pointsize>50</pointsize>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string> 0.000V</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
-                 </property>
-                </widget>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </widget>
            <widget class="QWidget" name="tab_3">
             <attribute name="title">
              <string>VPP</string>
@@ -2656,6 +2580,82 @@
                  <string>Channel 2</string>
                 </property>
                 <widget class="QLabel" name="vppChannel2">
+                 <property name="geometry">
+                  <rect>
+                   <x>10</x>
+                   <y>20</y>
+                   <width>431</width>
+                   <height>81</height>
+                  </rect>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>50</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string> 0.000V</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+           <widget class="QWidget" name="tab_2">
+            <attribute name="title">
+             <string>VDC</string>
+            </attribute>
+            <widget class="QWidget" name="verticalLayoutWidget_2">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>30</y>
+               <width>451</width>
+               <height>251</height>
+              </rect>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_106">
+              <property name="spacing">
+               <number>30</number>
+              </property>
+              <item>
+               <widget class="QGroupBox" name="groupBox_15">
+                <property name="title">
+                 <string>Channel 1</string>
+                </property>
+                <widget class="QLabel" name="vdcChannel1">
+                 <property name="geometry">
+                  <rect>
+                   <x>10</x>
+                   <y>20</y>
+                   <width>431</width>
+                   <height>81</height>
+                  </rect>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>50</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string> 0.000V</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="groupBox_16">
+                <property name="title">
+                 <string>Channel 2</string>
+                </property>
+                <widget class="QLabel" name="vdcChannel2">
                  <property name="geometry">
                   <rect>
                    <x>10</x>
@@ -2974,7 +2974,7 @@
                    <x>70</x>
                    <y>40</y>
                    <width>121</width>
-                   <height>17</height>
+                   <height>21</height>
                   </rect>
                  </property>
                  <property name="text">
@@ -2990,7 +2990,7 @@
                    <x>260</x>
                    <y>40</y>
                    <width>91</width>
-                   <height>17</height>
+                   <height>21</height>
                   </rect>
                  </property>
                  <property name="text">
@@ -3025,8 +3025,6 @@
               </item>
              </layout>
             </widget>
-            <zorder>verticalLayoutWidget</zorder>
-            <zorder>groupBox_19</zorder>
            </widget>
           </widget>
          </item>
@@ -5176,7 +5174,7 @@ Frequency</string>
                 <item>
                  <layout class="QVBoxLayout" name="verticalLayout_89">
                   <property name="spacing">
-                   <number>10</number>
+                   <number>15</number>
                   </property>
                   <item>
                    <widget class="QCheckBox" name="checkBox_24">
