@@ -36,6 +36,7 @@
 #include <QSettings>
 #include "customtheme.h"
 #include "qcustomplot.h"
+#include "qtooltipslider.h"
 #include "libusbdevice.h"
 #include "fft.h"
 #include "sniffer.h"
@@ -99,6 +100,36 @@ enum Theme {
     Light,
     Custom
 };
+
+enum MainTabs {
+    SCOPE_TAB,
+    METER_TAB,
+    AWG_TAB,
+    SNIFFER_TAB,
+    OPTIONS_TAB,
+    ABOUT_TAB
+};
+
+enum ScopeTabs {
+    CH1_TAB,
+    CH2_TAB,
+    LOGIC_TAB,
+    FFT_TAB,
+    REF_TAB
+};
+
+enum MeterTabs {
+    VPP_TAB,
+    VDC_TAB,
+    FREQ_TAB
+};
+
+enum SnifferTabs {
+    SPI_TAB,
+    I2C_TAB,
+    RS232_TAB
+};
+
 #define TG 9
 
 typedef QVector<double> DataBuffer;

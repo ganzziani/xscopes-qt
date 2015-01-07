@@ -761,7 +761,7 @@ int XprotolabInterface::checkValue(int value, int min, int max){
 
 void XprotolabInterface::plotData()
 {
-    if(ui->mainTabWidget->currentIndex() == 1){
+    if(ui->mainTabWidget->currentIndex() == METER_TAB){
         ui->plotterWidget->clearScene();
     }
 
@@ -889,7 +889,7 @@ void XprotolabInterface::plotData()
             }
         }
     }
-    if(ui->mainTabWidget->currentIndex() == 1)
+    if(ui->mainTabWidget->currentIndex() == METER_TAB)
         mm_request();
     if(ui->radioButtonCursorCH1->isChecked())
     {
@@ -1454,7 +1454,7 @@ void XprotolabInterface::plotData()
     ch2ZeroHead->topLeft->setPixelPoint(QPointF(2,ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
 
     ui->plotterWidget->m_infinity = ui->checkBoxPersistence->isChecked();
-    if(ui->mainTabWidget->currentIndex() != 1)
+    if(ui->mainTabWidget->currentIndex() != METER_TAB)
         ui->plotterWidget->replot();
 
     usbDevice.dataAvailable = false;
@@ -1954,7 +1954,7 @@ void XprotolabInterface::sniffProtocol()
             ui->misoTextEdit->setPlainText(txData);
 
     }
-    else if(ui->protocolTabWidget->currentIndex()==I2C)
+    else if(protocol == I2C)
     {
 
         i = 0;j = 0;
@@ -2505,7 +2505,7 @@ void XprotolabInterface::readDeviceSettings()
     else
        ui->stopButton->setText(tr("START"));
 
-    if(ui->mainTabWidget->currentIndex() == 1){
+    if(ui->mainTabWidget->currentIndex() == METER_TAB){
         if((data & (byte)(1 << 6)) == 0 && (data & (byte)(1 << 7)) == 0) {
             ui->mmTabWidget->setCurrentIndex(2);
         } else{
@@ -3562,7 +3562,7 @@ void XprotolabInterface::sendMStatusControlsForMM()
 {
     byte field = 1; // Set the update bit
     if(ui->mmTabWidget->currentIndex() == 0)      field += (1 << 6);
-    else if(ui->mmTabWidget->currentIndex() == 1) field += (1 << 7);
+    else if(ui->mmTabWidget->currentIndex() == VDC_TAB) field += (1 << 7);
     else if(ui->radioPulse->isChecked()) field += (1 << 6) + (1 << 7);
     usbDevice.controlWriteTransfer(11, field);
 }
@@ -3771,6 +3771,8 @@ void XprotolabInterface::on_doubleSpinBoxTrigAuto_valueChanged(double value)
 // M 29 Channel 1 position
 void XprotolabInterface::on_ch1PositionSlider_valueChanged(int value)
 {
+    ui->ch1PositionSlider->setToolTip(QString::number(ui->ch1PositionSlider->value()));
+
     usbDevice.controlWriteTransfer(29, mapRange(value,128,-128,0,-128));
     double tmp_pos = ch1ZeroPos;
     ch1ZeroPos = rangeMax/2+ui->ch1PositionSlider->value();
@@ -4801,10 +4803,10 @@ void XprotolabInterface::on_mainTabWidget_currentChanged(int index)
         prepareMFFTControlsForMM();
         sendMStatusControlsForMM();
         connect(&m_mmTimer,SIGNAL(timeout()),this,SLOT(mm_request()));
-        if(ui->mmTabWidget->currentIndex() == 2){
+        if(ui->mmTabWidget->currentIndex() == FREQ_TAB){
             sendTSource();
             m_mmTimer.start(1000);
-        }else if(ui->mmTabWidget->currentIndex() == 0){
+        }else if(ui->mmTabWidget->currentIndex() == VPP_TAB){
             m_mmTimer.start(250);
         }
         clearMMLabels();
@@ -4825,7 +4827,7 @@ void XprotolabInterface::restoreUiSettings(){
     on_ch1GainSlider_valueChanged(ui->ch1GainSlider->value());
     on_ch2GainSlider_valueChanged(ui->ch2GainSlider->value());
     on_samplingSlider_valueChanged(ui->samplingSlider->value());
-    if(ui->mmTabWidget->currentIndex() != 1)
+    if(ui->mmTabWidget->currentIndex() != VDC_TAB)
         usbDevice.turnOnAutoMode();
 }
 
@@ -4840,11 +4842,11 @@ void XprotolabInterface::clearMMLabels(){
 
 void XprotolabInterface::mm_request(){
     unsigned char tmp_buff[] = {0, 0, 0, 0};
-    if(ui->mmTabWidget->currentIndex() != 1){
+    if(ui->mmTabWidget->currentIndex() != VDC_TAB){
         int size = usbDevice.requestMM(tmp_buff);
         if(size != 4) return;
     }
-    if(ui->mmTabWidget->currentIndex() == 0) {
+    if(ui->mmTabWidget->currentIndex() == VPP_TAB) {
         double ch1, ch2;
         QString sign1 = " ", sign2 = " ";
         if((int)tmp_buff[1] >= 100){
@@ -4880,7 +4882,7 @@ void XprotolabInterface::mm_request(){
         tmp_v2 += get4Digits(ch2);
         tmp_v2 += "V";
         ui->vdcChannel2->setText(tmp_v2);
-    } else if(ui->mmTabWidget->currentIndex() == 1) {
+    } else if(ui->mmTabWidget->currentIndex() == VDC_TAB) {
         double tmp_diff1 = (vppMaxCh1 - vppMinCh1) / 100.0;
         QString sign1 = " ";
         if(tmp_diff1 < 0) sign1 = "";
@@ -4927,11 +4929,11 @@ void XprotolabInterface::on_mmTabWidget_currentChanged(int)
     ui->radioFreq->setChecked(true);
     ui->radioPulse->setChecked(false);
 
-    if(ui->mmTabWidget->currentIndex() == 2) {
+    if(ui->mmTabWidget->currentIndex() == FREQ_TAB) {
         sendTSource();
         if(ui->radioPulse->isChecked()) m_mmTimer.start(100);
         else m_mmTimer.start(1000);
-    } else if(ui->mmTabWidget->currentIndex() == 0) {
+    } else if(ui->mmTabWidget->currentIndex() == VPP_TAB) {
         m_mmTimer.start(250);
     } else {
         usbDevice.turnOnAutoMode();
