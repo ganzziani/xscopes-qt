@@ -324,7 +324,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QSlider" name="samplingSlider">
+                   <widget class="QToolTipSlider" name="samplingSlider">
                     <property name="maximum">
                      <number>21</number>
                     </property>
@@ -350,7 +350,7 @@
                      <bool>false</bool>
                     </property>
                     <property name="tickPosition">
-                     <enum>QSlider::TicksBelow</enum>
+                     <enum>QToolTipSlider::TicksBelow</enum>
                     </property>
                     <property name="tickInterval">
                      <number>1</number>
@@ -501,7 +501,7 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QSlider" name="ch1PositionSlider">
+                           <widget class="QToolTipSlider" name="ch1PositionSlider">
                             <property name="minimum">
                              <number>-128</number>
                             </property>
@@ -530,7 +530,7 @@
                              <bool>false</bool>
                             </property>
                             <property name="tickPosition">
-                             <enum>QSlider::TicksBelow</enum>
+                             <enum>QToolTipSlider::TicksBelow</enum>
                             </property>
                             <property name="tickInterval">
                              <number>16</number>
@@ -592,7 +592,7 @@
                                </spacer>
                               </item>
                               <item>
-                               <widget class="QSlider" name="ch1GainSlider">
+                               <widget class="QToolTipSlider" name="ch1GainSlider">
                                 <property name="maximum">
                                  <number>6</number>
                                 </property>
@@ -612,7 +612,7 @@
                                  <enum>Qt::Vertical</enum>
                                 </property>
                                 <property name="tickPosition">
-                                 <enum>QSlider::TicksBelow</enum>
+                                 <enum>QToolTipSlider::TicksBelow</enum>
                                 </property>
                                 <property name="tickInterval">
                                  <number>1</number>
@@ -825,7 +825,7 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QSlider" name="ch2PositionSlider">
+                           <widget class="QToolTipSlider" name="ch2PositionSlider">
                             <property name="minimum">
                              <number>-128</number>
                             </property>
@@ -854,7 +854,7 @@
                              <bool>false</bool>
                             </property>
                             <property name="tickPosition">
-                             <enum>QSlider::TicksBelow</enum>
+                             <enum>QToolTipSlider::TicksBelow</enum>
                             </property>
                             <property name="tickInterval">
                              <number>16</number>
@@ -916,7 +916,7 @@
                                </spacer>
                               </item>
                               <item>
-                               <widget class="QSlider" name="ch2GainSlider">
+                               <widget class="QToolTipSlider" name="ch2GainSlider">
                                 <property name="maximum">
                                  <number>6</number>
                                 </property>
@@ -936,7 +936,7 @@
                                  <enum>Qt::Vertical</enum>
                                 </property>
                                 <property name="tickPosition">
-                                 <enum>QSlider::TicksBelow</enum>
+                                 <enum>QToolTipSlider::TicksBelow</enum>
                                 </property>
                                 <property name="tickInterval">
                                  <number>1</number>
@@ -1151,7 +1151,7 @@
                              </spacer>
                             </item>
                             <item>
-                             <widget class="QSlider" name="chdPositionSlider">
+                             <widget class="QToolTipSlider" name="chdPositionSlider">
                               <property name="minimum">
                                <number>0</number>
                               </property>
@@ -1174,7 +1174,7 @@
                                <enum>Qt::Vertical</enum>
                               </property>
                               <property name="tickPosition">
-                               <enum>QSlider::TicksBelow</enum>
+                               <enum>QToolTipSlider::TicksBelow</enum>
                               </property>
                               <property name="tickInterval">
                                <number>1</number>
@@ -1232,7 +1232,7 @@
                              </spacer>
                             </item>
                             <item>
-                             <widget class="QSlider" name="chdSizeSlider">
+                             <widget class="QToolTipSlider" name="chdSizeSlider">
                               <property name="minimum">
                                <number>0</number>
                               </property>
@@ -1246,7 +1246,7 @@
                                <enum>Qt::Vertical</enum>
                               </property>
                               <property name="tickPosition">
-                               <enum>QSlider::TicksBelow</enum>
+                               <enum>QToolTipSlider::TicksBelow</enum>
                               </property>
                               <property name="tickInterval">
                                <number>10</number>
@@ -1349,7 +1349,7 @@
                            </layout>
                           </item>
                           <item>
-                           <widget class="QSlider" name="chdPullSlider">
+                           <widget class="QToolTipSlider" name="chdPullSlider">
                             <property name="minimum">
                              <number>0</number>
                             </property>
@@ -1366,7 +1366,7 @@
                              <enum>Qt::Vertical</enum>
                             </property>
                             <property name="tickPosition">
-                             <enum>QSlider::TicksBelow</enum>
+                             <enum>QToolTipSlider::TicksBelow</enum>
                             </property>
                             <property name="tickInterval">
                              <number>1</number>
@@ -1615,7 +1615,7 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QSlider" name="verticalSlider_8">
+                           <widget class="QToolTipSlider" name="fftPositionSlider">
                             <property name="singleStep">
                              <number>10</number>
                             </property>
@@ -1626,7 +1626,7 @@
                              <enum>Qt::Vertical</enum>
                             </property>
                             <property name="tickPosition">
-                             <enum>QSlider::TicksBelow</enum>
+                             <enum>QToolTipSlider::TicksBelow</enum>
                             </property>
                            </widget>
                           </item>
@@ -1789,7 +1789,7 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QSlider" name="ch1CaptureSlider">
+                           <widget class="QToolTipSlider" name="ch1CaptureSlider">
                             <property name="minimum">
                              <number>-128</number>
                             </property>
@@ -1809,7 +1809,7 @@
                              <enum>Qt::Vertical</enum>
                             </property>
                             <property name="tickPosition">
-                             <enum>QSlider::TicksBelow</enum>
+                             <enum>QToolTipSlider::TicksBelow</enum>
                             </property>
                             <property name="tickInterval">
                              <number>16</number>
@@ -1847,7 +1847,7 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QSlider" name="ch2CaptureSlider">
+                           <widget class="QToolTipSlider" name="ch2CaptureSlider">
                             <property name="minimum">
                              <number>-128</number>
                             </property>
@@ -1870,7 +1870,7 @@
                              <enum>Qt::Vertical</enum>
                             </property>
                             <property name="tickPosition">
-                             <enum>QSlider::TicksBelow</enum>
+                             <enum>QToolTipSlider::TicksBelow</enum>
                             </property>
                             <property name="tickInterval">
                              <number>16</number>
@@ -1908,7 +1908,7 @@
                            </spacer>
                           </item>
                           <item>
-                           <widget class="QSlider" name="chdCaptureSlider">
+                           <widget class="QToolTipSlider" name="chdCaptureSlider">
                             <property name="minimum">
                              <number>-128</number>
                             </property>
@@ -1928,7 +1928,7 @@
                              <enum>Qt::Vertical</enum>
                             </property>
                             <property name="tickPosition">
-                             <enum>QSlider::TicksBelow</enum>
+                             <enum>QToolTipSlider::TicksBelow</enum>
                             </property>
                             <property name="tickInterval">
                              <number>16</number>
@@ -3337,7 +3337,7 @@
                  </layout>
                 </item>
                 <item>
-                 <widget class="QSlider" name="frequencySlider">
+                 <widget class="QToolTipSlider" name="frequencySlider">
                   <property name="minimum">
                    <number>10</number>
                   </property>
@@ -3351,7 +3351,7 @@
                    <enum>Qt::Horizontal</enum>
                   </property>
                   <property name="tickPosition">
-                   <enum>QSlider::NoTicks</enum>
+                   <enum>QToolTipSlider::NoTicks</enum>
                   </property>
                   <property name="tickInterval">
                    <number>10</number>
@@ -3510,7 +3510,7 @@ Frequency</string>
                 </widget>
                </item>
                <item>
-                <widget class="QSlider" name="amplitudeSlider">
+                <widget class="QToolTipSlider" name="amplitudeSlider">
                  <property name="maximum">
                   <number>128</number>
                  </property>
@@ -3527,7 +3527,7 @@ Frequency</string>
                   <enum>Qt::Horizontal</enum>
                  </property>
                  <property name="tickPosition">
-                  <enum>QSlider::NoTicks</enum>
+                  <enum>QToolTipSlider::NoTicks</enum>
                  </property>
                  <property name="tickInterval">
                   <number>16</number>
@@ -3568,7 +3568,7 @@ Frequency</string>
                 </widget>
                </item>
                <item>
-                <widget class="QSlider" name="dutyCycleSlider">
+                <widget class="QToolTipSlider" name="dutyCycleSlider">
                  <property name="minimum">
                   <number>1</number>
                  </property>
@@ -3644,7 +3644,7 @@ Frequency</string>
                 </widget>
                </item>
                <item>
-                <widget class="QSlider" name="offsetSlider">
+                <widget class="QToolTipSlider" name="offsetSlider">
                  <property name="minimum">
                   <number>-127</number>
                  </property>
@@ -3784,7 +3784,7 @@ Frequency</string>
                      </layout>
                     </item>
                     <item>
-                     <widget class="QSlider" name="sweepSpeedSlider">
+                     <widget class="QToolTipSlider" name="sweepSpeedSlider">
                       <property name="toolTip">
                        <string>Sweep speed</string>
                       </property>
@@ -3807,7 +3807,7 @@ Frequency</string>
                        <enum>Qt::Horizontal</enum>
                       </property>
                       <property name="tickPosition">
-                       <enum>QSlider::NoTicks</enum>
+                       <enum>QToolTipSlider::NoTicks</enum>
                       </property>
                       <property name="tickInterval">
                        <number>16</number>
@@ -3838,7 +3838,7 @@ Frequency</string>
                        </widget>
                       </item>
                       <item>
-                       <widget class="QSlider" name="sweepStartFreqSlider">
+                       <widget class="QToolTipSlider" name="sweepStartFreqSlider">
                         <property name="toolTip">
                          <string>Sweep start frequency</string>
                         </property>
@@ -3858,7 +3858,7 @@ Frequency</string>
                          <enum>Qt::Horizontal</enum>
                         </property>
                         <property name="tickPosition">
-                         <enum>QSlider::NoTicks</enum>
+                         <enum>QToolTipSlider::NoTicks</enum>
                         </property>
                         <property name="tickInterval">
                          <number>16</number>
@@ -3887,7 +3887,7 @@ Frequency</string>
                        </widget>
                       </item>
                       <item>
-                       <widget class="QSlider" name="sweepEndFreqSlider">
+                       <widget class="QToolTipSlider" name="sweepEndFreqSlider">
                         <property name="toolTip">
                          <string>Sweep end frequency</string>
                         </property>
@@ -4701,7 +4701,7 @@ Frequency</string>
                        </widget>
                       </item>
                       <item>
-                       <widget class="QSlider" name="intensitySlider">
+                       <widget class="QToolTipSlider" name="intensitySlider">
                         <property name="minimum">
                          <number>0</number>
                         </property>
@@ -4727,7 +4727,7 @@ Frequency</string>
                          <bool>true</bool>
                         </property>
                         <property name="tickPosition">
-                         <enum>QSlider::TicksBelow</enum>
+                         <enum>QToolTipSlider::TicksBelow</enum>
                         </property>
                         <property name="tickInterval">
                          <number>1</number>
@@ -4785,7 +4785,7 @@ Frequency</string>
                        </widget>
                       </item>
                       <item>
-                       <widget class="QSlider" name="decaySlider">
+                       <widget class="QToolTipSlider" name="decaySlider">
                         <property name="maximum">
                          <number>8</number>
                         </property>
@@ -4796,7 +4796,7 @@ Frequency</string>
                          <enum>Qt::Horizontal</enum>
                         </property>
                         <property name="tickPosition">
-                         <enum>QSlider::TicksBelow</enum>
+                         <enum>QToolTipSlider::TicksBelow</enum>
                         </property>
                         <property name="tickInterval">
                          <number>1</number>
@@ -5688,6 +5688,12 @@ background-position: center;</string>
    <class>QCustomPlot</class>
    <extends>QWidget</extends>
    <header>qcustomplot.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QToolTipSlider</class>
+   <extends>QSlider</extends>
+   <header>qtooltipslider.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

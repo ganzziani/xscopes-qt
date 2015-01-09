@@ -11,7 +11,8 @@ SOURCES += main.cpp\
     complex.cpp \
     customtheme.cpp \
     serialportconnection.cpp \
-    customcolors.cpp
+    customcolors.cpp \
+    qtooltipslider.cpp
 
 HEADERS  += xprotolabinterface.h \
     qcustomplot.h \
@@ -23,7 +24,8 @@ HEADERS  += xprotolabinterface.h \
     sniffer.h \
     customtheme.h \
     serialportconnection.h \
-    customcolors.h
+    customcolors.h \
+    qtooltipslider.h
 
 FORMS += xprotolabinterface.ui \
     customtheme.ui
