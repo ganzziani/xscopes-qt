@@ -1,4 +1,6 @@
 #include "serialportconnection.h"
+#include <QThread>
+#include "qextserialport.h"
 
 SerialPortConnection::SerialPortConnection(QObject *parent) :
     QObject(parent)
@@ -23,6 +25,9 @@ SerialPortConnection::SerialPortConnection(QObject *parent) :
     start_of_frame_slow[0] = 13;
     start_of_frame_slow[1] = 10;
     start_of_frame_slow[2] = 83;
+
+    thread()->setPriority(QThread::HighestPriority);
+    connect(&timer,SIGNAL(timeout()),this,SLOT(onReadyRead()));
 }
 
 bool SerialPortConnection::connectToPort(QString name){
@@ -32,19 +37,23 @@ bool SerialPortConnection::connectToPort(QString name){
             clearPort();
             return false;
         }
-        serial=new QSerialPort(name);
-        serial->setPortName(name);               
+        //serial=new QSerialPort(name);
+        //connect(serial, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
 
-        serial->setBaudRate(QSerialPort::Baud115200);
+        PortSettings settings = {BAUD115200, DATA_8, PAR_NONE, STOP_1, FLOW_OFF, 10};
+        serial = new QextSerialPort(name, settings, QextSerialPort::Polling);        
+        serial->setPortName(name);
+
+        /*serial->setBaudRate(QSerialPort::Baud115200);
         serial->setDataBits(QSerialPort::Data8);
         serial->setParity(QSerialPort::NoParity);
         serial->setStopBits(QSerialPort::OneStop);
-        serial->setFlowControl(QSerialPort::NoFlowControl);
+        serial->setFlowControl(QSerialPort::NoFlowControl);*/
 
         if (serial->open(QIODevice::ReadWrite)) {
             qDebug()<<"SUCCESS";
             emit clear();
-            connect(serial,SIGNAL(readyRead()),this,SLOT(readyReadSlot()));
+            timer.start(10);
             finish=false;
             return true;
         }else{
@@ -71,12 +80,14 @@ void SerialPortConnection::close(){
         disconnect(serial);
         delete serial;
         serial=NULL;
+        timer.stop();
     }
 }
 
 void SerialPortConnection::write(QString string){
     if(serial && serial->isOpen()){
-        serial->write(string.toStdString().c_str());
+        //serial->write(string.toStdString().c_str());
+        serial->write(string.toLatin1());
         while(serial->waitForBytesWritten(1000) );
     }
 }
@@ -103,12 +114,12 @@ void SerialPortConnection::setSamplingValue(int value){
     this->samplingValue = value;    
 }
 
-void SerialPortConnection::readyReadSlot(){
+void SerialPortConnection::onReadyRead(){
     int max_length = 768;
     if(!sendData) return;
     if(!serial || !serial->isOpen()) return;
+    if(!serial->bytesAvailable()) return;
     if(wsk == NULL) return;
-
     char tmp[769];
 
     if(samplingValue >= 11){
@@ -116,10 +127,14 @@ void SerialPortConnection::readyReadSlot(){
             if(serial->bytesAvailable() < 3){
                 return;
             }
-            char tmp_start_of_frame[3];
-            serial->read(tmp_start_of_frame,3);
-            if(checkIfStartOfFrame(tmp_start_of_frame,true))
-                m_stateOfConnection = 1;
+            char tmp_end_of_frame[3];
+            while(serial->bytesAvailable() >= 3){
+                serial->read(tmp_end_of_frame,3);
+                if(checkIfEndOfFrame(tmp_end_of_frame)){
+                    m_stateOfConnection = 1;
+                    break;
+                }
+            }
         }else{
             int max = 3*(serial->bytesAvailable()/3);
             if(max == 0) return;
@@ -144,7 +159,7 @@ void SerialPortConnection::readyReadSlot(){
     }else{
         if(m_stateOfConnection == 0){
             bool end = false;
-            while(!end){
+            while(!end){                
                 if(serial->bytesAvailable() < 3){
                     return;
                 }

@@ -1,6 +1,8 @@
 #include "libusbdevice.h"
 #include "libusbdeviceinfo.h"
 
+#include "qextserialport.h"
+
 LibUsbDevice::LibUsbDevice(QObject *parent) :
     QObject(parent)
 {
@@ -285,7 +287,7 @@ bool LibUsbDevice::controlReadTransfer(uint8_t command, uint16_t value , uint16_
         }
     }else{
         serial.sendData=false;
-        serial.serial->clear();
+        //serial.serial->clear();
         serial.write("p");
 
         serial.write(QString(command));
@@ -411,23 +413,22 @@ QString LibUsbDevice::requestFirmwareVersion()
     if(wayOfConnecting){
         bytesRead = libusb_control_transfer(deviceHandle,0xC0,'a',0,0,buffer,4,1000);
     }else{
-        serial.serial->clear();
+        //serial.serial->clear();
         serial.write("a");
         char tmp[4];
         int counter = 0;
         while(serial.serial->bytesAvailable()!=4){
             serial.serial->waitForReadyRead(1000);
-            counter ++;
+            /*counter ++;
 
             if(counter == 5){
                 return "-1";
-            }
+            }*/
         }
         bytesRead=serial.serial->read(tmp,4);
         for(int i=0;i<bytesRead;i++){
             buffer[i]=tmp[i];
         }
-        qDebug()<<"VERSION: "<<getStringFromUnsignedChar(buffer,4);
     }
     if (bytesRead > 0)
     {
@@ -534,14 +535,14 @@ void LibUsbDevice::newDataAvailable(int size){
 
 void LibUsbDevice::turnOnAutoMode(){
     if(!wayOfConnecting){
-        serial.serial->clear();
+        //serial.serial->clear();
         serial.sendData=true;
         serial.write("q");
     }
 }
 void LibUsbDevice::turnOffAutoMode(){
     if(!wayOfConnecting){
-        serial.serial->clear();
+        //serial.serial->clear();
         serial.sendData=false;
         serial.write("p");
         serial.serial->readAll();

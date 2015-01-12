@@ -16,6 +16,8 @@
     typedef uint8_t byte;
 #endif
 
+class QextSerialPort;
+
 class SerialPortConnection : public QObject
 {
     Q_OBJECT
@@ -33,12 +35,14 @@ public slots:
     bool bytesAvailable();
     void setSamplingValue(int value);
 
-    void readyReadSlot();
     void clearPort();
     bool checkIfEndOfFrame(char tab[]);
     bool checkIfStartOfFrame(char tab[], bool mode);
+
+    void onReadyRead();
 public:
-    QSerialPort *serial;
+    //QSerialPort *serial;
+    QextSerialPort *serial;
     bool sendData;
     byte *wsk;
     bool finish;
@@ -50,6 +54,8 @@ public:
     int end_of_frame[3];
     int start_of_frame_fast[3];
     int start_of_frame_slow[3];
+
+    QTimer timer;
 };
 
 #endif // SERIALPORTCONNECTION_H

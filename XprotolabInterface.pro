@@ -57,3 +57,5 @@ OTHER_FILES += \
     win-tab.qss \
     customtheme.qss \
     colorDialogStyle.qss
+
+include(extserialport/qextserialport.pri)

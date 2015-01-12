@@ -2,6 +2,8 @@
 #include "ui_xprotolabinterface.h"
 #include <stdio.h>
 
+#include "qextserialenumerator.h"
+
 XprotolabInterface::XprotolabInterface(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::XprotolabInterface)
@@ -2118,6 +2120,7 @@ void XprotolabInterface::on_connectButton_clicked()
          {
              ui->connectButton->setText("Close connection");
              QString tmp_version = usbDevice.requestFirmwareVersion();
+             qDebug()<<"VERSION "<<tmp_version;
              if(tmp_version == "-1"){
                  disconnectDevice(false);
                  setInfoText();
