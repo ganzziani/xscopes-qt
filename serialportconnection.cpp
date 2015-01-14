@@ -32,23 +32,10 @@ SerialPortConnection::SerialPortConnection(QObject *parent) :
 
 bool SerialPortConnection::connectToPort(QString name){
     if(serial==NULL || (serial!=NULL && !serial->isOpen())){
-        QSerialPortInfo sp(name);
-        if(sp.isNull() || !sp.isValid()){
-            clearPort();
-            return false;
-        }
-        //serial=new QSerialPort(name);
-        //connect(serial, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
 
         PortSettings settings = {BAUD115200, DATA_8, PAR_NONE, STOP_1, FLOW_OFF, 10};
         serial = new QextSerialPort(name, settings, QextSerialPort::Polling);        
         serial->setPortName(name);
-
-        /*serial->setBaudRate(QSerialPort::Baud115200);
-        serial->setDataBits(QSerialPort::Data8);
-        serial->setParity(QSerialPort::NoParity);
-        serial->setStopBits(QSerialPort::OneStop);
-        serial->setFlowControl(QSerialPort::NoFlowControl);*/
 
         if (serial->open(QIODevice::ReadWrite)) {
             qDebug()<<"SUCCESS";
@@ -86,7 +73,6 @@ void SerialPortConnection::close(){
 
 void SerialPortConnection::write(QString string){
     if(serial && serial->isOpen()){
-        //serial->write(string.toStdString().c_str());
         serial->write(string.toLatin1());
         while(serial->waitForBytesWritten(1000) );
     }
@@ -106,10 +92,16 @@ bool SerialPortConnection::bytesAvailable(){
 void SerialPortConnection::setSamplingValue(int value){
     if(samplingValue < 11 && value >= 11){
         index = 0;
+        if(serial && serial->isOpen()){
+            serial->flush();
+        }
+        m_stateOfConnection = 0;
         emit clear();
     }
     if(samplingValue >= 11 && value < 11){
         m_stateOfConnection = 0;
+        if(serial && serial->isOpen())
+            serial->flush();
     }
     this->samplingValue = value;    
 }
@@ -123,38 +115,26 @@ void SerialPortConnection::onReadyRead(){
     char tmp[769];
 
     if(samplingValue >= 11){
-        if(m_stateOfConnection == 0){
-            if(serial->bytesAvailable() < 3){
-                return;
+        int max = 3*(serial->bytesAvailable()/3);
+        if(max == 0) return;
+        if(max > 768) max = 768;
+        int size = serial->read(tmp,max);
+        for(int i = 0; i < size; i += 3){
+            if(checkIfStartOfFrame(tmp + i, false)){
+                index = 0;
+                m_stateOfConnection = 1;
+                continue;
             }
-            char tmp_end_of_frame[3];
-            while(serial->bytesAvailable() >= 3){
-                serial->read(tmp_end_of_frame,3);
-                if(checkIfEndOfFrame(tmp_end_of_frame)){
-                    m_stateOfConnection = 1;
-                    break;
-                }
+            if(checkIfEndOfFrame(tmp + i)){
+                index = 0;
+                continue;
             }
-        }else{
-            int max = 3*(serial->bytesAvailable()/3);
-            if(max == 0) return;
-            if(max > 769) max = 769;
-            int size = serial->read(tmp,max);
-            for(int i = 0; i < size; i += 3){
-                if(checkIfStartOfFrame(tmp + i, false)){
-                    index = 0;
-                    continue;
-                }
-                if(checkIfEndOfFrame(tmp + i)){
-                    index = 0;
-                    continue;
-                }
-                wsk[index ] = tmp[i];
-                wsk[index + 256] = tmp[i+1];
-                wsk[index + 2 * 256] = tmp[i+2];
-                index ++;
-                emit newData(3);
-            }
+            if(m_stateOfConnection == 0) continue;
+            wsk[index ] = tmp[i];
+            wsk[index + 256] = tmp[i+1];
+            wsk[index + 512] = tmp[i+2];
+            index ++;
+            emit newData(3);
         }
     }else{
         if(m_stateOfConnection == 0){
@@ -181,7 +161,7 @@ void SerialPortConnection::onReadyRead(){
                 wsk[i] = tmp[i];
             }
             if(size == 768) {
-                wsk[789] = 0;
+                wsk[768] = 0;
                 wsk[769] = 0;
             }
             emit newData(770);

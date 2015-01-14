@@ -190,6 +190,10 @@ void LibUsbDevice::openDevice(QString nameOfPort)
         isDeviceConnected = true;
     }else{        
         isDeviceConnected = serial.connectToPort(nameOfPort);
+        if(isDeviceConnected){
+            serial.serial->write("p");
+            serial.serial->flush();
+        }
     }
 }
 
@@ -222,8 +226,8 @@ void LibUsbDevice::closeDevice()
             serial.sendData=false;
             serial.finish=true;
             future.waitForFinished();
-            serial.write("p");
             enableEventThread = false;
+            serial.write("p");
             saveDeviceSettings();
             serial.close();
             isDeviceConnected=false;
@@ -286,34 +290,43 @@ bool LibUsbDevice::controlReadTransfer(uint8_t command, uint16_t value , uint16_
             return false;
         }
     }else{
-        serial.sendData=false;
-        //serial.serial->clear();
-        serial.write("p");
+        if(QString(command) == "u" || QString(command) == "c" || QString(command) == "w" || QString(command) == "x")
+            turnOffAutoMode();
 
-        serial.write(QString(command));
-        serial.write(QString(qToLittleEndian(index)));
-        serial.write(QString(qToLittleEndian(value)));
+        QByteArray ba;
+        ba[0]=command;
+        ba[1]=index;
+        ba[2]=index >> 8;
+        ba[3]=value;
+        ba[4]=value >> 8;
 
-        while(serial.serial->bytesAvailable()<44){
-            serial.serial->waitForReadyRead(1000);
-        }
-        char tmp[LEN_CONTROL_BUFFER];
-        int size=serial.serial->read(tmp,LEN_CONTROL_BUFFER);
-        for(int i=0;i<size;i++){
-            inBuffer[i]=tmp[i];
-        }
-        turnOnAutoMode();
-        if (size >= 0)
-        {
-            if(size<LEN_CONTROL_BUFFER)
-                inBuffer[size] = '\0';
+        serial.writeByteArray(ba);
+        if(QString(command) == "u"){
+            while(serial.serial->bytesAvailable()<44){
+                serial.serial->waitForReadyRead(1000);
+            }
+            char tmp[44];
+            int size=serial.serial->read(tmp,44);
+            for(int i=0;i<size;i++){
+                inBuffer[i]=tmp[i];
+            }
+            turnOnAutoMode();
+            if (size >= 0)
+            {
+                if(size<LEN_CONTROL_BUFFER)
+                    inBuffer[size] = '\0';
+                return true;
+            }
+            else
+            {
+                cstatus = tr("Read Error!");
+                qDebug()<<"read error: "<<size;
+                return false;
+            }
+        }else{
+            if(QString(command) == "c" || QString(command) == "w" || QString(command) == "x")
+                QTimer::singleShot(100,this,SLOT(turnOnAutoMode()));
             return true;
-        }
-        else
-        {
-            cstatus = tr("Read Error!");
-            qDebug()<<"read error: "<<size;
-            return false;
         }
     }
     return false;
@@ -421,7 +434,7 @@ QString LibUsbDevice::requestFirmwareVersion()
             serial.serial->waitForReadyRead(1000);
             /*counter ++;
 
-            if(counter == 5){
+            if(counter == 10){
                 return "-1";
             }*/
         }
@@ -537,6 +550,7 @@ void LibUsbDevice::turnOnAutoMode(){
     if(!wayOfConnecting){
         //serial.serial->clear();
         serial.sendData=true;
+        serial.m_stateOfConnection = 0;
         serial.write("q");
     }
 }

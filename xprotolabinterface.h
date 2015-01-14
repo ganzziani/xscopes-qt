@@ -45,8 +45,6 @@
 #include <QtSerialPort/QSerialPortInfo>
 #include <QtSerialPort/QSerialPort>
 
-class QextSerialEnumerator;
-
 enum WindowFunction {
     Rectangular,
     Hamming,
@@ -343,6 +341,7 @@ private slots:
 
 private:
     Ui::XprotolabInterface *ui;
+    int m_mainTimerDelay;
     QTimer dataTimer;
     LibUsbDevice usbDevice;
     Sniffer *sniffLogic;
@@ -414,8 +413,6 @@ private:
     double vppMaxCh1;
     double vppMinCh2;
     double vppMaxCh2;
-
-    QextSerialEnumerator *enumerator;
 };
 
 #endif // XPROTOLABINTERFACE_H

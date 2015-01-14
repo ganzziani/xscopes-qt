@@ -92,7 +92,9 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     QTimer::singleShot(0,this,SLOT(on_connectButton_clicked()));
     initializing = false;
     connect(&dataTimer, SIGNAL(timeout()), this, SLOT(plotData()));
-    dataTimer.start(4); // Interval 0 means to refresh as fast as possible
+
+    m_mainTimerDelay = 4;
+    dataTimer.start(m_mainTimerDelay); // Interval 0 means to refresh as fast as possible
 
     updateCh1Label();
     updateCh2Label();
@@ -2132,12 +2134,15 @@ void XprotolabInterface::on_connectButton_clicked()
              readDeviceSettings();
              usbDevice.asyncBulkReadTransfer();
              if(usbDevice.wayOfConnecting){
+                m_mainTimerDelay = 4;
                 ui->connectLabel->setText(tr("USB Connected"));
                 this->setWindowTitle("Gabotronics Xscope Interface - USB Connected");
              }else{
+                 m_mainTimerDelay = 0;
                  ui->connectLabel->setText(tr("Serial port Connected"));
                  this->setWindowTitle("Gabotronics Xscope Interface - Serial port Connected");
              }
+             dataTimer.setInterval(m_mainTimerDelay);
              ui->radioButton->setDisabled(true);
              ui->radioButton_2->setDisabled(true);
              ui->rescanButton->setDisabled(true);
@@ -2167,6 +2172,8 @@ void XprotolabInterface::disconnectDevice(bool mode){
     ui->radioButton->setDisabled(false);
     ui->radioButton_2->setDisabled(false);
     if(!usbDevice.wayOfConnecting) ui->rescanButton->setDisabled(false);
+
+    ui->currentFirwareVersion->setText("");
 }
 
 void XprotolabInterface::readDeviceSettings()
@@ -4816,8 +4823,8 @@ void XprotolabInterface::on_mainTabWidget_currentChanged(int index)
         sendMFFTControls();
         m_mmTimer.stop();       
         disconnect(&m_mmTimer);
-        QTimer::singleShot(500,this,SLOT(restoreUiSettings()));        
-        dataTimer.setInterval(4);        
+        restoreUiSettings();
+        dataTimer.setInterval(m_mainTimerDelay);
     }
     m_prevTabIndex = index;
 }
@@ -4877,22 +4884,22 @@ void XprotolabInterface::mm_request(){
         QString tmp_v1 = sign1;
         tmp_v1 += get4Digits(ch1);
         tmp_v1 += "V";
-        ui->vdcChannel1->setText(tmp_v1);
+        ui->vppChannel1->setText(tmp_v1);
 
         QString tmp_v2 = sign2;
         tmp_v2 += get4Digits(ch2);
         tmp_v2 += "V";
-        ui->vdcChannel2->setText(tmp_v2);
+        ui->vppChannel2->setText(tmp_v2);
     } else if(ui->mmTabWidget->currentIndex() == 1) {
         double tmp_diff1 = (vppMaxCh1 - vppMinCh1) / 100.0;
         QString sign1 = " ";
         if(tmp_diff1 < 0) sign1 = "";
-        ui->vppChannel1->setText(sign1 + get4Digits(tmp_diff1)+"V");
+        ui->vdcChannel1->setText(sign1 + get4Digits(tmp_diff1)+"V");
 
         double tmp_diff2 = (vppMaxCh2 - vppMinCh2) / 100.0;
         QString sign2 = " ";
         if(tmp_diff2 < 0) sign2 = "";
-        ui->vppChannel2->setText(sign2 + get4Digits(tmp_diff2)+"V");
+        ui->vdcChannel2->setText(sign2 + get4Digits(tmp_diff2)+"V");
     } else {
         double fc;
         fc = tmp_buff[0];
@@ -4939,6 +4946,7 @@ void XprotolabInterface::on_mmTabWidget_currentChanged(int)
     } else {
         usbDevice.turnOnAutoMode();
         dataTimer.setInterval(0);
+        usbDevice.serial.m_stateOfConnection = 0;
     }
 }
 
