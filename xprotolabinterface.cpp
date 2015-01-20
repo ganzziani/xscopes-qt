@@ -2,8 +2,6 @@
 #include "ui_xprotolabinterface.h"
 #include <stdio.h>
 
-#include "qextserialenumerator.h"
-
 XprotolabInterface::XprotolabInterface(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::XprotolabInterface)
@@ -92,6 +90,7 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     QTimer::singleShot(0,this,SLOT(on_connectButton_clicked()));
     initializing = false;
     connect(&dataTimer, SIGNAL(timeout()), this, SLOT(plotData()));
+    connect(&m_mmTimer,SIGNAL(timeout()),this,SLOT(mm_request()));
 
     m_mainTimerDelay = 4;
     dataTimer.start(m_mainTimerDelay); // Interval 0 means to refresh as fast as possible
@@ -145,6 +144,8 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     ui->vppChannel2->setFont(m_mmTabFont);
     ui->frequencyValue->setFont(m_mmTabFont2);
     ui->comboBox_9->view()->setFixedWidth(350);
+
+    connect(&usbDevice.serial,SIGNAL(connectionStatus(QString)),this,SLOT(setInfoText(QString)));
 }
 
 XprotolabInterface::~XprotolabInterface()
@@ -2125,7 +2126,6 @@ void XprotolabInterface::on_connectButton_clicked()
              qDebug()<<"VERSION "<<tmp_version;
              if(tmp_version == "-1"){
                  disconnectDevice(false);
-                 setInfoText();
                  return;
              }
              ui->currentFirwareVersion->setText(tmp_version);
@@ -2148,11 +2148,12 @@ void XprotolabInterface::on_connectButton_clicked()
              ui->rescanButton->setDisabled(true);
 
              ui->connectIcon->setPixmap(QPixmap(":/Bitmaps/Bitmaps/led-on.png"));
+             setInfoText();
          }
     }else{
         disconnectDevice();
-    }
-    setInfoText();
+        setInfoText();
+    }        
 }
 
 void XprotolabInterface::disconnectDevice(bool mode){
@@ -4807,10 +4808,10 @@ void XprotolabInterface::on_mainTabWidget_currentChanged(int index)
 {
     if(m_prevTabIndex != 1 && index == 1){
         plotData();
+        if(!usbDevice.isDeviceConnected) return;
         checkFCRadioButtons(ui->comboBoxTrigSource->currentIndex());
         prepareMFFTControlsForMM();
-        sendMStatusControlsForMM();
-        connect(&m_mmTimer,SIGNAL(timeout()),this,SLOT(mm_request()));
+        sendMStatusControlsForMM();        
         if(ui->mmTabWidget->currentIndex() == 2){
             sendTSource();
             m_mmTimer.start(1000);
@@ -4820,11 +4821,12 @@ void XprotolabInterface::on_mainTabWidget_currentChanged(int index)
         clearMMLabels();
     }
     if(m_prevTabIndex == 1 && index != 1){
+        if(!usbDevice.isDeviceConnected) return;
         sendMFFTControls();
         m_mmTimer.stop();       
-        disconnect(&m_mmTimer);
         restoreUiSettings();
         dataTimer.setInterval(m_mainTimerDelay);
+        usbDevice.turnOnAutoMode();
     }
     m_prevTabIndex = index;
 }

@@ -92,7 +92,6 @@ extern "C" void LIBUSB_CALL asyncBulkWriteTransferCallback(struct libusb_transfe
 
 void LibUsbDevice::initializeDevice()
 {    
-    clearData();
     if(wayOfConnecting){
         int status;
         status = libusb_init(&context); //initialize the library for the session we just declared
@@ -325,7 +324,7 @@ bool LibUsbDevice::controlReadTransfer(uint8_t command, uint16_t value , uint16_
             }
         }else{
             if(QString(command) == "c" || QString(command) == "w" || QString(command) == "x")
-                QTimer::singleShot(100,this,SLOT(turnOnAutoMode()));
+                turnOnAutoMode();
             return true;
         }
     }
@@ -426,17 +425,16 @@ QString LibUsbDevice::requestFirmwareVersion()
     if(wayOfConnecting){
         bytesRead = libusb_control_transfer(deviceHandle,0xC0,'a',0,0,buffer,4,1000);
     }else{
-        //serial.serial->clear();
         serial.write("a");
         char tmp[4];
-        int counter = 0;
+        QElapsedTimer elapsed_timer;
+        elapsed_timer.start();
         while(serial.serial->bytesAvailable()!=4){
             serial.serial->waitForReadyRead(1000);
-            /*counter ++;
-
-            if(counter == 10){
+            if(elapsed_timer.hasExpired(10000)){
+                emit serial.connectionStatus("Port is busy or unreachable.");
                 return "-1";
-            }*/
+            }
         }
         bytesRead=serial.serial->read(tmp,4);
         for(int i=0;i<bytesRead;i++){
@@ -548,18 +546,15 @@ void LibUsbDevice::newDataAvailable(int size){
 
 void LibUsbDevice::turnOnAutoMode(){
     if(!wayOfConnecting){
-        //serial.serial->clear();
+        serial.write("q");
         serial.sendData=true;
         serial.m_stateOfConnection = 0;
-        serial.write("q");
     }
 }
 void LibUsbDevice::turnOffAutoMode(){
     if(!wayOfConnecting){
-        //serial.serial->clear();
         serial.sendData=false;
         serial.write("p");
-        serial.serial->readAll();
     }
 }
 
@@ -573,11 +568,13 @@ int LibUsbDevice::requestMM(unsigned char * buffer){
         bytesRead = libusb_control_transfer(deviceHandle,0xC0,'m',0,0,buffer,4,1000);
     }else{
         turnOffAutoMode();
+        serial.serial->flush();
+        serial.serial->readAll();
+
         serial.write("m");
 
-        while(serial.serial->bytesAvailable()<4){
-            serial.serial->waitForReadyRead(1000);
-        }
+        while(serial.serial->bytesAvailable()<4);
+
         char tmp[4];
         bytesRead = serial.serial->read(tmp,4);
         for(int i = 0; i < bytesRead; i++){

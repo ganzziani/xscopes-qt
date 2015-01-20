@@ -27,6 +27,7 @@ public:
 signals:
     void newData(int);
     void clear();
+    void connectionStatus(QString status);
 public slots:
     bool connectToPort(QString);
     void close();

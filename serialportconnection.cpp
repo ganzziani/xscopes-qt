@@ -39,11 +39,11 @@ bool SerialPortConnection::connectToPort(QString name){
 
         if (serial->open(QIODevice::ReadWrite)) {
             qDebug()<<"SUCCESS";
-            emit clear();
             timer.start(10);
             finish=false;
             return true;
         }else{
+            emit connectionStatus("Port is busy or unreachable.");
             clearPort();
             return false;
         }
@@ -74,13 +74,13 @@ void SerialPortConnection::close(){
 void SerialPortConnection::write(QString string){
     if(serial && serial->isOpen()){
         serial->write(string.toLatin1());
-        while(serial->waitForBytesWritten(1000) );
+        //while(serial->waitForBytesWritten(1000) );
     }
 }
 void SerialPortConnection::writeByteArray(QByteArray string){
     if(serial && serial->isOpen()){
         serial->write(string);
-        while(serial->waitForBytesWritten(1000) );
+        //while(serial->waitForBytesWritten(1000) );
     }
 }
 bool SerialPortConnection::bytesAvailable(){
@@ -96,7 +96,6 @@ void SerialPortConnection::setSamplingValue(int value){
             serial->flush();
         }
         m_stateOfConnection = 0;
-        emit clear();
     }
     if(samplingValue >= 11 && value < 11){
         m_stateOfConnection = 0;
@@ -145,7 +144,6 @@ void SerialPortConnection::onReadyRead(){
                 }
                 char tmp_start_of_frame[3];
                 serial->read(tmp_start_of_frame,3);
-
                 if(checkIfStartOfFrame(tmp_start_of_frame,true)){
                     m_stateOfConnection = 1;
                     end = true;
