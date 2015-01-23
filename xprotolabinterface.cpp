@@ -2153,7 +2153,7 @@ void XprotolabInterface::on_connectButton_clicked()
     }else{
         disconnectDevice();
         setInfoText();
-    }        
+    }
 }
 
 void XprotolabInterface::disconnectDevice(bool mode){

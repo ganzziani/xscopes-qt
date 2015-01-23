@@ -170,6 +170,7 @@ void LibUsbDevice::openDevice(QString nameOfPort)
         {
             cstatus = tr("Cannot open device!");
             qDebug()<<"Cannot open device"<<endl;
+            emit serial.connectionStatus("Cannot open device");
             return;
         }
 
