@@ -10,6 +10,13 @@ set(CMAKE_VERBOSE_MAKEFILE true)
 # PIC and c++11
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++11")
 
+set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 # target
 set(TARGET xscope)
 
@@ -37,10 +44,25 @@ endif( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
 #add_definitions(-DQT_NO_KEYWORDS)
 
 # Add the appropriate components to the component list here
-find_package(Qt4 REQUIRED COMPONENTS QtCore QtGui)
-include(${QT_USE_FILE})
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets PrintSupport SerialPort)
+
+#$include(${QT_USE_FILE})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}
                     ${CMAKE_CURRENT_SOURCE_DIR})
+
+include_directories(${Qt5_INCLUDE_DIRS}
+                    ${Qt5Core_INCLUDE_DIRS}
+                    ${Qt5Gui_INCLUDE_DIRS}
+                    ${Qt5Widgets_INCLUDE_DIRS}
+                    ${Qt5PrintSupport_INCLUDE_DIRS}
+                    ${Qt5SerialPort_INCLUDE_DIRS})
+
+set(QT_LIBRARIES ${Qt5_LIBRARIES}
+                 ${Qt5Core_LIBRARIES}
+                 ${Qt5Gui_LIBRARIES}
+                 ${Qt5Widgets_LIBRARIES}
+                 ${Qt5PrintSupport_LIBRARIES}
+                 ${Qt5SerialPort_LIBRARIES})
 
 # Qwt module
 #set(QWT_LIBRARIES qwt)
@@ -57,12 +79,13 @@ file(GLOB QT_FORMS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${FORMS_SRC})
 file(GLOB QT_RESOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${RESOURCES_SRC})
 file(GLOB_RECURSE QT_MOC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${MOC_HEADERS})
 
-QT4_ADD_RESOURCES(QT_RESOURCES_CPP ${QT_RESOURCES})
-QT4_WRAP_UI(QT_FORMS_HPP ${QT_FORMS})
+
+QT5_ADD_RESOURCES(QT_RESOURCES_CPP ${QT_RESOURCES})
+#QT5_WRAP_UI(QT_FORMS_HPP ${QT_FORMS})
 # Prevents moc from failing on Parse error at "BOOST_JOIN"
-QT4_WRAP_CPP(QT_MOC_HPP ${QT_MOC}
+#QT5_WRAP_CPP(QT_MOC_HPP ${QT_MOC}
 #             OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
-            )
+#            )
 ##############################################################################
 # App Sources
 ##############################################################################                         )
@@ -75,17 +98,27 @@ set(HEADER_SRC
     fft.h
     complex.h
     sniffer.h
-    customtheme.h)
+    customcolors.h
+    customtheme.h
+    serialportconnection.h)
 set(CPP_SRC main.cpp
     qcustomplot.cpp
     libusbdevice.cpp
     xprotolabinterface.cpp
     fft.cpp
     complex.cpp
-    customtheme.cpp)
+    customcolors.cpp
+    customtheme.cpp
+    serialportconnection.cpp)
 
 file(GLOB_RECURSE CPP_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS ${CPP_SRC})
 #file(GLOB_RECURSE INC_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*.hpp)
+
+##############################################################################
+# extserialport
+##############################################################################
+
+add_subdirectory(extserialport)
 
 ##############################################################################
 # Binaries
@@ -97,8 +130,10 @@ add_executable(${TARGET}
                 ${HEADER_SRC}
               )
 
-target_link_libraries(${TARGET} ${QT_LIBRARIES}
+target_link_libraries(${TARGET}
                 ${LIBUSB_LIBRARIES}
+                ${QT_LIBRARIES}
+                extserialport
 #                ${Boost_LIBRARIES}
 #				${QWT_LIBRARIES}
 )
