@@ -72,6 +72,7 @@ set(QT_LIBRARIES ${Qt5_LIBRARIES}
 ##############################################################################
 set(FORMS_SRC xprotolabinterface.ui
     customtheme.ui)
+QT5_WRAP_UI(FORMS_HEADERS ${FORMS_SRC})
 set(MOC_HEADERS  customtheme.h libusbdevice.h
                 qcustomplot.h xprotolabinterface.h)
 set(RESOURCES_SRC xprotolabinterface.qrc)
@@ -128,6 +129,7 @@ add_executable(${TARGET}
                 ${CPP_SOURCES} ${QT_RESOURCES_CPP} ${QT_FORMS_HPP} ${QT_MOC_HPP}
 # display files in the Qt creator's navigator
                 ${HEADER_SRC}
+                ${FORMS_HEADERS}
               )
 
 target_link_libraries(${TARGET}
