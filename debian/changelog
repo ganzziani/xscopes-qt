@@ -1,0 +1,5 @@
+xscopes-qt (0.0.0-1) unstable; urgency=low
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Philippe Coval <rzr@users.sf.net>  Tue, 01 Nov 2016 22:07:24 +0100

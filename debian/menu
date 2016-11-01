@@ -1,0 +1,2 @@
+?package(xscopes-qt):needs="X11" section="Applications/Science/Electronics"\
+  title="xscopes-qt" command="/usr/bin/xscopes"
