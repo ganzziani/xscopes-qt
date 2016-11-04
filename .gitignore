@@ -1,0 +1,7 @@
+~
+debian/*.debhelper
+debian/files
+debian/*.log
+debian/*.substvars
+debian/xscopes-qt/
+obj*

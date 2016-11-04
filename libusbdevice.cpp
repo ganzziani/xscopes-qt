@@ -1,7 +1,7 @@
 #include "libusbdevice.h"
 #include "libusbdeviceinfo.h"
 
-#include "qextserialport.h"
+#include "extserialport/qextserialport.h"
 
 LibUsbDevice::LibUsbDevice(QObject *parent) :
     QObject(parent)

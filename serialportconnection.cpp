@@ -1,6 +1,6 @@
 #include "serialportconnection.h"
 #include <QThread>
-#include "qextserialport.h"
+#include "extserialport/qextserialport.h"
 
 SerialPortConnection::SerialPortConnection(QObject *parent) :
     QObject(parent)
