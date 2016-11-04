@@ -5044,3 +5044,28 @@ void XprotolabInterface::on_radioPulse_clicked()
     sendMStatusControlsForMM();
     m_mmTimer.start(100);
 }
+
+void XprotolabInterface::on_clearMosiButton_clicked()
+{
+    ui->mosiTextEdit->clear();
+}
+
+void XprotolabInterface::on_clearMisoButton_clicked()
+{
+    ui->misoTextEdit->clear();
+}
+
+void XprotolabInterface::on_i2cClearButton_clicked()
+{
+    ui->i2cTextEdit->clear();
+}
+
+void XprotolabInterface::on_clearRxButton_clicked()
+{
+    ui->rxTextEdit->clear();
+}
+
+void XprotolabInterface::on_clearTxButton_clicked()
+{
+    ui->txTextEdit->clear();
+}

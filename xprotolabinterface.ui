@@ -282,7 +282,7 @@
         </font>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>3</number>
        </property>
        <property name="elideMode">
         <enum>Qt::ElideNone</enum>
@@ -4036,7 +4036,7 @@ Frequency</string>
            <item>
             <widget class="QTabWidget" name="protocolTabWidget">
              <property name="currentIndex">
-              <number>0</number>
+              <number>2</number>
              </property>
              <widget class="QWidget" name="spiTab">
               <attribute name="title">
@@ -4178,8 +4178,20 @@ Frequency</string>
                   </layout>
                  </item>
                  <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_75">
-                   <item>
+                  <layout class="QGridLayout" name="gridLayout">
+                   <item row="0" column="1">
+                    <widget class="QPlainTextEdit" name="misoTextEdit">
+                     <property name="font">
+                      <font>
+                       <family>Courier</family>
+                      </font>
+                     </property>
+                     <property name="verticalScrollBarPolicy">
+                      <enum>Qt::ScrollBarAlwaysOn</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="0">
                     <widget class="QPlainTextEdit" name="mosiTextEdit">
                      <property name="font">
                       <font>
@@ -4191,15 +4203,17 @@ Frequency</string>
                      </property>
                     </widget>
                    </item>
-                   <item>
-                    <widget class="QPlainTextEdit" name="misoTextEdit">
-                     <property name="font">
-                      <font>
-                       <family>Courier</family>
-                      </font>
+                   <item row="1" column="0">
+                    <widget class="QPushButton" name="clearMosiButton">
+                     <property name="text">
+                      <string>Clear</string>
                      </property>
-                     <property name="verticalScrollBarPolicy">
-                      <enum>Qt::ScrollBarAlwaysOn</enum>
+                    </widget>
+                   </item>
+                   <item row="1" column="1">
+                    <widget class="QPushButton" name="clearMisoButton">
+                     <property name="text">
+                      <string>Clear</string>
                      </property>
                     </widget>
                    </item>
@@ -4295,6 +4309,13 @@ Frequency</string>
                    </property>
                    <property name="horizontalScrollBarPolicy">
                     <enum>Qt::ScrollBarAsNeeded</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="i2cClearButton">
+                   <property name="text">
+                    <string>Clear</string>
                    </property>
                   </widget>
                  </item>
@@ -4465,8 +4486,8 @@ Frequency</string>
                   </layout>
                  </item>
                  <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_70">
-                   <item>
+                  <layout class="QGridLayout" name="gridLayout_2">
+                   <item row="0" column="0">
                     <widget class="QTextEdit" name="rxTextEdit">
                      <property name="font">
                       <font>
@@ -4478,7 +4499,7 @@ Frequency</string>
                      </property>
                     </widget>
                    </item>
-                   <item>
+                   <item row="0" column="1">
                     <widget class="QPlainTextEdit" name="txTextEdit">
                      <property name="font">
                       <font>
@@ -4487,6 +4508,20 @@ Frequency</string>
                      </property>
                      <property name="verticalScrollBarPolicy">
                       <enum>Qt::ScrollBarAlwaysOn</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="0">
+                    <widget class="QPushButton" name="clearRxButton">
+                     <property name="text">
+                      <string>Clear</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="1">
+                    <widget class="QPushButton" name="clearTxButton">
+                     <property name="text">
+                      <string>Clear</string>
                      </property>
                     </widget>
                    </item>

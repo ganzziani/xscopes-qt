@@ -339,6 +339,16 @@ private slots:
 
     void on_radioPulse_clicked();
 
+    void on_clearMosiButton_clicked();
+
+    void on_clearMisoButton_clicked();
+
+    void on_i2cClearButton_clicked();
+
+    void on_clearRxButton_clicked();
+
+    void on_clearTxButton_clicked();
+
 private:
     Ui::XprotolabInterface *ui;
     int m_mainTimerDelay;
