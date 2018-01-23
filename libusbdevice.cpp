@@ -15,6 +15,8 @@ LibUsbDevice::LibUsbDevice(QObject *parent) :
     pcToUsbDeviceTransfer = NULL;
     usbDeviceToPcTransfer = NULL;
     dataAvailable = false;
+    count = 0;
+    dataLength = 0;
     hasHotPlugSupport = false;
     deviceFound = NULL;
     connect(&serial,SIGNAL(newData(int)),this,SLOT(newDataAvailable(int)));
