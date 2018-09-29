@@ -142,9 +142,22 @@ target_link_libraries(${TARGET}
 # ${catkin_LIBRARIES} ${eigen_LIBRARIES} )
 
 # install
-set(DESTDIR ${PROJECT_SOURCE_DIR}/install)
-install(TARGETS ${TARGET} RUNTIME DESTINATION ${DESTDIR}/bin)
-#install(TARGETS ${TARGET} RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+if("${CMAKE_SYSTEM}" MATCHES "Linux")
+  install(TARGETS ${TARGET} RUNTIME DESTINATION ${DESTDIR}/usr/bin)
+  if(EXISTS "/lib/udev/rules.d/")
+    install(FILES
+      "${CMAKE_CURRENT_SOURCE_DIR}/extra/linux/64-xscope.rules"
+      DESTINATION
+      "/lib/udev/rules.d/"
+      COMPONENT
+      Runtime)
+  endif()
+else()
+  set(DESTDIR ${PROJECT_SOURCE_DIR}/install)
+  install(TARGETS ${TARGET} RUNTIME DESTINATION ${DESTDIR}/bin)
+  #install(TARGETS ${TARGET} RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+endif()
+
 
 # data files
 #install(DIRECTORY data/

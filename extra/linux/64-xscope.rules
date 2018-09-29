@@ -1,0 +1,1 @@
+ACTION=="add", SUBSYSTEM=="usb", ATTR{manufacturer}=="Gabotronics", GROUP=="plugdev", MODE="066", SYMLINK+="XScope%n"
