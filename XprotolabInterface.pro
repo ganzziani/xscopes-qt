@@ -42,7 +42,7 @@ win32: LIBS += -L$$PWD/libs/win -llibusb-1.0
 
 macx: LIBS += $$PWD/libs/mac/libusb-1.0.dylib
 
-unix: LIBS += -L$$PWD/libs/unix -lusb-1.0
+unix:!macx: LIBS += -lusb-1.0
 
 RC_FILE = xprotolabinterface.rc
 

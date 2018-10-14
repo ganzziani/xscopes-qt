@@ -27,6 +27,12 @@ pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
 include_directories(${LIBUSB_INCLUDE_DIRS})
 link_directories(${LIBUSB_LIBRARY_DIRS})
 
+if(UNIX AND APPLE)
+link_directories(libs/mac)
+elif(WIN32)
+link_directories(libs/win)
+endif()
+
 #message(status "LIBUSB_INCLUDE_DIRS" ${LIBUSB_INCLUDE_DIRS} "LANGUAGE" ${LANGUAGE})
 
 if( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
