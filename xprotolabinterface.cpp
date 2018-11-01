@@ -175,8 +175,8 @@ void XprotolabInterface::checkForAvailableComPorts(){
 bool XprotolabInterface::checkIfCorrectPort(QString name){
     #ifdef Q_OS_WIN
         return name.toLower().startsWith("com");
-    #elif defined(Q_OS_MAC)
-        return name.toLower().startsWith("bluetooth");
+//     #elif defined(Q_OS_MAC)
+//         return name.toLower().startsWith("bluetooth");
     #else
         return name.toLower().startsWith("tty");
     #endif
@@ -1890,13 +1890,16 @@ void XprotolabInterface::sniffProtocol()
                     rxData.append(eAscii);
                 }
                 rxData.append(" ");
+                if (((j+9)%16)==0) rxData.append("  ");
 
             }
             else
             {
                 bdata.append(data);
                 rxData.append(bdata.toHex());
-                rxData.append(" ");
+//                rxData.append(" ");
+                if (((j+9)%16)==0) rxData.append(" ");
+                if (((j+1)%16)==0) rxData.append("\n");
                 bdata.clear();
             }
         }
@@ -1943,13 +1946,16 @@ void XprotolabInterface::sniffProtocol()
                       txData.append(eAscii);
                   }
                   txData.append(" ");
+                  if (((j+9)%16)==0) txData.append("  ");
 
               }
               else
               {
                   bdata.append(data);
                   txData.append(bdata.toHex());
-                  txData.append(" ");
+//                  txData.append(" ");
+                  if (((j+9)%16)==0) txData.append(" ");
+                  if (((j+1)%16)==0) txData.append("\n");
                   bdata.clear();
               }
         }

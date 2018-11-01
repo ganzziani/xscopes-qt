@@ -4183,11 +4183,11 @@ Frequency</string>
                     <widget class="QPlainTextEdit" name="misoTextEdit">
                      <property name="font">
                       <font>
-                       <family>Courier</family>
+                       <family>Consolas</family>
                       </font>
                      </property>
                      <property name="verticalScrollBarPolicy">
-                      <enum>Qt::ScrollBarAlwaysOn</enum>
+                      <enum>Qt::ScrollBarAlwaysOff</enum>
                      </property>
                     </widget>
                    </item>
@@ -4195,11 +4195,11 @@ Frequency</string>
                     <widget class="QPlainTextEdit" name="mosiTextEdit">
                      <property name="font">
                       <font>
-                       <family>Courier</family>
+                       <family>Consolas</family>
                       </font>
                      </property>
                      <property name="verticalScrollBarPolicy">
-                      <enum>Qt::ScrollBarAlwaysOn</enum>
+                      <enum>Qt::ScrollBarAlwaysOff</enum>
                      </property>
                     </widget>
                    </item>
@@ -4301,11 +4301,11 @@ Frequency</string>
                   <widget class="QTextEdit" name="i2cTextEdit">
                    <property name="font">
                     <font>
-                     <family>Courier</family>
+                     <family>Consolas</family>
                     </font>
                    </property>
                    <property name="verticalScrollBarPolicy">
-                    <enum>Qt::ScrollBarAlwaysOn</enum>
+                    <enum>Qt::ScrollBarAlwaysOff</enum>
                    </property>
                    <property name="horizontalScrollBarPolicy">
                     <enum>Qt::ScrollBarAsNeeded</enum>
@@ -4491,11 +4491,11 @@ Frequency</string>
                     <widget class="QTextEdit" name="rxTextEdit">
                      <property name="font">
                       <font>
-                       <family>Courier</family>
+                       <family>Consolas</family>
                       </font>
                      </property>
                      <property name="verticalScrollBarPolicy">
-                      <enum>Qt::ScrollBarAlwaysOn</enum>
+                      <enum>Qt::ScrollBarAlwaysOff</enum>
                      </property>
                     </widget>
                    </item>
@@ -4503,11 +4503,11 @@ Frequency</string>
                     <widget class="QPlainTextEdit" name="txTextEdit">
                      <property name="font">
                       <font>
-                       <family>Courier</family>
+                       <family>Consolas</family>
                       </font>
                      </property>
                      <property name="verticalScrollBarPolicy">
-                      <enum>Qt::ScrollBarAlwaysOn</enum>
+                      <enum>Qt::ScrollBarAlwaysOff</enum>
                      </property>
                     </widget>
                    </item>
