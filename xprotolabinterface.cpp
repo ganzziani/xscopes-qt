@@ -175,8 +175,8 @@ void XprotolabInterface::checkForAvailableComPorts(){
 bool XprotolabInterface::checkIfCorrectPort(QString name){
     #ifdef Q_OS_WIN
         return name.toLower().startsWith("com");
-    #elif defined(Q_OS_MAC)
-        return name.toLower().startsWith("bluetooth");
+//     #elif defined(Q_OS_MAC)
+//         return name.toLower().startsWith("bluetooth");
     #else
         return name.toLower().startsWith("tty");
     #endif
