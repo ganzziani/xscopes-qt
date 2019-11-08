@@ -17,13 +17,12 @@
 #define SET 509
 
 namespace Ui {
-class CustomTheme;
+    class CustomTheme;
 }
 
-class CustomTheme : public QDialog
-{
+class CustomTheme : public QDialog {
     Q_OBJECT
-    
+
 public:
     explicit CustomTheme(QWidget *parent = 0);
     ~CustomTheme();
@@ -35,14 +34,14 @@ public:
     QIcon prepareIcon(QColor color);
 
     void prepareButtons();
-    
+
 private slots:
     void on_applyButton_clicked();
     void on_cancelButton_clicked();
 
-    void onButtonClicked(QAbstractButton*);
+    void onButtonClicked(QAbstractButton *);
 signals:
-    void applyCustomTheme(int,CustomColors*);
+    void applyCustomTheme(int, CustomColors *);
 
 public:
     Ui::CustomTheme *ui;

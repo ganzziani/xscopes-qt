@@ -50,14 +50,12 @@
         <file>Bitmaps/window2r.png</file>
         <file>Bitmaps/chan1-zero.png</file>
         <file>Bitmaps/chan2-zero.png</file>
-        <file>Bitmaps/app-bg.png</file>
         <file>Bitmaps/btn-86-disable.png</file>
         <file>Bitmaps/btn-86-down.png</file>
         <file>Bitmaps/btn-86-up.png</file>
         <file>Bitmaps/ico-record.png</file>
         <file>Bitmaps/ico-record-active.png</file>
         <file>Bitmaps/menu-bg.png</file>
-        <file>Bitmaps/app-content-bg.png</file>
         <file>Bitmaps/arrow-down-down.png</file>
         <file>Bitmaps/arrow-down-up.png</file>
         <file>Bitmaps/arrow-left-down.png</file>
@@ -70,8 +68,6 @@
         <file>Bitmaps/scrollbar-h-down.png</file>
         <file>Bitmaps/scrollbar-v.png</file>
         <file>Bitmaps/scrollbar-v-down.png</file>
-        <file>Bitmaps/about-bg.png</file>
-        <file>Bitmaps/app-name.png</file>
         <file>Bitmaps/separator-h.png</file>
         <file>Bitmaps/separator-v.png</file>
         <file>Bitmaps/ico-save.png</file>
@@ -93,5 +89,12 @@
         <file>Bitmaps/btn-172-disable.png</file>
         <file>Bitmaps/cour.ttf</file>
         <file>Bitmaps/hcursorB.png</file>
+        <file>Bitmaps/oscilloscope-watch.jpg</file>
+        <file>Bitmaps/xminilab.png</file>
+        <file>Bitmaps/xminilab-portable.png</file>
+        <file>Bitmaps/xprotolab.png</file>
+        <file>Bitmaps/xprotolab-portable.png</file>
+        <file>Bitmaps/download.png</file>
+        <file>Bitmaps/xprotolab-plain.png</file>
     </qresource>
 </RCC>

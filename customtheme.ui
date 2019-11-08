@@ -18,7 +18,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="xprotolabinterface.qrc">
-    <normaloff>:/Bitmaps/Bitmaps/GT-logo-256.png</normaloff>:/Bitmaps/Bitmaps/GT-logo-256.png</iconset>
+    <normaloff>:/Bitmaps/Bitmaps/gt.ico</normaloff>:/Bitmaps/Bitmaps/gt.ico</iconset>
   </property>
   <property name="modal">
    <bool>true</bool>

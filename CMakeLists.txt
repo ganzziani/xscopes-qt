@@ -107,7 +107,9 @@ set(HEADER_SRC
     sniffer.h
     customcolors.h
     customtheme.h
-    serialportconnection.h)
+    serialportconnection.h
+    bootloader.h
+    filedownloader.h)
 set(CPP_SRC main.cpp
     qcustomplot.cpp
     libusbdevice.cpp
@@ -116,7 +118,9 @@ set(CPP_SRC main.cpp
     complex.cpp
     customcolors.cpp
     customtheme.cpp
-    serialportconnection.cpp)
+    serialportconnection.cpp
+    bootloader.cpp
+    filedownloader.cpp)
 
 file(GLOB_RECURSE CPP_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS ${CPP_SRC})
 #file(GLOB_RECURSE INC_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*.hpp)

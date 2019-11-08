@@ -1,4 +1,5 @@
-QT  += core gui serialport concurrent
+QT += core gui serialport concurrent
+QT += network
 
 TARGET = xscope
 TEMPLATE = app
@@ -11,7 +12,9 @@ SOURCES += main.cpp\
     complex.cpp \
     customtheme.cpp \
     serialportconnection.cpp \
-    customcolors.cpp
+    customcolors.cpp \
+    filedownloader.cpp \
+    bootloader.cpp
 
 HEADERS  += xprotolabinterface.h \
     qcustomplot.h \
@@ -23,10 +26,13 @@ HEADERS  += xprotolabinterface.h \
     sniffer.h \
     customtheme.h \
     serialportconnection.h \
-    customcolors.h
+    customcolors.h \
+    filedownloader.h \
+    bootloader.h
 
 FORMS += xprotolabinterface.ui \
-    customtheme.ui
+    customtheme.ui \
+    bootloader.ui
 
 RESOURCES += \
     xprotolabinterface.qrc

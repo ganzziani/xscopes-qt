@@ -45,6 +45,20 @@
 #include <QtSerialPort/QSerialPortInfo>
 #include <QtSerialPort/QSerialPort>
 
+// USB Bootloader Info
+typedef struct {
+    char FW_Info[16];   // Firmware information
+    char HW_Info[16];   // Hardware information
+    uint8_t MCU_DEVID0; // XMEGA Device ID
+    uint8_t MCU_DEVID1; // XMEGA Device ID
+    uint8_t MCU_DEVID2; // XMEGA Device ID
+    uint8_t MCU_REVID;  // XMEGA Revision ID
+    uint16_t APP_SECTION_PAGE_SIZE;     // Flash page size
+    uint32_t APP_SECTION_SIZE;          // Flash size
+    uint16_t EEPROM_PAGE_SIZE;          // EEPROM page size
+    uint32_t EEPROM_SIZE;               // EEPROM size
+} BootInfo_t;
+
 enum WindowFunction {
     Rectangular,
     Hamming,
@@ -88,7 +102,7 @@ enum Trigger {
     Window
 };
 
-enum TriggerType{
+enum TriggerType {
     Window1,
     Window2,
     Other
@@ -99,18 +113,18 @@ enum Theme {
     Light,
     Custom
 };
+
 #define TG 9
 
 typedef QVector<double> DataBuffer;
 
 namespace Ui {
-class XprotolabInterface;
+    class XprotolabInterface;
 }
 
-class XprotolabInterface : public QMainWindow
-{
+class XprotolabInterface : public QMainWindow {
     Q_OBJECT
-    
+
 public:
     explicit XprotolabInterface(QWidget *parent = 0);
     ~XprotolabInterface();
@@ -127,7 +141,7 @@ private:
     void closeEvent(QCloseEvent *);
     void selectWaveForm(uint8_t);
     void updateSweepCursors();
-    void parseCSV(QString, byte*);
+    void parseCSV(QString, byte *);
     void sendCH1Controls();
     void sendCH2Controls();
     void sendCHDControls();
@@ -155,12 +169,12 @@ private:
     void setTriggerWin1Level(int);
     void setTriggerWin2Level(int);
     void setTriggerPost();
-    void setTriggerLevelPosition(QPointF,int);
+    void setTriggerLevelPosition(QPointF, int);
     void readAppSettings();
     void enableSnifferControls(bool);
     void setTriggerIcon(int);
     void moveTrigger(QPointF);
-    void moveWinTrigger(double,double,double);
+    void moveWinTrigger(double, double, double);
     int mapRange(int value, int oldMax, int oldMin, int newMax, int newMin);
     double mapRangeF(double value, double oldMax, double oldMin, double newMax, double newMin);
     void logToFile(QString);
@@ -173,13 +187,13 @@ private slots:
     void plotData();
     void sniffProtocol();
     void readDeviceSettings();
-    void moveCursor(QMouseEvent*);
-    void selectItem(QMouseEvent*);
-    void deselectItem(QMouseEvent*);
+    void moveCursor(QMouseEvent *);
+    void selectItem(QMouseEvent *);
+    void deselectItem(QMouseEvent *);
     void on_autoButton_clicked();
     void writeAppSettings();
-    void itemDoubleClick(QCPAbstractItem*,QMouseEvent*);
-    void setTheme(int, CustomColors* customColors = NULL);
+    void itemDoubleClick(QCPAbstractItem *, QMouseEvent *);
+    void setTheme(int, CustomColors *customColors = nullptr);
     void on_connectButton_clicked();
     void xAxisChanged(QCPRange);
     void on_stopButton_clicked();
@@ -336,18 +350,7 @@ private slots:
     void setVerticalCursors();
     void restoreUiSettings();
     void on_radioFreq_clicked();
-
     void on_radioPulse_clicked();
-
-    void on_clearMosiButton_clicked();
-
-    void on_clearMisoButton_clicked();
-
-    void on_i2cClearButton_clicked();
-
-    void on_clearRxButton_clicked();
-
-    void on_clearTxButton_clicked();
 
 private:
     Ui::XprotolabInterface *ui;
@@ -358,12 +361,12 @@ private:
     bool isScrolling;
     QString filePath;
     static const int rangeMax = 512;
-    int hCursorAPos ,hCursorBPos ,vCursorAPos ,vCursorBPos;
+    int hCursorAPos, hCursorBPos, vCursorAPos, vCursorBPos;
     double fftWindow[256];
-    int ch1ZeroPos, ch2ZeroPos, hCursorAPosCh1 ,hCursorBPosCh1, hCursorAPosCh2 ,hCursorBPosCh2;
-    QStringList rateText,gainText;
-    int freqValue[23],xmax,mode;
-    bool bitChecked[8],itemIsSelected,captureRef,saveWave,displayLoadedWave;
+    int ch1ZeroPos, ch2ZeroPos, hCursorAPosCh1, hCursorBPosCh1, hCursorAPosCh2, hCursorBPosCh2;
+    QStringList rateText, gainText;
+    int freqValue[23], xmax, mode;
+    bool bitChecked[8], itemIsSelected, captureRef, saveWave, displayLoadedWave;
     QCPItemTracer *phaseTracerAA, *phaseTracerAB, *phaseTracerBA, *phaseTracerBB;
     QCPItemStraightLine *hCursorA, *hCursorB, *vCursorA, *vCursorB, *ch1Zero, *ch2Zero;
     QCPItemPixmap *hCursorAHead, *hCursorBHead, *ch1ZeroHead, *ch2ZeroHead;
@@ -371,19 +374,19 @@ private:
     QCPItemText *textLabelBit[8], *textLabelDeltaTime, *textLabelDeltaVoltage;
     QCPItemText *textLabelVoltageA, *textLabelVoltageB, *textLabelFrequency;
     QString sniffBuffer;
-    int triggerPost,triggerLevel,triggerWin1Level,triggerWin2Level;
+    int triggerPost, triggerLevel, triggerWin1Level, triggerWin2Level;
     int currentSelected;
     QVector<double> ch1RefBuffer, ch2RefBuffer, ch1SaveBuffer, ch2SaveBuffer;
-    QList<DataBuffer> ch1PBuffer,ch2PBuffer;
+    QList<DataBuffer> ch1PBuffer, ch2PBuffer;
     QVector<double> bitRef[8], bitSaveBuffer[8];
     bool initializing;
     QString defaultDir;
-    QStringList triggerIconPathsG,triggerIconPathsR;
+    QStringList triggerIconPathsG, triggerIconPathsR;
     int trigIcon, offset;
     CustomTheme customThemeDialog;
 
     /************** Graphs **************/
-    QCPGraph *ch1BarGraph,*ch2BarGraph;
+    QCPGraph *ch1BarGraph, *ch2BarGraph;
     QCPGraph *ch1Graph, *ch2Graph, *ch1RefGraph, *ch2RefGraph, *ch1PGraphs[TG], *ch2PGraphs[TG];
     QCPGraph *chdGraph[8], *chdRefGraph[8];
 
@@ -423,6 +426,7 @@ private:
     double vppMaxCh1;
     double vppMinCh2;
     double vppMaxCh2;
+    BootInfo_t BootInfo;
 };
 
 #endif // XPROTOLABINTERFACE_H

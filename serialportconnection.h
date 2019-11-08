@@ -18,8 +18,7 @@
 
 class QextSerialPort;
 
-class SerialPortConnection : public QObject
-{
+class SerialPortConnection : public QObject {
     Q_OBJECT
 public:
     explicit SerialPortConnection(QObject *parent = 0);
