@@ -50,7 +50,7 @@ endif( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
 #add_definitions(-DQT_NO_KEYWORDS)
 
 # Add the appropriate components to the component list here
-find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets PrintSupport SerialPort)
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets PrintSupport SerialPort Network)
 
 #$include(${QT_USE_FILE})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}
@@ -61,14 +61,16 @@ include_directories(${Qt5_INCLUDE_DIRS}
                     ${Qt5Gui_INCLUDE_DIRS}
                     ${Qt5Widgets_INCLUDE_DIRS}
                     ${Qt5PrintSupport_INCLUDE_DIRS}
-                    ${Qt5SerialPort_INCLUDE_DIRS})
+                    ${Qt5SerialPort_INCLUDE_DIRS}
+                    ${Qt5Network_INCLUDE_DIRS})
 
 set(QT_LIBRARIES ${Qt5_LIBRARIES}
                  ${Qt5Core_LIBRARIES}
                  ${Qt5Gui_LIBRARIES}
                  ${Qt5Widgets_LIBRARIES}
                  ${Qt5PrintSupport_LIBRARIES}
-                 ${Qt5SerialPort_LIBRARIES})
+                 ${Qt5SerialPort_LIBRARIES}
+                 ${Qt5Network_LIBRARIES})
 
 # Qwt module
 #set(QWT_LIBRARIES qwt)
