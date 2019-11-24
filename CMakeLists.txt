@@ -132,6 +132,7 @@ file(GLOB_RECURSE CPP_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLIN
 ##############################################################################
 
 add_subdirectory(extserialport)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/extserialport)
 
 ##############################################################################
 # Binaries
