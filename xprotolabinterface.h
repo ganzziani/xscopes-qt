@@ -378,7 +378,7 @@ private:
     QCPItemPixmap *hCursorAHead, *hCursorBHead, *ch1ZeroHead, *ch2ZeroHead;
     QCPItemPixmap *triggerPixmap, *vCursorAHead, *vCursorBHead, *triggerWin1Pixmap, *triggerWin2Pixmap;
     QCPItemText *textLabelBit[8], *textLabelDeltaTime, *textLabelDeltaVoltage;
-    QCPItemText *textLabelVoltageA, *textLabelVoltageB, *textLabelFrequency;
+    QCPItemText *textLabelVoltageA, *textLabelVoltageB, *textLabelFrequency, *textLabelMousePos;
     QString sniffBuffer;
     int triggerPost, triggerLevel, triggerWin1Level, triggerWin2Level;
     int currentSelected;
