@@ -5,3 +5,11 @@ debian/*.log
 debian/*.substvars
 debian/xscopes-qt/
 obj*
+log.txt
+*.o
+*.cpp
+*.o
+.qmake*
+Makefile
+moc_*
+xscope
