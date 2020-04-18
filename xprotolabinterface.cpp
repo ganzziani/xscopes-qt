@@ -1088,20 +1088,15 @@ ENDSCAN:
         textLabelFrequency->setVisible(false);
     }
     if(!ui->radioButtonCursorNone->isChecked()) {
-        double deltaVolt, voltA = 0, voltB = 0, value = 0;
-        QString unit;
-        if(ui->radioButtonCursorCH1->isChecked())
-            unit = gainText[ui->ch1GainSlider->value()];
-        else if(ui->radioButtonCursorCH2->isChecked())
-            unit = gainText[ui->ch2GainSlider->value()];
-        for(int i = 0; i < unit.length(); i++) {
-            if(unit[i] == 'm' || unit[i] == 'V') {
-                value = unit.left(i).toDouble();
-                unit = unit.remove(unit.left(i));
-                break;
-            }
+        double deltaVolt, voltA = 0, voltB = 0, gain = 0;
+        QString unit = gains[ui->ch1GainSlider->value()].unit;
+        if(ui->radioButtonCursorCH1->isChecked()) {
+            unit = gains[ui->ch1GainSlider->value()].unit;
+            gain = gains[ui->ch1GainSlider->value()].value;
+        } else if(ui->radioButtonCursorCH2->isChecked()) {
+            unit = gains[ui->ch2GainSlider->value()].unit;
+            gain = gains[ui->ch1GainSlider->value()].value;
         }
-        unit = unit.replace("/div", "");
         if(ui->radioButtonCursorCH1->isChecked()) {
             voltA = 64 - (127 - (hCursorAPosCh1 / 4));
             voltB = 64 - (127 - (hCursorBPosCh1 / 4));
@@ -1109,8 +1104,8 @@ ENDSCAN:
             voltA = 64 - (127 - (hCursorAPosCh2 / 4));
             voltB = 64 - (127 - (hCursorBPosCh2 / 4));
         }
-        voltA *= value;
-        voltB *= value;
+        voltA *= gain;
+        voltB *= gain;
         voltA /= 16.0;
         voltB /= 16.0;
         deltaVolt = voltB - voltA;
@@ -2322,8 +2317,8 @@ void XprotolabInterface::readDeviceSettings() {
                   (1 * ((qint64)usbDevice.inBuffer[40]))) / 100;
     logToFile("40 Desired frequency: " + QString::number(freq));
     updateSweepCursors();
-    ui->ch1Label->setText("CH1 = " + gainText[ui->ch1GainSlider->value()]);
-    ui->ch2Label->setText("CH2 = " + gainText[ui->ch2GainSlider->value()]);
+    ui->ch1Label->setText("CH1 = " + gains[ui->ch1GainSlider->value()].display + "/div");
+    ui->ch2Label->setText("CH2 = " + gains[ui->ch2GainSlider->value()].display + "/div");
     ui->timeLabel->setText("Time = " + (rateText[ui->samplingSlider->value()]));
     if(ui->samplingSlider->value() >= 11)
         logging = true;
@@ -3144,7 +3139,7 @@ void XprotolabInterface::on_ch1GainSlider_valueChanged(int value) {
     if(!usbDevice.isDeviceConnected)
         return;
     usbDevice.controlWriteTransfer(12, (byte)(value));
-    ui->ch1Label->setText("CH1 = " + gainText[ui->ch1GainSlider->value()]);
+    ui->ch1Label->setText("CH1 = " + gains[ui->ch1GainSlider->value()].display + "/div");
 }
 
 // M 13 Channel 2 gain
@@ -3152,7 +3147,7 @@ void XprotolabInterface::on_ch2GainSlider_valueChanged(int value) {
     if(!usbDevice.isDeviceConnected)
         return;
     usbDevice.controlWriteTransfer(13, (byte)(value));
-    ui->ch2Label->setText("CH2 = " + gainText[ui->ch2GainSlider->value()]);
+    ui->ch2Label->setText("CH2 = " + gains[ui->ch2GainSlider->value()].display + "/div");
 }
 
 // M 14 Horizontal Position
@@ -3576,8 +3571,8 @@ void XprotolabInterface::setupValues() {
     rateText << "8" + QString::fromStdWString(L"\u00b5") + "s/div" << "16" + QString::fromStdWString(L"\u00b5") + "s/div" << "32" + QString::fromStdWString(L"\u00b5") + "s/div" << "64" + QString::fromStdWString(L"\u00b5") + "s/div" << "128" + QString::fromStdWString(L"\u00b5") + "s/div" << "256" + QString::fromStdWString(L"\u00b5") + "s/div" << "500" + QString::fromStdWString(L"\u00b5") + "s/div" << "1ms/div"
              << "2ms/div" << "5ms/div" << "10ms/div" << "20ms/div" << "50ms/div" << "0.1s/div" << "0.2s/div" << "0.5s/div"
              << "1s/div" << "2s/div" << "5s/div" << "10s/div" << "20s/div" << "50s/div";
-    // Gain Text with x1 probe
-    gainText << "5.12V/div" << "2.56V/div" << "1.28V/div" << "0.64V/div" << "0.32V/div" << "0.16V/div" << "80mV/div" << "----";
+    // Gain with x1 probe
+    gains = {{5.12, "V", "5.12V"}, {2.56, "V", "2.56V"}, {1.28, "V", "1.28V"}, {0.64, "V", "0.64V"}, {0.32, "V", "0.32V"}, {0.16, "V", "0.16V"}, {0.08, "mV", "80mV/div"}, {NULL, NULL, "----"}};
     freqValue[0] = 10;
     int temp = 2000000, i = 1;
     for(i = 1; i < 7; i++) { // Kilo Hertz
@@ -4098,7 +4093,7 @@ void XprotolabInterface::updateCh1Label() {
             tmp_text += " X " + tmp_label2;
         }
     }
-    tmp_text += " = " + gainText[ui->ch1GainSlider->value()];
+    tmp_text += " = " + gains[ui->ch1GainSlider->value()].display + "/div";
     ui->ch1Label->setText(tmp_text);
 }
 
@@ -4121,7 +4116,7 @@ void XprotolabInterface::updateCh2Label() {
                 tmp_text += " X CH1";
         }
     }
-    tmp_text += " = " + gainText[ui->ch2GainSlider->value()];
+    tmp_text += " = " + gains[ui->ch2GainSlider->value()].display + "/div";
     ui->ch2Label->setText(tmp_text);
 }
 

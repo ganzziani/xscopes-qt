@@ -364,7 +364,13 @@ private:
     int hCursorAPos, hCursorBPos, vCursorAPos, vCursorBPos;
     double fftWindow[256];
     int ch1ZeroPos, ch2ZeroPos, hCursorAPosCh1, hCursorBPosCh1, hCursorAPosCh2, hCursorBPosCh2;
-    QStringList rateText, gainText;
+    QStringList rateText;
+    struct Gain {
+        float value;
+        QString unit;
+        QString display;  // human readable version; ex "80mV"
+    };
+    QList<Gain> gains;
     int freqValue[23], xmax, mode;
     bool bitChecked[8], itemIsSelected, captureRef, saveWave, displayLoadedWave;
     QCPItemTracer *phaseTracerAA, *phaseTracerAB, *phaseTracerBA, *phaseTracerBB;
