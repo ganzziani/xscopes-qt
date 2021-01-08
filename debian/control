@@ -1,0 +1,21 @@
+Source: xscopes-qt
+Section: unknown
+Priority: optional
+Maintainer: Philippe Coval <rzr@users.sf.net>
+Build-Depends: debhelper (>= 9), cmake,
+ pkg-config,
+ libudev-dev,
+ libusb-1.0-0-dev,
+ qtbase5-dev,
+ libqt5serialport5-dev,
+ qtbase5-dev-tools
+Standards-Version: 3.9.5
+Homepage: <insert the upstream URL, if relevant>
+#Vcs-Git: git://anonscm.debian.org/collab-maint/xscopes-qt.git
+#Vcs-Browser: http://anonscm.debian.org/?p=collab-maint/xscopes-qt.git;a=summary
+
+Package: xscopes-qt
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>
