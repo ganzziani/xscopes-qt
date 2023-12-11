@@ -44,7 +44,10 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     file_tab.close();
     ui->labelHertz->setStyleSheet("QLabel{font-size: 32px};");
     ui->connectLabel->setStyleSheet("QLabel{font-size: 12px};");
-
+    // Organization name used for QSettings:
+    QCoreApplication::setOrganizationName("Gabotronics");
+    QCoreApplication::setOrganizationDomain("gabotronics.com");
+    QCoreApplication::setApplicationName("XScopes Interface");
     readAppSettings();
     checkForAvailableComPorts();
     xmax = 256;
@@ -347,7 +350,7 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         textLabelVoltageA->setColor(customColors->label);
     }
     on_intensitySlider_valueChanged(0);
-    ui->plotterWidget->replot();
+    ui->plotterWidget->replot(QCustomPlot::rpHint);
 }
 
 void XprotolabInterface::setupGraphs(QCustomPlot *customPlot) {
@@ -409,7 +412,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot) {
     customPlot->addItem(hCursorAHead);
     hCursorAHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/hcursorA.png"));
     hCursorAHead->topLeft->setCoords(-3, hCursorAPos);
-    hCursorAHead->moveY = 17;
+    //hCursorAHead->moveY = 17;
     hCursorA->point1->setParentAnchor(hCursorAHead->right);
     hCursorA->point2->setParentAnchor(hCursorAHead->right);
     hCursorAHead->setVisible(false);
@@ -422,7 +425,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot) {
     hCursorBHead = new QCPItemPixmap(customPlot);
     customPlot->addItem(hCursorBHead);
     hCursorBHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/hcursorB.png"));
-    hCursorBHead->moveY = 17;
+    //hCursorBHead->moveY = 17;
     hCursorBHead->topLeft->setCoords(-3, hCursorBPos);
     hCursorB->point1->setParentAnchor(hCursorBHead->right);
     hCursorB->point2->setParentAnchor(hCursorBHead->right);
@@ -468,7 +471,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot) {
     ch1ZeroHead->setVisible(true);
     ch1ZeroHead->setClipToAxisRect(false);
     ch1ZeroHead->topLeft->setType(QCPItemPosition::ptAbsolute);
-    ch1ZeroHead->moveY = 9;
+    //ch1ZeroHead->moveY = 9;
     ch1Zero->point1->setPixelPoint(QPointF(1, hCursorAPos));
     ch1Zero->point2->setPixelPoint(QPointF(10, hCursorAPos));
     ch1Zero->point1->setType(QCPItemPosition::ptAbsolute);
@@ -486,7 +489,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot) {
     ch2ZeroHead->setVisible(true);
     ch2ZeroHead->setClipToAxisRect(false);
     ch2ZeroHead->topLeft->setType(QCPItemPosition::ptAbsolute);
-    ch2ZeroHead->moveY = 9;
+    //ch2ZeroHead->moveY = 9;
     ch2Zero->point1->setPixelPoint(QPointF(1, hCursorBPos));
     ch2Zero->point2->setPixelPoint(QPointF(10, hCursorBPos));
     ch2Zero->point1->setType(QCPItemPosition::ptAbsolute);
@@ -494,22 +497,22 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot) {
     triggerPixmap = new QCPItemPixmap(customPlot);
     customPlot->addItem(triggerPixmap);
     triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/dualr.png"));
-    triggerPixmap->moveX = 9;
-    triggerPixmap->moveY = 10;
+    //triggerPixmap->moveX = 9;
+    //triggerPixmap->moveY = 10;
     triggerPixmap->topLeft->setCoords(150, 250);
     triggerPixmap->setVisible(false);
     triggerWin1Pixmap = new QCPItemPixmap(customPlot);
     customPlot->addItem(triggerWin1Pixmap);
     triggerWin1Pixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/risingg.png"));
-    triggerWin1Pixmap->moveX = 9;
-    triggerWin1Pixmap->moveY = 10;
+    //triggerWin1Pixmap->moveX = 9;
+    //triggerWin1Pixmap->moveY = 10;
     triggerWin1Pixmap->topLeft->setCoords(150, 250);
     triggerWin1Pixmap->setVisible(false);
     triggerWin2Pixmap = new QCPItemPixmap(customPlot);
     customPlot->addItem(triggerWin2Pixmap);
     triggerWin2Pixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/fallingg.png"));
-    triggerWin2Pixmap->moveX = 9;
-    triggerWin2Pixmap->moveY = 10;
+    //triggerWin2Pixmap->moveX = 9;
+    //triggerWin2Pixmap->moveY = 10;
     triggerWin2Pixmap->topLeft->setCoords(150, 250);
     triggerWin2Pixmap->setVisible(false);
 }
@@ -1178,7 +1181,7 @@ ENDSCAN:
     ch2ZeroHead->topLeft->setPixelPoint(QPointF(2, ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
     //ui->plotterWidget->m_infinity = ui->checkBoxPersistence->isChecked();
     if(ui->mainTabWidget->currentIndex() != 1)
-        ui->plotterWidget->replot();
+        ui->plotterWidget->replot(QCustomPlot::rpHint);
     usbDevice.dataAvailable = false;
     m_repaint = false;
 }
@@ -3874,7 +3877,10 @@ double XprotolabInterface::mapRangeF(double value, double oldMax, double oldMin,
 
 void XprotolabInterface::readAppSettings() {
     initializing = true;
-    QSettings settings("Gabotronics Xscope","Settings");
+    QSettings settings;
+    qDebug() << "Settings app name: " << settings.applicationName();
+    qDebug() << "Settings org name: " << settings.organizationName();
+    qDebug() << "Settings path: " << settings.fileName();
     int w, h;
     w = settings.value("size").toSize().width();
     h = settings.value("size").toSize().height();
@@ -3890,7 +3896,7 @@ void XprotolabInterface::readAppSettings() {
 }
 
 void XprotolabInterface::writeAppSettings() {
-    QSettings settings("Gabotronics Xscope","Settings");
+    QSettings settings;
     settings.setValue("theme", ui->comboBoxTheme->currentIndex());
     settings.setValue("size", this->size());
     settings.setValue("wasMaximized", this->isMaximized());
@@ -4005,7 +4011,7 @@ void XprotolabInterface::on_pushButton_4_clicked() {
         recordWaveFile->close();
         ui->label_13->setText("");
         QMessageBox msgBox(QMessageBox::Information, "Success", "File " + recordWaveFile->fileName() + " saved.");
-        msgBox.setWindowIcon(QIcon(":/Bitmaps/Bitmaps/gt.ico"));
+        msgBox.setWindowIcon(QIcon(":/Bitmaps/Bitmaps/GT-icon24.png"));
         msgBox.exec();
     }
 }
@@ -4459,3 +4465,8 @@ void XprotolabInterface::on_radioPulse_clicked() {
     sendMStatusControlsForMM();
     m_mmTimer.start(100);
 }
+
+void XprotolabInterface::on_upgradeFirmware_clicked() {
+    DialogBootloader.exec();
+}
+

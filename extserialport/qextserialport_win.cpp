@@ -46,7 +46,7 @@ void QextSerialPortPrivate::platformSpecificInit()
 {
     handle = INVALID_HANDLE_VALUE;
     ZeroMemory(&overlap, sizeof(OVERLAPPED));
-    overlap.hEvent = CreateEvent(NULL, true, false, NULL);
+    overlap.hEvent = CreateEvent(nullptr, true, false, nullptr);
     winEventNotifier = 0;
     bytesToWriteLock = new QReadWriteLock;
 }
@@ -83,7 +83,7 @@ bool QextSerialPortPrivate::open_sys(QIODevice::OpenMode mode)
 
     /*open the port*/
     handle = CreateFileW((wchar_t *)fullPortNameWin(port).utf16(), GENERIC_READ|GENERIC_WRITE,
-                           0, NULL, OPEN_EXISTING, dwFlagsAndAttributes, NULL);
+                           0, nullptr, OPEN_EXISTING, dwFlagsAndAttributes, nullptr);
     if (handle != INVALID_HANDLE_VALUE) {
         q->setOpenMode(mode);
         /*configure port settings*/

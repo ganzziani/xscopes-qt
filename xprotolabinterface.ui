@@ -25,7 +25,7 @@
    <string>Gabotronics Xscope Interface - Not Connected</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="xprotolabinterface.qrc">
+   <iconset>
     <normaloff>:/Bitmaps/Bitmaps/gt.ico</normaloff>:/Bitmaps/Bitmaps/gt.ico</iconset>
   </property>
   <property name="documentMode">
@@ -101,7 +101,7 @@
               </property>
               <property name="font">
                <font>
-                <weight>75</weight>
+                <pointsize>9</pointsize>
                 <bold>true</bold>
                </font>
               </property>
@@ -161,7 +161,7 @@
               </property>
               <property name="font">
                <font>
-                <weight>75</weight>
+                <pointsize>9</pointsize>
                 <bold>true</bold>
                </font>
               </property>
@@ -197,7 +197,7 @@
             </property>
             <property name="font">
              <font>
-              <weight>75</weight>
+              <pointsize>9</pointsize>
               <bold>true</bold>
              </font>
             </property>
@@ -287,7 +287,7 @@
                  <string/>
                 </property>
                 <property name="pixmap">
-                 <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/wave-big.png</pixmap>
+                 <pixmap>:/Bitmaps/Bitmaps/wave-big.png</pixmap>
                 </property>
                 <property name="scaledContents">
                  <bool>false</bool>
@@ -334,7 +334,7 @@
                  <string/>
                 </property>
                 <property name="pixmap">
-                 <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/wave-small.png</pixmap>
+                 <pixmap>:/Bitmaps/Bitmaps/wave-small.png</pixmap>
                 </property>
                 <property name="scaledContents">
                  <bool>false</bool>
@@ -354,7 +354,7 @@
                  <string>XY Mode</string>
                 </property>
                 <property name="icon">
-                 <iconset resource="xprotolabinterface.qrc">
+                 <iconset>
                   <normaloff>:/Bitmaps/Bitmaps/xy.png</normaloff>:/Bitmaps/Bitmaps/xy.png</iconset>
                 </property>
                </widget>
@@ -368,7 +368,7 @@
                  <string>Roll Mode</string>
                 </property>
                 <property name="icon">
-                 <iconset resource="xprotolabinterface.qrc">
+                 <iconset>
                   <normaloff>:/Bitmaps/Bitmaps/roll.png</normaloff>:/Bitmaps/Bitmaps/roll.png</iconset>
                 </property>
                </widget>
@@ -382,7 +382,7 @@
                  <string>Elastic Trace</string>
                 </property>
                 <property name="icon">
-                 <iconset resource="xprotolabinterface.qrc">
+                 <iconset>
                   <normaloff>:/Bitmaps/Bitmaps/elastic.png</normaloff>:/Bitmaps/Bitmaps/elastic.png</iconset>
                 </property>
                </widget>
@@ -2134,7 +2134,7 @@
                       <string>Rising Edge</string>
                      </property>
                      <property name="icon">
-                      <iconset resource="xprotolabinterface.qrc">
+                      <iconset>
                        <normaloff>:/Bitmaps/Bitmaps/rising.png</normaloff>:/Bitmaps/Bitmaps/rising.png</iconset>
                      </property>
                     </widget>
@@ -2148,7 +2148,7 @@
                       <string>Falling Edge</string>
                      </property>
                      <property name="icon">
-                      <iconset resource="xprotolabinterface.qrc">
+                      <iconset>
                        <normaloff>:/Bitmaps/Bitmaps/falling.png</normaloff>:/Bitmaps/Bitmaps/falling.png</iconset>
                      </property>
                     </widget>
@@ -2162,7 +2162,7 @@
                       <string>Dual Edge</string>
                      </property>
                      <property name="icon">
-                      <iconset resource="xprotolabinterface.qrc">
+                      <iconset>
                        <normaloff>:/Bitmaps/Bitmaps/dual.png</normaloff>:/Bitmaps/Bitmaps/dual.png</iconset>
                      </property>
                     </widget>
@@ -2176,7 +2176,7 @@
                       <string>Positive Slope</string>
                      </property>
                      <property name="icon">
-                      <iconset resource="xprotolabinterface.qrc">
+                      <iconset>
                        <normaloff>:/Bitmaps/Bitmaps/positive.png</normaloff>:/Bitmaps/Bitmaps/positive.png</iconset>
                      </property>
                     </widget>
@@ -2190,7 +2190,7 @@
                       <string>Negative Slope</string>
                      </property>
                      <property name="icon">
-                      <iconset resource="xprotolabinterface.qrc">
+                      <iconset>
                        <normaloff>:/Bitmaps/Bitmaps/negative.png</normaloff>:/Bitmaps/Bitmaps/negative.png</iconset>
                      </property>
                     </widget>
@@ -2204,7 +2204,7 @@
                       <string>Window</string>
                      </property>
                      <property name="icon">
-                      <iconset resource="xprotolabinterface.qrc">
+                      <iconset>
                        <normaloff>:/Bitmaps/Bitmaps/window.png</normaloff>:/Bitmaps/Bitmaps/window.png</iconset>
                      </property>
                     </widget>
@@ -2441,7 +2441,7 @@
          <item>
           <widget class="QTabWidget" name="mmTabWidget">
            <property name="currentIndex">
-            <number>0</number>
+            <number>2</number>
            </property>
            <widget class="QWidget" name="tab_3">
             <attribute name="title">
@@ -2978,7 +2978,7 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="xprotolabinterface.qrc">
+                     <iconset>
                       <normaloff>:/Bitmaps/Bitmaps/sine.png</normaloff>:/Bitmaps/Bitmaps/sine.png</iconset>
                     </property>
                     <property name="iconSize">
@@ -2995,7 +2995,7 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="xprotolabinterface.qrc">
+                     <iconset>
                       <normaloff>:/Bitmaps/Bitmaps/triangle.png</normaloff>:/Bitmaps/Bitmaps/triangle.png</iconset>
                     </property>
                     <property name="iconSize">
@@ -3016,7 +3016,7 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="xprotolabinterface.qrc">
+                     <iconset>
                       <normaloff>:/Bitmaps/Bitmaps/square.png</normaloff>:/Bitmaps/Bitmaps/square.png</iconset>
                     </property>
                     <property name="iconSize">
@@ -3033,7 +3033,7 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="xprotolabinterface.qrc">
+                     <iconset>
                       <normaloff>:/Bitmaps/Bitmaps/expo.png</normaloff>:/Bitmaps/Bitmaps/expo.png</iconset>
                     </property>
                     <property name="iconSize">
@@ -3054,7 +3054,7 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="xprotolabinterface.qrc">
+                     <iconset>
                       <normaloff>:/Bitmaps/Bitmaps/noise.png</normaloff>:/Bitmaps/Bitmaps/noise.png</iconset>
                     </property>
                     <property name="iconSize">
@@ -3168,7 +3168,7 @@
                <height>16777215</height>
               </size>
              </property>
-             <property name="tabStopWidth">
+             <property name="tabStopWidth" stdset="0">
               <number>80</number>
              </property>
             </widget>
@@ -3310,7 +3310,6 @@ Frequency</string>
                   <property name="font">
                    <font>
                     <pointsize>13</pointsize>
-                    <weight>75</weight>
                     <bold>true</bold>
                    </font>
                   </property>
@@ -3324,7 +3323,6 @@ Frequency</string>
                   <property name="font">
                    <font>
                     <pointsize>26</pointsize>
-                    <weight>75</weight>
                     <bold>true</bold>
                    </font>
                   </property>
@@ -3924,7 +3922,6 @@ Frequency</string>
                      <property name="font">
                       <font>
                        <pointsize>10</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -3938,7 +3935,6 @@ Frequency</string>
                      <property name="font">
                       <font>
                        <pointsize>10</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -3956,7 +3952,6 @@ Frequency</string>
                      <property name="font">
                       <font>
                        <pointsize>10</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -3970,7 +3965,6 @@ Frequency</string>
                      <property name="font">
                       <font>
                        <pointsize>10</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -4052,6 +4046,7 @@ Frequency</string>
                  <property name="font">
                   <font>
                    <family>Courier</family>
+                   <pointsize>8</pointsize>
                   </font>
                  </property>
                  <property name="verticalScrollBarPolicy">
@@ -4064,6 +4059,7 @@ Frequency</string>
                  <property name="font">
                   <font>
                    <family>Courier</family>
+                   <pointsize>8</pointsize>
                   </font>
                  </property>
                  <property name="verticalScrollBarPolicy">
@@ -4095,7 +4091,6 @@ Frequency</string>
                    <property name="font">
                     <font>
                      <pointsize>10</pointsize>
-                     <weight>75</weight>
                      <bold>true</bold>
                     </font>
                    </property>
@@ -4115,7 +4110,6 @@ Frequency</string>
                    <property name="font">
                     <font>
                      <pointsize>10</pointsize>
-                     <weight>75</weight>
                      <bold>true</bold>
                     </font>
                    </property>
@@ -4152,6 +4146,7 @@ Frequency</string>
                <property name="font">
                 <font>
                  <family>Courier</family>
+                 <pointsize>8</pointsize>
                 </font>
                </property>
                <property name="verticalScrollBarPolicy">
@@ -4178,7 +4173,6 @@ Frequency</string>
                    <property name="font">
                     <font>
                      <pointsize>10</pointsize>
-                     <weight>75</weight>
                      <bold>true</bold>
                     </font>
                    </property>
@@ -4192,7 +4186,6 @@ Frequency</string>
                    <property name="font">
                     <font>
                      <pointsize>10</pointsize>
-                     <weight>75</weight>
                      <bold>true</bold>
                     </font>
                    </property>
@@ -4331,6 +4324,7 @@ Frequency</string>
                  <property name="font">
                   <font>
                    <family>Courier</family>
+                   <pointsize>8</pointsize>
                   </font>
                  </property>
                  <property name="verticalScrollBarPolicy">
@@ -4343,6 +4337,7 @@ Frequency</string>
                  <property name="font">
                   <font>
                    <family>Courier</family>
+                   <pointsize>8</pointsize>
                   </font>
                  </property>
                  <property name="verticalScrollBarPolicy">
@@ -4417,7 +4412,7 @@ Frequency</string>
              <widget class="QLabel" name="notifLabel">
               <property name="font">
                <font>
-                <weight>75</weight>
+                <pointsize>8</pointsize>
                 <bold>true</bold>
                </font>
               </property>
@@ -4459,7 +4454,7 @@ Frequency</string>
                  <string>Record</string>
                 </property>
                 <property name="icon">
-                 <iconset resource="xprotolabinterface.qrc">
+                 <iconset>
                   <normaloff>:/Bitmaps/Bitmaps/ico-record.png</normaloff>:/Bitmaps/Bitmaps/ico-record.png</iconset>
                 </property>
                </widget>
@@ -4493,7 +4488,7 @@ Frequency</string>
                 </property>
                 <property name="font">
                  <font>
-                  <weight>75</weight>
+                  <pointsize>8</pointsize>
                   <bold>true</bold>
                  </font>
                 </property>
@@ -4544,7 +4539,7 @@ Frequency</string>
                      <string/>
                     </property>
                     <property name="pixmap">
-                     <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/lowintense.png</pixmap>
+                     <pixmap>:/Bitmaps/Bitmaps/lowintense.png</pixmap>
                     </property>
                    </widget>
                   </item>
@@ -4588,7 +4583,7 @@ Frequency</string>
                      <string/>
                     </property>
                     <property name="pixmap">
-                     <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/veryintense.png</pixmap>
+                     <pixmap>:/Bitmaps/Bitmaps/veryintense.png</pixmap>
                     </property>
                    </widget>
                   </item>
@@ -4628,7 +4623,7 @@ Frequency</string>
                      <string/>
                     </property>
                     <property name="pixmap">
-                     <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/shortdecay.png</pixmap>
+                     <pixmap>:/Bitmaps/Bitmaps/shortdecay.png</pixmap>
                     </property>
                    </widget>
                   </item>
@@ -4657,7 +4652,7 @@ Frequency</string>
                      <string/>
                     </property>
                     <property name="pixmap">
-                     <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/longdecay.png</pixmap>
+                     <pixmap>:/Bitmaps/Bitmaps/longdecay.png</pixmap>
                     </property>
                    </widget>
                   </item>
@@ -4680,7 +4675,7 @@ Frequency</string>
                    <string>Color Gradient</string>
                   </property>
                   <property name="icon">
-                   <iconset resource="xprotolabinterface.qrc">
+                   <iconset>
                     <normaloff>:/Bitmaps/Bitmaps/colorgradient.png</normaloff>:/Bitmaps/Bitmaps/colorgradient.png</iconset>
                   </property>
                  </widget>
@@ -5163,7 +5158,7 @@ Frequency</string>
                    <string/>
                   </property>
                   <property name="pixmap">
-                   <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/led-off.png</pixmap>
+                   <pixmap>:/Bitmaps/Bitmaps/led-off.png</pixmap>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignCenter</set>
@@ -5181,7 +5176,6 @@ Frequency</string>
                   <property name="font">
                    <font>
                     <pointsize>9</pointsize>
-                    <weight>75</weight>
                     <bold>true</bold>
                    </font>
                   </property>
@@ -5385,7 +5379,7 @@ Frequency</string>
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/GT-logo.png</pixmap>
+              <pixmap>:/Bitmaps/Bitmaps/GT-logo.png</pixmap>
              </property>
             </widget>
            </item>
@@ -5423,7 +5417,7 @@ Frequency</string>
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/oscilloscope-watch.jpg</pixmap>
+              <pixmap>:/Bitmaps/Bitmaps/oscilloscope-watch.jpg</pixmap>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -5470,7 +5464,7 @@ Frequency</string>
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/xprotolab.png</pixmap>
+              <pixmap>:/Bitmaps/Bitmaps/xprotolab.png</pixmap>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -5517,7 +5511,7 @@ Frequency</string>
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/xprotolab-portable.png</pixmap>
+              <pixmap>:/Bitmaps/Bitmaps/xprotolab-portable.png</pixmap>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -5564,7 +5558,7 @@ Frequency</string>
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/xminilab.png</pixmap>
+              <pixmap>:/Bitmaps/Bitmaps/xminilab.png</pixmap>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -5611,7 +5605,7 @@ Frequency</string>
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/xminilab-portable.png</pixmap>
+              <pixmap>:/Bitmaps/Bitmaps/xminilab-portable.png</pixmap>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -5658,7 +5652,7 @@ Frequency</string>
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/xprotolab-plain.png</pixmap>
+              <pixmap>:/Bitmaps/Bitmaps/xprotolab-plain.png</pixmap>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -5734,7 +5728,7 @@ Frequency</string>
   </widget>
   <action name="actionSave_Wave">
    <property name="icon">
-    <iconset resource="xprotolabinterface.qrc">
+    <iconset>
      <normaloff>:/Bitmaps/Bitmaps/ico-save.png</normaloff>:/Bitmaps/Bitmaps/ico-save.png</iconset>
    </property>
    <property name="text">
@@ -5753,7 +5747,7 @@ Frequency</string>
   </action>
   <action name="actionScreenshot">
    <property name="icon">
-    <iconset resource="xprotolabinterface.qrc">
+    <iconset>
      <normaloff>:/Bitmaps/Bitmaps/ico-screenshot.png</normaloff>:/Bitmaps/Bitmaps/ico-screenshot.png</iconset>
    </property>
    <property name="text">
@@ -5778,8 +5772,6 @@ Frequency</string>
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="xprotolabinterface.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

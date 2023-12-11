@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>873</width>
+    <width>923</width>
     <height>604</height>
    </rect>
   </property>
@@ -14,7 +14,7 @@
    <string>DFU Bootloader Interface</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="xprotolabinterface.qrc">
+   <iconset>
     <normaloff>:/Bitmaps/Bitmaps/GT-icon24.png</normaloff>:/Bitmaps/Bitmaps/GT-icon24.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -27,7 +27,7 @@
       <item>
        <widget class="QRadioButton" name="radioOW">
         <property name="text">
-         <string>Osciloscope Watch</string>
+         <string>Oscilloscope Watch</string>
         </property>
         <property name="checked">
          <bool>true</bool>
@@ -109,7 +109,7 @@
         <string>Download Latest Firmware</string>
        </property>
        <property name="icon">
-        <iconset resource="xprotolabinterface.qrc">
+        <iconset>
          <normaloff>:/Bitmaps/Bitmaps/download.png</normaloff>:/Bitmaps/Bitmaps/download.png</iconset>
        </property>
       </widget>
@@ -319,9 +319,7 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="xprotolabinterface.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>buttonBox</sender>

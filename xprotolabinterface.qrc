@@ -73,8 +73,6 @@
         <file>Bitmaps/ico-save.png</file>
         <file>Bitmaps/ico-screenshot.png</file>
         <file>Bitmaps/gt.icns</file>
-        <file>Bitmaps/gt.ico</file>
-        <file>Bitmaps/GT-logo-256.png</file>
         <file>Bitmaps/separator-bg.png</file>
         <file>win-css.qss</file>
         <file>mac-css.qss</file>
@@ -96,5 +94,7 @@
         <file>Bitmaps/xprotolab-portable.png</file>
         <file>Bitmaps/download.png</file>
         <file>Bitmaps/xprotolab-plain.png</file>
+        <file>Bitmaps/GT-icon24.png</file>
+        <file>Bitmaps/GT-icon.ico</file>
     </qresource>
 </RCC>
