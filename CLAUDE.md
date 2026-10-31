@@ -57,7 +57,7 @@ Don't modify the sibling folders. Copy what's needed into this repo instead.
   context gets the best size. Needs the `qico` image-format plugin at runtime (windeployqt includes it).
 - `GT-icon24.png`: window icon of the bootloader dialog and the message box in `xprotolabinterface.cpp`.
 - `GT-logo.png` (184x92): logo shown in the main window `.ui`.
-- `gt.icns`: macOS bundle icon (`ICON` in the `.pro`).
+- `gt.icns`: macOS bundle icon (`ICON` in the `.pro`). Outdated design, to be regenerated (see TODO.md).
 
 ## Workflow
 

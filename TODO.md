@@ -29,12 +29,12 @@ See [CLAUDE.md](CLAUDE.md) for context. Mark items `[x]` when done and add new o
 - [x] Not imported from `-mine`: `exe/` (dfu-programmer.exe and Atmel DFU drivers, see step 4) and `libs/unix/`
       (prebuilt libusb `.a`/`.so`, unused because the `.pro` links the system `-lusb-1.0`).
 - [x] Removed `Bitmaps/GT-logo-256.png` (outdated, unreferenced).
-- [ ] Icons (see the inventory in CLAUDE.md):
-  - `gt.ico` is unreferenced. It is identical to `GT-icon.ico` except for the 32 px frame, where only the
-    logic-trace pattern differs. `gt.ico` matches `GT-icon32.png` and `GT-icon.ico` doesn't. Pick the 32 px
-    version you want, rebuild `GT-icon.ico` if needed, then delete `gt.ico`.
-  - `gt.icns` (macOS, 2014: 16/32/48/128 px + 256 px JPEG 2000) is also embedded in the `.qrc` but never loaded
-    from there. Drop it from the `.qrc` (saves ~125 KB per binary) and regenerate it from the GT-icon PNGs if a mac build matters.
+- [x] Removed `gt.ico`, superseded by `GT-icon.ico`. Kept the `.ico`'s 32 px frame and rewrote
+      `GT-icon32.png` to match it, so the PNG sources and the `.ico` agree at every size.
+- [ ] Update `gt.icns` (macOS): it still shows the outdated design (2014: 16/32/48/128 px + 256 px JPEG 2000).
+      Regenerate it from the GT-icon PNGs. macOS wants 16/32/64/128/256/512 px plus @2x, so 128 and 512 px
+      sources are needed. Also drop it from the `.qrc`: it's embedded (~125 KB per binary) but never loaded from
+      there, because the `.pro`'s `ICON =` reads the file directly.
 - [ ] Once nothing else is needed from it, delete the `xscopes-qt-mine` folder (user's call).
 
 ## 3. Qt5 → Qt6 port
