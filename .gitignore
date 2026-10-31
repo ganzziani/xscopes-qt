@@ -1,15 +1,32 @@
-~
+# Editor backups
+*~
+
+# Debian packaging output
 debian/*.debhelper
 debian/files
 debian/*.log
 debian/*.substvars
 debian/xscopes-qt/
-obj*
-log.txt
-*.o
-*.cpp
-*.o
+
+# qmake / build output
 .qmake*
-Makefile
+Makefile*
 moc_*
+qrc_*
+ui_*.h
+obj*/
+*.o
+*.obj
+build*/
+debug/
+release/
 xscope
+xscope.exe
+
+# Qt Creator per-user settings
+*.pro.user*
+CMakeLists.txt.user*
+.qtcreator/
+
+# Runtime logs
+log.txt
