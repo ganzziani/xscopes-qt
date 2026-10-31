@@ -440,29 +440,31 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot) {
     vCursorB->setSelectable(false);
     vCursorAHead = new QCPItemPixmap(customPlot);
     vCursorAHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/vcursorA.png"));
+    // Set the type before the pixel position: converting pixels to plot coords divides
+    // by the axis rect size, which is still 0 here and would give NaN
+    vCursorAHead->topLeft->setType(QCPItemPosition::ptAbsolute);
     vCursorAHead->topLeft->setPixelPosition(QPointF(150, 10));
     vCursorA->point1->setParentAnchor(vCursorAHead->bottom);
     vCursorA->point2->setParentAnchor(vCursorAHead->bottom);
     vCursorAHead->setVisible(false);
-    vCursorAHead->topLeft->setType(QCPItemPosition::ptAbsolute);
     vCursorBHead = new QCPItemPixmap(customPlot);
     vCursorBHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/vcursorB.png"));
+    vCursorBHead->topLeft->setType(QCPItemPosition::ptAbsolute);
     vCursorBHead->topLeft->setPixelPosition(QPointF(100, 10));
     vCursorB->point1->setParentAnchor(vCursorBHead->bottom);
     vCursorB->point2->setParentAnchor(vCursorBHead->bottom);
     vCursorBHead->setVisible(false);
-    vCursorBHead->topLeft->setType(QCPItemPosition::ptAbsolute);
     ch1Zero = new QCPItemStraightLine(customPlot);
     ch1Zero->setPen(QPen(QColor("#f9a94c"), 1, Qt::DotLine));
     ch1Zero->setSelectable(false);
     ch1ZeroHead = new QCPItemPixmap(customPlot);
     ch1ZeroHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/chan1-zero.png"));
+    ch1ZeroHead->topLeft->setType(QCPItemPosition::ptAbsolute);
     ch1ZeroHead->topLeft->setPixelPosition(QPointF(2, hCursorAPos));
     ch1Zero->point1->setParentAnchor(ch1ZeroHead->right);
     ch1Zero->point2->setParentAnchor(ch1ZeroHead->right);
     ch1ZeroHead->setVisible(true);
     ch1ZeroHead->setClipToAxisRect(false);
-    ch1ZeroHead->topLeft->setType(QCPItemPosition::ptAbsolute);
     //ch1ZeroHead->moveY = 9;
     ch1Zero->point1->setPixelPosition(QPointF(1, hCursorAPos));
     ch1Zero->point2->setPixelPosition(QPointF(10, hCursorAPos));
@@ -473,12 +475,12 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot) {
     ch2Zero->setSelectable(false);
     ch2ZeroHead = new QCPItemPixmap(customPlot);
     ch2ZeroHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/chan2-zero.png"));
+    ch2ZeroHead->topLeft->setType(QCPItemPosition::ptAbsolute);
     ch2ZeroHead->topLeft->setPixelPosition(QPointF(2, hCursorBPos));
     ch2Zero->point1->setParentAnchor(ch2ZeroHead->right);
     ch2Zero->point2->setParentAnchor(ch2ZeroHead->right);
     ch2ZeroHead->setVisible(true);
     ch2ZeroHead->setClipToAxisRect(false);
-    ch2ZeroHead->topLeft->setType(QCPItemPosition::ptAbsolute);
     //ch2ZeroHead->moveY = 9;
     ch2Zero->point1->setPixelPosition(QPointF(1, hCursorBPos));
     ch2Zero->point2->setPixelPosition(QPointF(10, hCursorBPos));

@@ -53,8 +53,16 @@ Compiles cleanly with Qt 6.12.0 MSVC 2022 64-bit (2026-10-31). Linking waits on 
 - [x] Warnings: `QMouseEvent::position()`, `activateWindow()`, CSV open failure now reported, `gains` table without `NULL`.
       Left alone: `Q_ENUMS` deprecations inside QCustomPlot 2.1.1, `QString::fromUtf16`/`QMetaType` in QextSerialPort,
       and unchecked `open()` of the built-in `.qss` resources.
-- [ ] Visually check the 8x8 grid, cursors, trigger icons and tracers once the app runs. QCustomPlot 2 redraws
-      differently, and the tick handling was rewritten.
+- [x] 8x8 grid checked visually (2026-10-31).
+- [x] Debug-build asserts (`!qIsNaN(value)`, then QCheckedInt "Overflow in operator+") in `QCPItemPixmap::getFinalRect`.
+      `vCursorA/BHead` and `ch1/ch2ZeroHead` called `setPixelPosition()` while still in plot coordinates; converting
+      through the zero-size axis rect during setup gave NaN. Now the type is set to `ptAbsolute` first. As a side effect,
+      the CH1/CH2 zero markers now draw (they were invisible before).
+- [ ] Marker alignment: the custom QCustomPlot 1.1.1 patch `QCPItemPixmap::moveX/moveY` shifted pixmaps so their tips
+      sit on their lines (hCursor heads moveY 17, zero heads moveY 9, trigger icons moveX 9 / moveY 10). It was dropped
+      in the 1.3.2 upgrade, so those markers are now offset; the zero lines run about 9 px above the marker tips.
+      Re-add the 6-line patch to QCPItemPixmap in 2.1.1, or offset the positions in app code.
+- [ ] Visually check cursors, trigger icons and tracers with a device connected.
 - [ ] Later: replace QextSerialPort with QtSerialPort (already a dependency; `serialportconnection.h` has a commented-out
       `QSerialPort *serial`). This drops the vendored library but changes serial I/O, so test with hardware.
 
