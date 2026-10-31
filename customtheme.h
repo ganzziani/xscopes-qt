@@ -2,7 +2,6 @@
 #define CUSTOMTHEME_H
 
 #include <QDialog>
-#include <QDesktopWidget>
 #include <QColorDialog>
 #include <QSettings>
 #include <QFile>

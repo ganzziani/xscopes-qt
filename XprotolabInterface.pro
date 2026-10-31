@@ -50,8 +50,6 @@ macx: LIBS += $$PWD/libs/mac/libusb-1.0.dylib
 
 unix:!macx: LIBS += -lusb-1.0
 
-RC_FILE = xprotolabinterface.rc
-
 macx {
     ICON = "Bitmaps/gt.icns"
 }
