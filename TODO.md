@@ -63,6 +63,25 @@ Compiles cleanly with Qt 6.12.0 MSVC 2022 64-bit (2026-10-31). Linking waits on 
       Use the VS2022 x64 build from a current libusb release.
 - [ ] `bootloader.cpp` hard-codes `program = "D:/dfu-programmer"`. Ship `dfu-programmer.exe` next to the app instead.
 
+## 4b. USB drivers and portability (decided 2026-10-31: keep libusb)
+- [ ] Firmware (`D:\Projects\XScopes\Firmware\Source\usb\Descriptors.c`, outside this repo): add Microsoft OS 1.0
+      descriptors (string 0xEE "MSFT100" + Extended Compat ID "WINUSB"). Windows 8+ then loads WinUSB by itself,
+      with no Zadig and no `.inf`. Bump `ReleaseNumber` (bcdDevice) so Windows re-queries devices it has already seen.
+- [ ] Older firmware on Windows: until users upgrade, Zadig is still needed. Optionally have the installer bind WinUSB
+      with libwdi (the library Zadig is built on).
+- [ ] DFU bootloader mode is a separate USB device (Atmel FLIP, VID 03EB) and can't be changed on units in the field.
+      It still needs a driver on Windows (libusb0 from `exe/dfu-drivers/atmel_usb_dfu.inf`, or WinUSB via Zadig/libwdi).
+- [ ] Replace the bundled `libusb.h` (libusbx era, ~2013) with the header from the libusb release we link.
+      Replace deprecated `libusb_set_debug()` with `libusb_set_option(LIBUSB_OPTION_LOG_LEVEL)`.
+- [ ] Linux: `extra/linux/64-xscope.rules` has `MODE="066"`. That's probably meant to be `"0666"`; better still, use `TAG+="uaccess"`.
+      Match on `ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="06f9"` instead of the manufacturer string.
+- [ ] macOS: `libs/mac/libusb-1.0*.dylib` is x86_64 only. Apple Silicon needs an arm64/universal libusb.
+- [ ] Android: open the device through Java `UsbManager` (permission prompt, file descriptor), then
+      `libusb_wrap_sys_device()` with `LIBUSB_OPTION_NO_DEVICE_DISCOVERY`. `LibUsbDevice::openDevice()` needs a separate
+      code path for this. QtSerialPort isn't available on Android.
+- [ ] Firmware upgrade portability: running `dfu-programmer.exe` as a separate process won't work on Android.
+      DFU code built into the app on top of libusb (the `xscopes-qt_dfu` idea) is the portable route. Weigh this in step 5.
+
 ## 5. Bring over from `xscopes-qt_dfu` (only what's worth it)
 - [ ] Guard against an empty `dialog.selectedFiles()` in `bootloader.cpp`.
 - [ ] Decide between linking dfu-programmer in (`dfu/`, unfinished) and keeping the external exe.
