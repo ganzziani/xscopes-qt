@@ -20,15 +20,16 @@ See [CLAUDE.md](CLAUDE.md) for context. Mark items `[x]` when done and add new o
       Needs a visual check once the app builds.
 
 ## 2. Merge local work from `xscopes-qt-mine`
-Base: upstream `c537bf2`. Upstream added 5 commits since, all of which are already in this repo.
-- [ ] Bootloader / firmware-upgrade dialog (`bootloader.*`, `on_upgradeFirmware_clicked`, `LibUsbDevice::RequestInfo`).
-- [ ] QSettings with organization/app name (replaces `QSettings("Gabotronics Xscope","Settings")`).
-- [ ] New icon set `Bitmaps/GT-icon*.png/.ico` and `.qrc` changes. Reconcile with upstream's `gt.ico` / `.rc`.
-- [ ] `NULL` → `nullptr` in `extserialport/*_win.cpp`. Removed `QDesktopWidget` includes.
-- [ ] QCustomPlot 1.3.2 changes: `replot(rpHint)`, commented-out `moveX/moveY`.
-      Skip these if QCustomPlot is replaced in step 3.
-- [ ] Keep upstream's `Gain` struct and mouse-position label while merging `xprotolabinterface.*`.
-- [ ] `bootloader.ui` / `xprotolabinterface.ui` diffs: review by hand.
+- [x] Imported as commit `46733a7` on branch `local-work` (based on `c537bf2`, dated 2023-12-11) and
+      merged into `modernize` (`586dd91`). No textual conflicts. Upstream's `Gain` struct and mouse-position label are kept.
+      Brought in: bootloader slot + `RequestInfo`, QSettings org/app name, QCustomPlot 1.3.2, GT-icon set,
+      `nullptr`, `QDesktopWidget` removal.
+- [x] Post-merge fix: restored `RC_FILE` (the local copy had dropped it). The `.rc` and the window icons in
+      `xprotolabinterface.ui` / `customtheme.ui` now use `GT-icon.ico`. They used to point at `gt.ico`, which is no longer in the `.qrc`.
+- [x] Not imported from `-mine`: `exe/` (dfu-programmer.exe and Atmel DFU drivers, see step 4) and `libs/unix/`
+      (prebuilt libusb `.a`/`.so`, unused because the `.pro` links the system `-lusb-1.0`).
+- [ ] Optional cleanup: `Bitmaps/gt.ico` and `GT-logo-256.png` are now unreferenced.
+- [ ] Once nothing else is needed from it, delete the `xscopes-qt-mine` folder (user's call).
 
 ## 3. Qt5 → Qt6 port
 About 100 compile errors with Qt 6.11.1 MSVC (local copy, test build 2026-10-31).
