@@ -44,7 +44,9 @@ Don't modify the sibling folders. Copy what's needed into this repo instead.
 
 - Main window: `xprotolabinterface.cpp/.h/.ui` (large). Device I/O: `libusbdevice.*`, `serialportconnection.*`.
   Firmware: `bootloader.*`, `filedownloader.*`. Theme: `customtheme.*`, `*.qss`.
-- `qcustomplot.*` and `extserialport/` are vendored third-party code. Patch them minimally, or replace them wholesale.
+- `qcustomplot.*` (QCustomPlot 2.1.1) and `extserialport/` (QextSerialPort, minimally patched for Qt6) are vendored
+  third-party code. Patch them minimally, or replace them wholesale.
+- Settings: the org/app name is set once in `main()`. Use a plain `QSettings settings;` everywhere, with theme keys under `Theme/`.
 - Style: 4-space indent, opening brace on the same line, Qt signal/slot naming (`on_<widget>_<signal>`).
   Match the surrounding code.
 - Git stores text with LF line endings (`core.autocrlf=true` locally).

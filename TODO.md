@@ -39,20 +39,24 @@ See [CLAUDE.md](CLAUDE.md) for context. Mark items `[x]` when done and add new o
 - [ ] Once nothing else is needed from it, delete the `xscopes-qt-mine` folder (user's call).
 
 ## 3. Qt5 → Qt6 port
-About 100 compile errors with Qt 6.11.1 MSVC (local copy, test build 2026-10-31).
-- [ ] QCustomPlot: replace with 2.1.1 (Qt6-ready, copy from `Xscopes-Qt6/source`) and adapt call sites.
-      The alternative is patching 1.x.
-- [ ] `main.cpp`: drop `QTextCodec`.
-- [ ] Unify QSettings. `main.cpp` reads `wasMaximized` from `QSettings("Gabotronics Xscope","Settings")`, but
-      `writeAppSettings()` now writes to the default `QSettings` (org/app name), so the maximized state is never restored.
-      `customtheme.cpp` still uses `QSettings("Gabotronics Xscope","Theme")`. Set the org/app name once in `main()`,
-      use the default `QSettings` everywhere (theme under a `Theme/` group), and consider migrating old values once.
-- [ ] `xprotolabinterface.cpp`: `endl` → `Qt::endl`, `QApplication::desktop()` → `QScreen`,
-      `QColor::getHslF` takes `float*`, `QString::append` overload (line ~1529),
-      `QMouseEvent::x()/y()` → `position()`.
-- [ ] `libusbdevice.cpp`: 19 errors, mostly the `QtConcurrent::run` signature change.
-- [ ] `customtheme.cpp`: 2 errors.
-- [ ] Clear the warnings that matter (deprecated APIs).
+Compiles cleanly with Qt 6.12.0 MSVC 2022 64-bit (2026-10-31). Linking waits on step 4 (64-bit libusb).
+- [x] QCustomPlot 1.3.2 → 2.1.1 (copied from `Xscopes-Qt6/source`). Call sites adapted: no `addItem()`,
+      `setPixelPoint`/`pixelPoint` → `setPixelPosition`/`pixelPosition`, `clearData()` → `data()->clear()`,
+      `rpHint` → `rpRefreshHint`, fixed tick steps via shared `QCPAxisTickerFixed` on both axis pairs,
+      plottable `setSelectable(QCP::stNone)`.
+- [x] Qt6 API: drop `QTextCodec`, `Qt::endl`, `QScreen` instead of `QApplication::desktop()`, `getHslF(float*)`,
+      explicit `QChar(byte)` appends, new `QtConcurrent::run(&fn, obj)` order, char compares instead of `QString(uint8_t)`.
+- [x] QextSerialPort: `QRegExp` → `QRegularExpression`, `qSort` → `std::sort` (minimal patch to vendored code).
+- [x] Unified QSettings: org/app name set once in `main()` before any widget is created (member dialogs read settings
+      in their constructors). Theme lives in the `Theme/` group, and old "Gabotronics Xscope" settings are migrated once.
+      This fixes the maximized state not being restored.
+- [x] Warnings: `QMouseEvent::position()`, `activateWindow()`, CSV open failure now reported, `gains` table without `NULL`.
+      Left alone: `Q_ENUMS` deprecations inside QCustomPlot 2.1.1, `QString::fromUtf16`/`QMetaType` in QextSerialPort,
+      and unchecked `open()` of the built-in `.qss` resources.
+- [ ] Visually check the 8x8 grid, cursors, trigger icons and tracers once the app runs. QCustomPlot 2 redraws
+      differently, and the tick handling was rewritten.
+- [ ] Later: replace QextSerialPort with QtSerialPort (already a dependency; `serialportconnection.h` has a commented-out
+      `QSerialPort *serial`). This drops the vendored library but changes serial I/O, so test with hardware.
 
 ## 4. Windows libraries
 - [ ] Replace `libs/win/libusb-1.0.*`. The current files are 32-bit (i386) and won't link with a 64-bit kit.

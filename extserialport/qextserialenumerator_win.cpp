@@ -33,7 +33,8 @@
 #include "qextserialenumerator_p.h"
 #include <QtCore/QDebug>
 #include <QtCore/QMetaType>
-#include <QtCore/QRegExp>
+#include <QtCore/QRegularExpression>
+#include <algorithm>
 #include <objbase.h>
 #include <initguid.h>
 #include <setupapi.h>
@@ -178,11 +179,11 @@ static bool getDeviceDetailsWin(QextPortInfo *portInfo, HDEVINFO devInfo, PSP_DE
     QString hardwareIDs = getDeviceProperty(devInfo, devData, SPDRP_HARDWAREID);
     HKEY devKey = ::SetupDiOpenDevRegKey(devInfo, devData, DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_QUERY_VALUE);
     portInfo->portName = getRegKeyValue(devKey, TEXT("PortName"));
-    QRegExp idRx(QLatin1String("VID_(\\w+)&PID_(\\w+)"));
-    if (hardwareIDs.toUpper().contains(idRx)) {
+    QRegularExpressionMatch idMatch = QRegularExpression(QLatin1String("VID_(\\w+)&PID_(\\w+)")).match(hardwareIDs.toUpper());
+    if (idMatch.hasMatch()) {
         bool dummy;
-        portInfo->vendorID = idRx.cap(1).toInt(&dummy, 16);
-        portInfo->productID = idRx.cap(2).toInt(&dummy, 16);
+        portInfo->vendorID = idMatch.captured(1).toInt(&dummy, 16);
+        portInfo->productID = idMatch.captured(2).toInt(&dummy, 16);
         //qDebug() << "got vid:" << vid << "pid:" << pid;
     }
     return true;
@@ -230,7 +231,7 @@ QList<QextPortInfo> QextSerialEnumeratorPrivate::getPorts_sys()
     const int count = sizeof(deviceClassGuids)/sizeof(deviceClassGuids[0]);
     for (int i=0; i<count; ++i)
         enumerateDevicesWin(deviceClassGuids[i], &ports);
-    qSort(ports.begin(), ports.end(), lessThan);
+    std::sort(ports.begin(), ports.end(), lessThan);
     return ports;
 }
 

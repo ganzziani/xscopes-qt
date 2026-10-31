@@ -7,7 +7,7 @@ CustomTheme::CustomTheme(QWidget *parent) :
     ui->setupUi(this);
     this->setFixedSize(this->size());
     this->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
-    const QRect screen = QApplication::desktop()->screenGeometry();
+    const QRect screen = QGuiApplication::primaryScreen()->availableGeometry();
     this->move(screen.center() - this->rect().center());
     colorDialog = new QColorDialog();
     QFile colorDialog_css;
@@ -120,7 +120,8 @@ void CustomTheme::loadDefaultTheme() {
 }
 
 void CustomTheme::saveTheme() {
-    QSettings settings("Gabotronics Xscope", "Theme");
+    QSettings settings;
+    settings.beginGroup("Theme");
     settings.setValue("ch1", customColors.ch1.name());
     settings.setValue("ch2", customColors.ch2.name());
     settings.setValue("ch1ref", customColors.ch1ref.name());
@@ -140,7 +141,8 @@ void CustomTheme::saveTheme() {
 }
 
 void CustomTheme::loadTheme() {
-    QSettings settings("Gabotronics Xscope", "Theme");
+    QSettings settings;
+    settings.beginGroup("Theme");
     if(settings.value("isThemeSet").toInt() != SET) {
         loadDefaultTheme();
         return;

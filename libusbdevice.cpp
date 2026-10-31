@@ -87,7 +87,7 @@ void LibUsbDevice::initializeDevice() {
         status = libusb_init(&context); //initialize the library for the session we just declared
         if(status != 0) {
             cstatus = tr("Initialization Error!");
-            qDebug() << "Initialization Error! " << status << endl; //there was an error
+            qDebug() << "Initialization Error! " << status << Qt::endl; //there was an error
             isInitialiazed = false;
             return;
         }
@@ -104,7 +104,7 @@ void LibUsbDevice::initializeDevice() {
             if(LIBUSB_SUCCESS != status) {
                 hasHotPlugSupport = false;
             }
-            future = QtConcurrent::run(this, &LibUsbDevice::eventThread);
+            future = QtConcurrent::run(&LibUsbDevice::eventThread, this);
         }
         libusb_set_debug(context, LIBUSB_LOG_LEVEL_INFO); //set verbosity level to 3
     } else {
@@ -119,7 +119,7 @@ void LibUsbDevice::openDevice(QString nameOfPort) {
         status = libusb_get_device_list(context, &devs);
         if(status < 0) {
             cstatus = tr("Cannot open device!");
-            qDebug() << "No USB Devices to List" << endl;
+            qDebug() << "No USB Devices to List" << Qt::endl;
             return;
         }
         while((dev = devs[i++]) != nullptr) {
@@ -131,10 +131,10 @@ void LibUsbDevice::openDevice(QString nameOfPort) {
                 status = libusb_open(dev, &deviceHandle);
                 if(status) {
                     cstatus = tr("Cannot open device!");
-                    qDebug() << "Cannot open device--" << i << endl;
+                    qDebug() << "Cannot open device--" << i << Qt::endl;
                     deviceHandle = NULL;
                 } else {
-                    qDebug() << dev << " Device Opened" << endl;
+                    qDebug() << dev << " Device Opened" << Qt::endl;
                     break;
                 }
             }
@@ -142,18 +142,18 @@ void LibUsbDevice::openDevice(QString nameOfPort) {
         libusb_free_device_list(devs, 1);
         if(deviceHandle == NULL) {
             cstatus = tr("Cannot open device!");
-            qDebug() << "Cannot open device" << endl;
+            qDebug() << "Cannot open device" << Qt::endl;
             emit serial.connectionStatus("Cannot open device");
             return;
         }
         if(libusb_kernel_driver_active(deviceHandle, 0) == 1) {
-            qDebug() << "Kernel Driver Active" << endl;
+            qDebug() << "Kernel Driver Active" << Qt::endl;
             if(libusb_detach_kernel_driver(deviceHandle, 0) == 0) //detach it
-                qDebug() << "Kernel Driver Detached!" << endl;
+                qDebug() << "Kernel Driver Detached!" << Qt::endl;
         }
         status = libusb_claim_interface(deviceHandle, INTERFACE_NUMBER);
         if(status != LIBUSB_SUCCESS) {
-            qDebug() << "Cannot Claim Interface" << endl;
+            qDebug() << "Cannot Claim Interface" << Qt::endl;
             libusb_close(deviceHandle);
             isDeviceConnected = false;
             return;
@@ -245,7 +245,7 @@ bool LibUsbDevice::controlReadTransfer(uint8_t command, uint16_t value, uint16_t
             return false;
         }
     } else {
-        if(QString(command) == "u" || QString(command) == "c" || QString(command) == "w" || QString(command) == "x")
+        if(command == 'u' || command == 'c' || command == 'w' || command == 'x')
             turnOffAutoMode();
         QByteArray ba;
         ba[0] = command;
@@ -254,7 +254,7 @@ bool LibUsbDevice::controlReadTransfer(uint8_t command, uint16_t value, uint16_t
         ba[3] = value;
         ba[4] = value >> 8;
         serial.writeByteArray(ba);
-        if(QString(command) == "u") {
+        if(command == 'u') {
             while(serial.serial->bytesAvailable() < 44) {
                 serial.serial->waitForReadyRead(1000);
             }
@@ -274,7 +274,7 @@ bool LibUsbDevice::controlReadTransfer(uint8_t command, uint16_t value, uint16_t
                 return false;
             }
         } else {
-            if(QString(command) == "c" || QString(command) == "w" || QString(command) == "x")
+            if(command == 'c' || command == 'w' || command == 'x')
                 turnOnAutoMode();
             return true;
         }
@@ -299,7 +299,7 @@ void LibUsbDevice::asyncBulkReadTransfer() {
             return;
         }
         if(!future.isRunning())
-            future = QtConcurrent::run(this, &LibUsbDevice::eventThread);
+            future = QtConcurrent::run(&LibUsbDevice::eventThread, this);
     } else {
         serial.wsk = chData;
         serial.finish = false;
@@ -458,7 +458,7 @@ void LibUsbDevice::saveAWG() {
 QString LibUsbDevice::getStringFromUnsignedChar(unsigned char *buffer, int length) {
     QString result;
     for(int i = 0; i < length; i++) {
-        result.append(buffer[i]);
+        result.append(QChar(buffer[i]));
     }
     return result;
 }
