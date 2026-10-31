@@ -5,6 +5,7 @@
 #include <QBuffer>
 #include <QFile>
 #include <QSettings>
+#include <QStandardPaths>
 
 Bootloader::Bootloader(QWidget *parent) :
     QDialog(parent),
@@ -14,7 +15,10 @@ Bootloader::Bootloader(QWidget *parent) :
     if(ui->radioOW->isChecked())
         on_radioOW_clicked();
     myProcess = new QProcess(this);
-    program = "D:/dfu-programmer";
+    // dfu-programmer ships next to the application on Windows; otherwise use the one on PATH
+    program = QStandardPaths::findExecutable("dfu-programmer", {QCoreApplication::applicationDirPath()});
+    if(program.isEmpty())
+        program = "dfu-programmer";
     doEverything = false;
     HEXDownloader = new FileDownloader(0, HEXFileUrl, this);
     EEPDownloader = new FileDownloader(0, EEPFileUrl, this);

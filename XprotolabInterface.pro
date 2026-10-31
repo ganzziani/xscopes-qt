@@ -46,6 +46,14 @@ greaterThan(QT_MAJOR_VERSION, 4):QT += printsupport
 win32: PRE_TARGETDEPS += $$PWD/libs/win/libusb-1.0.lib
 win32: LIBS += -L$$PWD/libs/win -llibusb-1.0
 
+# Runtime files that must sit next to the exe (copied at build time)
+win32 {
+    runtime.files = $$PWD/libs/win/libusb-1.0.dll $$PWD/libs/win/dfu-programmer.exe
+    CONFIG(debug, debug|release): runtime.path = $$OUT_PWD/debug
+    else: runtime.path = $$OUT_PWD/release
+    COPIES += runtime
+}
+
 macx: LIBS += $$PWD/libs/mac/libusb-1.0.dylib
 
 unix:!macx: LIBS += -lusb-1.0

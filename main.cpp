@@ -1,5 +1,6 @@
 #include "xprotolabinterface.h"
 #include <QApplication>
+#include <QStyleHints>
 
 // Older versions stored settings under "Gabotronics Xscope/Settings" and
 // "Gabotronics Xscope/Theme". Copy them once into the current store.
@@ -22,6 +23,9 @@ static void migrateOldSettings() {
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
+    // The stylesheets (win-css.qss, mac-css.qss) assume a light palette. Qt 6 follows the
+    // system dark mode, which would give white text on the light backgrounds.
+    a.styleHints()->setColorScheme(Qt::ColorScheme::Light);
     // Organization name used for QSettings. Set before any widget is created,
     // since member dialogs (Bootloader, CustomTheme) read settings in their constructors.
     QCoreApplication::setOrganizationName("Gabotronics");
