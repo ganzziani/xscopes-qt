@@ -49,6 +49,16 @@ Don't modify the sibling folders. Copy what's needed into this repo instead.
   Match the surrounding code.
 - Git stores text with LF line endings (`core.autocrlf=true` locally).
 
+## Icons (`Bitmaps/`)
+
+- `GT-icon16/24/32/48/64/256.png`: the source images for the app icon.
+- `GT-icon.ico`: all six sizes in one file. Used as the Windows exe icon (`xprotolabinterface.rc`) and as the window
+  icon in `xprotolabinterface.ui` and `customtheme.ui`. Qt's QIcon loads every frame of an `.ico`, so each
+  context gets the best size. Needs the `qico` image-format plugin at runtime (windeployqt includes it).
+- `GT-icon24.png`: window icon of the bootloader dialog and the message box in `xprotolabinterface.cpp`.
+- `GT-logo.png` (184x92): logo shown in the main window `.ui`.
+- `gt.icns`: macOS bundle icon (`ICON` in the `.pro`).
+
 ## Workflow
 
 - Commit in small steps on a feature branch. Don't push or open PRs without asking.

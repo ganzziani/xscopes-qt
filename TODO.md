@@ -28,7 +28,13 @@ See [CLAUDE.md](CLAUDE.md) for context. Mark items `[x]` when done and add new o
       `xprotolabinterface.ui` / `customtheme.ui` now use `GT-icon.ico`. They used to point at `gt.ico`, which is no longer in the `.qrc`.
 - [x] Not imported from `-mine`: `exe/` (dfu-programmer.exe and Atmel DFU drivers, see step 4) and `libs/unix/`
       (prebuilt libusb `.a`/`.so`, unused because the `.pro` links the system `-lusb-1.0`).
-- [ ] Optional cleanup: `Bitmaps/gt.ico` and `GT-logo-256.png` are now unreferenced.
+- [x] Removed `Bitmaps/GT-logo-256.png` (outdated, unreferenced).
+- [ ] Icons (see the inventory in CLAUDE.md):
+  - `gt.ico` is unreferenced. It is identical to `GT-icon.ico` except for the 32 px frame, where only the
+    logic-trace pattern differs. `gt.ico` matches `GT-icon32.png` and `GT-icon.ico` doesn't. Pick the 32 px
+    version you want, rebuild `GT-icon.ico` if needed, then delete `gt.ico`.
+  - `gt.icns` (macOS, 2014: 16/32/48/128 px + 256 px JPEG 2000) is also embedded in the `.qrc` but never loaded
+    from there. Drop it from the `.qrc` (saves ~125 KB per binary) and regenerate it from the GT-icon PNGs if a mac build matters.
 - [ ] Once nothing else is needed from it, delete the `xscopes-qt-mine` folder (user's call).
 
 ## 3. Qt5 → Qt6 port
