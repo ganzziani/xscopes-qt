@@ -26,7 +26,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>:/Bitmaps/Bitmaps/gt.ico</normaloff>:/Bitmaps/Bitmaps/gt.ico</iconset>
+    <normaloff>:/Bitmaps/Bitmaps/GT-icon.ico</normaloff>:/Bitmaps/Bitmaps/GT-icon.ico</iconset>
   </property>
   <property name="documentMode">
    <bool>false</bool>
