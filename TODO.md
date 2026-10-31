@@ -14,8 +14,10 @@ See [CLAUDE.md](CLAUDE.md) for context. Mark items `[x]` when done and add new o
       `*.pro.user*`, `.qtcreator/` and build dirs.
 - [x] Remove `Bitmaps/HcursorA.png` and `VcursorA.png`. They were byte-identical duplicates of the
       lowercase files the code uses, and the case-only name clash broke checkouts on Windows.
-- [ ] `vCursorBHead` loads `vcursorA.png`, and `Bitmaps/VcursorB.png` isn't in the `.qrc`.
-      Intentional, or should B have its own bitmap? Check against `hCursorB`, which uses `hcursorB.png`.
+- [x] New 17x27 `vcursorA.png` / `vcursorB.png`. Odd width centers the pixmap on the cursor line.
+      Cursor B now uses its own bitmap (renamed from `VcursorB.png`, added to `.qrc`), and the drag/position
+      code derives offsets from the pixmap width instead of a hard-coded 32 px.
+      Needs a visual check once the app builds.
 
 ## 2. Merge local work from `xscopes-qt-mine`
 Base: upstream `c537bf2`. Upstream added 5 commits since, all of which are already in this repo.
