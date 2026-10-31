@@ -8,6 +8,7 @@
 #include <QPixmap>
 #include <QIcon>
 #include <QButtonGroup>
+#include <QScreen>
 #include <QDebug>
 
 #include "customcolors.h"

@@ -35,7 +35,7 @@
 #include <QtCore/QReadWriteLock>
 #include <QtCore/QMutexLocker>
 #include <QtCore/QDebug>
-#include <QtCore/QRegExp>
+#include <QtCore/QRegularExpression>
 #include <QtCore/QMetaType>
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 #  include <QtCore/QWinEventNotifier>
@@ -65,7 +65,7 @@ void QextSerialPortPrivate::platformSpecificDestruct() {
 */
 static QString fullPortNameWin(const QString &name)
 {
-    QRegExp rx(QLatin1String("^COM(\\d+)"));
+    QRegularExpression rx(QLatin1String("^COM(\\d+)"));
     QString fullName(name);
     if (fullName.contains(rx))
         fullName.prepend(QLatin1String("\\\\.\\"));

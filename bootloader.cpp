@@ -21,10 +21,6 @@ Bootloader::Bootloader(QWidget *parent) :
     connect(HEXDownloader, SIGNAL(downloaded(int)), this, SLOT(HEXDownloaded(int)));
     connect(EEPDownloader, SIGNAL(downloaded(int)), this, SLOT(EEPDownloaded(int)));
     connect(myProcess, SIGNAL(finished(int)), this, SLOT(ProcessDone(int)));
-    // Organization name used for QSettings:
-    QCoreApplication::setOrganizationName("Gabotronics");
-    QCoreApplication::setOrganizationDomain("gabotronics.com");
-    QCoreApplication::setApplicationName("XScopes Interface");
     QSettings settings;
     workingDir = settings.value("workingDir").toString();
     ui->lineFlash->setText(settings.value("lastHEXFile").toString());

@@ -34,7 +34,7 @@
 
 #include <QtCore/QDebug>
 #include <QtCore/QMetaType>
-#include <QtCore/QRegExp>
+#include <QtCore/QRegularExpression>
 
 QextSerialEnumeratorPrivate::QextSerialEnumeratorPrivate(QextSerialEnumerator *enumrator)
     :q_ptr(enumrator)
