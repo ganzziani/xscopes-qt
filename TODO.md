@@ -59,9 +59,14 @@ Compiles cleanly with Qt 6.12.0 MSVC 2022 64-bit (2026-10-31). Linking waits on 
       `QSerialPort *serial`). This drops the vendored library but changes serial I/O, so test with hardware.
 
 ## 4. Windows libraries
-- [ ] Replace `libs/win/libusb-1.0.*`. The current files are 32-bit (i386) and won't link with a 64-bit kit.
-      Use the VS2022 x64 build from a current libusb release.
-- [ ] `bootloader.cpp` hard-codes `program = "D:/dfu-programmer"`. Ship `dfu-programmer.exe` next to the app instead.
+- [x] libusb 1.0.30, VS2022 x64 DLL + import lib, GPG-verified (see `libs/win/README.md`). Removed the 32-bit
+      `libusb-1.0.dll.a`. **The app now links and runs on Qt 6.12.0** (smoke test 2026-10-31, no device attached).
+- [x] `dfu-programmer` is looked up next to the app first, then on PATH. `libs/win/dfu-programmer.exe` (0.7.2, x64,
+      self-contained) comes from `xscopes-qt-mine/exe`. The `.pro` copies it and `libusb-1.0.dll` into the build output.
+- [x] Windows dark mode made the stylesheets unreadable (white text on light backgrounds). `main()` now pins
+      `Qt::ColorScheme::Light`, which needs Qt 6.8 or newer.
+- [ ] Consider updating dfu-programmer to 1.1.0. Check that its Windows build still works with the Atmel/WinUSB driver.
+- [ ] Atmel DFU drivers (`xscopes-qt-mine/exe/dfu-drivers`) aren't in the repo yet. Decide in step 6 (installer) or step 4b.
 
 ## 4b. USB drivers and portability (decided 2026-10-31: keep libusb)
 - [ ] Firmware (`D:\Projects\XScopes\Firmware\Source\usb\Descriptors.c`, outside this repo): add Microsoft OS 1.0
@@ -71,8 +76,7 @@ Compiles cleanly with Qt 6.12.0 MSVC 2022 64-bit (2026-10-31). Linking waits on 
       with libwdi (the library Zadig is built on).
 - [ ] DFU bootloader mode is a separate USB device (Atmel FLIP, VID 03EB) and can't be changed on units in the field.
       It still needs a driver on Windows (libusb0 from `exe/dfu-drivers/atmel_usb_dfu.inf`, or WinUSB via Zadig/libwdi).
-- [ ] Replace the bundled `libusb.h` (libusbx era, ~2013) with the header from the libusb release we link.
-      Replace deprecated `libusb_set_debug()` with `libusb_set_option(LIBUSB_OPTION_LOG_LEVEL)`.
+- [x] Replaced the bundled `libusb.h` with the 1.0.30 header. `libusb_set_debug()` → `libusb_set_option(LIBUSB_OPTION_LOG_LEVEL)`.
 - [ ] Linux: `extra/linux/64-xscope.rules` has `MODE="066"`. That's probably meant to be `"0666"`; better still, use `TAG+="uaccess"`.
       Match on `ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="06f9"` instead of the manufacturer string.
 - [ ] macOS: `libs/mac/libusb-1.0*.dylib` is x86_64 only. Apple Silicon needs an arm64/universal libusb.

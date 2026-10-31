@@ -37,8 +37,11 @@ Don't modify the sibling folders. Copy what's needed into this repo instead.
   ```
 
   Use a build dir outside the repo, such as the session scratchpad. Never build in the source tree.
-- Runtime needs `libusb-1.0.dll` next to the exe (`windeployqt` covers the Qt DLLs).
-- Firmware upgrade runs the external `dfu-programmer.exe`. Atmel DFU drivers are in `xscopes-qt-mine/exe/dfu-drivers`.
+- Runtime needs `libusb-1.0.dll` and `dfu-programmer.exe` next to the exe. The `.pro` copies both from `libs/win`
+  at build time (qmake `COPIES`). Run `windeployqt --release xscope.exe` for the Qt DLLs.
+- Firmware upgrade runs `dfu-programmer`, found next to the app or on PATH. Atmel DFU drivers are in
+  `xscopes-qt-mine/exe/dfu-drivers`.
+- Needs Qt 6.8 or newer (`QStyleHints::setColorScheme`, used to keep the light palette the stylesheets expect).
 
 ## Code notes
 

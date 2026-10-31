@@ -106,7 +106,7 @@ void LibUsbDevice::initializeDevice() {
             }
             future = QtConcurrent::run(&LibUsbDevice::eventThread, this);
         }
-        libusb_set_debug(context, LIBUSB_LOG_LEVEL_INFO); //set verbosity level to 3
+        libusb_set_option(context, LIBUSB_OPTION_LOG_LEVEL, LIBUSB_LOG_LEVEL_INFO);
     } else {
         isInitialiazed = true;
     }
