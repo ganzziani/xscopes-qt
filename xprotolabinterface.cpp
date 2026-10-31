@@ -452,7 +452,7 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot) {
     vCursorAHead->topLeft->setType(QCPItemPosition::ptAbsolute);
     vCursorBHead = new QCPItemPixmap(customPlot);
     customPlot->addItem(vCursorBHead);
-    vCursorBHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/vcursorA.png"));
+    vCursorBHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/vcursorB.png"));
     vCursorBHead->topLeft->setPixelPoint(QPointF(100, 10));
     vCursorB->point1->setParentAnchor(vCursorBHead->bottom);
     vCursorB->point2->setParentAnchor(vCursorBHead->bottom);
@@ -1255,11 +1255,12 @@ void XprotolabInterface::moveCursor(QMouseEvent *event) {
                 }
             } else if(currentSelected == isVCursorAHead) {
                 vCursorAPos = ui->plotterWidget->xAxis->pixelToCoord(event->x());
-                curPos = event->x() - 16;
+                // Pixmap width is odd, so its center column sits exactly on the cursor line
+                curPos = event->x() - vCursorAHead->pixmap().width() / 2;
                 if(curPos < 0)
                     curPos = 0;
-                else if(curPos > ui->plotterWidget->visibleRegion().boundingRect().right() - 32)
-                    curPos = ui->plotterWidget->visibleRegion().boundingRect().right() - 32;
+                else if(curPos > ui->plotterWidget->visibleRegion().boundingRect().right() - vCursorAHead->pixmap().width())
+                    curPos = ui->plotterWidget->visibleRegion().boundingRect().right() - vCursorAHead->pixmap().width();
                 if(vCursorAPos >= xmax - 1)
                     vCursorAPos = xmax - 1;
                 else if(vCursorAPos < 0)
@@ -1268,11 +1269,11 @@ void XprotolabInterface::moveCursor(QMouseEvent *event) {
                 sendVerticalCursorA();
             } else if(currentSelected == isVCursorBHead) {
                 vCursorBPos = ui->plotterWidget->xAxis->pixelToCoord(event->x());
-                curPos = event->x() - 16;
+                curPos = event->x() - vCursorBHead->pixmap().width() / 2;
                 if(curPos < 0)
                     curPos = 0;
-                else if(curPos > ui->plotterWidget->visibleRegion().boundingRect().right() - 32)
-                    curPos = ui->plotterWidget->visibleRegion().boundingRect().right() - 32;
+                else if(curPos > ui->plotterWidget->visibleRegion().boundingRect().right() - vCursorBHead->pixmap().width())
+                    curPos = ui->plotterWidget->visibleRegion().boundingRect().right() - vCursorBHead->pixmap().width();
                 if(vCursorBPos >= xmax - 1)
                     vCursorBPos = xmax - 1;
                 else if(vCursorBPos < 0)
@@ -4472,7 +4473,7 @@ void XprotolabInterface::checkFCRadioButtons(int value) {
 }
 
 void XprotolabInterface::setVerticalCursors() {
-    int currWidth = ui->plotterWidget->visibleRegion().boundingRect().right() - 32;
+    int currWidth = ui->plotterWidget->visibleRegion().boundingRect().right() - vCursorAHead->pixmap().width();
     double deltaWidth = currWidth / 127.0;
     int a = vCursorAPos * 128.0 / xmax;
     int b = vCursorBPos * 128.0 / xmax;
