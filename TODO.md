@@ -29,6 +29,7 @@ See [CLAUDE.md](CLAUDE.md) for context. Mark items `[x]` when done and add new o
 - [x] Not imported from `-mine`: `exe/` (dfu-programmer.exe and Atmel DFU drivers, see step 4) and `libs/unix/`
       (prebuilt libusb `.a`/`.so`, unused because the `.pro` links the system `-lusb-1.0`).
 - [x] Removed `Bitmaps/GT-logo-256.png` (outdated, unreferenced).
+- [x] Removed unused `Bitmaps/xscope.ico` and `xscope.png` (2013), plus the `.qrc` entry.
 - [x] Removed `gt.ico`, superseded by `GT-icon.ico`. Kept the `.ico`'s 32 px frame and rewrote
       `GT-icon32.png` to match it, so the PNG sources and the `.ico` agree at every size.
 - [ ] Update `gt.icns` (macOS): it still shows the outdated design (2014: 16/32/48/128 px + 256 px JPEG 2000).
@@ -42,6 +43,10 @@ About 100 compile errors with Qt 6.11.1 MSVC (local copy, test build 2026-10-31)
 - [ ] QCustomPlot: replace with 2.1.1 (Qt6-ready, copy from `Xscopes-Qt6/source`) and adapt call sites.
       The alternative is patching 1.x.
 - [ ] `main.cpp`: drop `QTextCodec`.
+- [ ] Unify QSettings. `main.cpp` reads `wasMaximized` from `QSettings("Gabotronics Xscope","Settings")`, but
+      `writeAppSettings()` now writes to the default `QSettings` (org/app name), so the maximized state is never restored.
+      `customtheme.cpp` still uses `QSettings("Gabotronics Xscope","Theme")`. Set the org/app name once in `main()`,
+      use the default `QSettings` everywhere (theme under a `Theme/` group), and consider migrating old values once.
 - [ ] `xprotolabinterface.cpp`: `endl` → `Qt::endl`, `QApplication::desktop()` → `QScreen`,
       `QColor::getHslF` takes `float*`, `QString::append` overload (line ~1529),
       `QMouseEvent::x()/y()` → `position()`.
