@@ -1,7 +1,7 @@
 #include "libusbdevice.h"
 #include "libusbdeviceinfo.h"
 
-#include "extserialport/qextserialport.h"
+#include "qextserialport.h"
 
 LibUsbDevice::LibUsbDevice(QObject *parent) :
     QObject(parent) {
@@ -502,4 +502,16 @@ int LibUsbDevice::requestMM(unsigned char *buffer) {
         }
     }
     return bytesRead;
+}
+
+// USB Bootloader Interface
+
+void LibUsbDevice::RequestInfo() {
+    int bytesRead;
+    bytesRead = libusb_control_transfer(deviceHandle, 0xC0, 0xB0, 0, 0, inBuffer, LEN_CONTROL_BUFFER, 1000);
+    if(bytesRead >= 0) {
+    } else {
+        cstatus = tr("Read Error!");
+        qDebug() << "read error: " << bytesRead;
+    }
 }

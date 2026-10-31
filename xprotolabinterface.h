@@ -27,7 +27,6 @@
 #define XPROTOLABINTERFACE_H
 
 #include <QMainWindow>
-#include <QDesktopWidget>
 #include <QTimer>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -35,6 +34,7 @@
 #include <QInputDialog>
 #include <QSettings>
 #include "customtheme.h"
+#include "bootloader.h"
 #include "qcustomplot.h"
 #include "libusbdevice.h"
 #include "fft.h"
@@ -351,6 +351,7 @@ private slots:
     void restoreUiSettings();
     void on_radioFreq_clicked();
     void on_radioPulse_clicked();
+    void on_upgradeFirmware_clicked();
 
 private:
     Ui::XprotolabInterface *ui;
@@ -390,6 +391,7 @@ private:
     QStringList triggerIconPathsG, triggerIconPathsR;
     int trigIcon, offset;
     CustomTheme customThemeDialog;
+    Bootloader DialogBootloader;
 
     /************** Graphs **************/
     QCPGraph *ch1BarGraph, *ch2BarGraph;
