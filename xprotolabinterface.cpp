@@ -1819,7 +1819,8 @@ void XprotolabInterface::onDeviceDisconnected() {
     qDebug() << "Device disconnected";
     logToFile("Device disconnected");
     disconnectDevice();
-    setInfoText(tr("Device disconnected. Reconnect it and press Connect."));
+    // Keep it short: the label in the Options tab clips long text
+    setInfoText(tr("Device disconnected"));
 }
 
 void XprotolabInterface::disconnectDevice(bool mode) {

@@ -28,16 +28,7 @@ void LibUsbDevice::reset() {
     isInitialiazed = false;
     deviceHandle = nullptr;
     context = nullptr;
-    // The event thread is stopped at this point (closeDevice() joins it), so the
-    // transfers can be freed. Leaking them also breaks the next connection.
-    if(pcToUsbDeviceTransfer) {
-        libusb_free_transfer(pcToUsbDeviceTransfer);
-        pcToUsbDeviceTransfer = nullptr;
-    }
-    if(usbDeviceToPcTransfer) {
-        libusb_free_transfer(usbDeviceToPcTransfer);
-        usbDeviceToPcTransfer = nullptr;
-    }
+    freeTransfers();
     isDeviceRemoved = false;
     dataAvailable = false;
     hasHotPlugSupport = false;
@@ -193,6 +184,19 @@ void LibUsbDevice::openDevice(QString nameOfPort) {
     }
 }
 
+void LibUsbDevice::freeTransfers() {
+    // Must run before libusb_exit(): libusb_free_transfer() unrefs the device the
+    // transfer was submitted on, and the context that owns it is gone afterwards.
+    if(pcToUsbDeviceTransfer) {
+        libusb_free_transfer(pcToUsbDeviceTransfer);
+        pcToUsbDeviceTransfer = nullptr;
+    }
+    if(usbDeviceToPcTransfer) {
+        libusb_free_transfer(usbDeviceToPcTransfer);
+        usbDeviceToPcTransfer = nullptr;
+    }
+}
+
 void LibUsbDevice::stopEventThread() {
     // Order matters: the callback checks enableEventThread, so it must be cleared
     // before cancelling, otherwise the cancelled transfer is resubmitted.
@@ -218,6 +222,7 @@ void LibUsbDevice::closeDevice() {
             }
             if(!isDeviceRemoved)     // the handle is dead once the device is unplugged
                 saveDeviceSettings();
+            freeTransfers();
             if(deviceHandle) {
                 libusb_release_interface(deviceHandle, INTERFACE_NUMBER);
                 libusb_close(deviceHandle);
@@ -248,6 +253,7 @@ void LibUsbDevice::closeDevice() {
                 //            libusb_hotplug_deregister_callback(context, hotplugHandle[1]);
             }
             future.waitForFinished();
+            freeTransfers();
             if(context) {
                 libusb_exit(context);
                 context = nullptr;
