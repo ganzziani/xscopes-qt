@@ -111,7 +111,8 @@ set(HEADER_SRC
     customtheme.h
     serialportconnection.h
     bootloader.h
-    filedownloader.h)
+    filedownloader.h
+    markerpixmap.h)
 set(CPP_SRC main.cpp
     qcustomplot.cpp
     libusbdevice.cpp

@@ -28,7 +28,8 @@ HEADERS  += xprotolabinterface.h \
     serialportconnection.h \
     customcolors.h \
     filedownloader.h \
-    bootloader.h
+    bootloader.h \
+    markerpixmap.h
 
 FORMS += xprotolabinterface.ui \
     customtheme.ui \
