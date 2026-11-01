@@ -140,6 +140,7 @@ private:
     void saveWavetoFile();
     QString saveWavetoString();
     void closeEvent(QCloseEvent *);
+    bool eventFilter(QObject *watched, QEvent *event) override;
     void selectWaveForm(uint8_t);
     void updateSweepCursors();
     void parseCSV(QString, byte *);
