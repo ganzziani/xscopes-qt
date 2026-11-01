@@ -96,8 +96,11 @@ Compiles cleanly with Qt 6.12.0 MSVC 2022 64-bit (2026-10-31). Linking waits on 
       - No Extended Properties / `DeviceInterfaceGUID` needed: libusb 1.0.30 opens a non-composite WinUSB device through
         its `GUID_DEVINTERFACE_USB_DEVICE` path (`windows_winusb.c`: "the first interface is the same as the device").
       - Cost, measured with the pinned AVR GCC 4.8.1 against the real objects: **+124 bytes** (Descriptors.o +80,
-        usb_xmega.o +44). The current Xprotolab build has **98 bytes** free, so do OPT-001 (`-mrelax`, about +346) first.
-        `Source/usb` is shared, so every ATxmega32A4U variant gets it; check each variant's free flash.
+        usb_xmega.o +44) on every variant.
+      - **Done in code 2026-10-31** on firmware branch `winusb-msos` (not pushed): c9ecc95 adds the descriptors,
+        f545f62 enables `-mrelax` (OPT-001) in all seven projects. All variants build with 830..908 bytes free
+        (Xprotolab 850). Left: flash a unit, check that Windows binds WinUSB and this app connects, and re-run the
+        timing-sensitive firmware paths for `-mrelax`.
       - Testing on this PC: the existing `oem104.inf` matches the hardware ID and outranks `winusb.inf`, so it keeps
         winning after the update. Remove it first (admin: Device Manager → uninstall device + delete the driver, or
         `pnputil /delete-driver oem104.inf /uninstall`), replug, and expect "XScope" on WinUSB from `winusb.inf` and
