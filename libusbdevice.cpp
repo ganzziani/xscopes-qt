@@ -16,6 +16,7 @@ LibUsbDevice::LibUsbDevice(QObject *parent) :
     dataAvailable = false;
     count = 0;
     dataLength = 0;
+    isDeviceRemoved = false;
     hasHotPlugSupport = false;
     deviceFound = nullptr;
     connect(&serial, SIGNAL(newData(int)), this, SLOT(newDataAvailable(int)));
@@ -27,8 +28,17 @@ void LibUsbDevice::reset() {
     isInitialiazed = false;
     deviceHandle = nullptr;
     context = nullptr;
-    pcToUsbDeviceTransfer = nullptr;
-    usbDeviceToPcTransfer = nullptr;
+    // The event thread is stopped at this point (closeDevice() joins it), so the
+    // transfers can be freed. Leaking them also breaks the next connection.
+    if(pcToUsbDeviceTransfer) {
+        libusb_free_transfer(pcToUsbDeviceTransfer);
+        pcToUsbDeviceTransfer = nullptr;
+    }
+    if(usbDeviceToPcTransfer) {
+        libusb_free_transfer(usbDeviceToPcTransfer);
+        usbDeviceToPcTransfer = nullptr;
+    }
+    isDeviceRemoved = false;
     dataAvailable = false;
     hasHotPlugSupport = false;
     deviceFound = nullptr;
@@ -54,27 +64,39 @@ extern "C" int LIBUSB_CALL hotplugAttachCallback(libusb_context *, libusb_device
 
 extern "C" int LIBUSB_CALL hotplugDetachCallback(libusb_context *, libusb_device *, libusb_hotplug_event, void *ref) {
     qDebug() << "Hotplug detach";
-    LibUsbDevice *cthis = static_cast<LibUsbDevice *>(ref);
-    if(cthis->isDeviceConnected) {
-        if(cthis->usbDeviceToPcTransfer) {
-            libusb_cancel_transfer(cthis->usbDeviceToPcTransfer);
-        }
-        if(cthis->pcToUsbDeviceTransfer) {
-            libusb_cancel_transfer(cthis->pcToUsbDeviceTransfer);
-        }
-        libusb_release_interface(cthis->deviceHandle, INTERFACE_NUMBER);
-        libusb_close(cthis->deviceHandle);
-        cthis->isDeviceConnected = false;
-    }
+    // Runs in the event thread: only flag the loss and let the GUI thread do the
+    // cleanup (libusb_close() must not be called from inside a hotplug callback).
+    static_cast<LibUsbDevice *>(ref)->notifyDeviceRemoved();
     return 0;
+}
+
+void LibUsbDevice::notifyDeviceRemoved() {
+    if(isDeviceRemoved)
+        return;
+    isDeviceRemoved = true;
+    // Stop the event loop once the current callback returns, so that
+    // closeDevice() is not kept waiting for a device that is gone.
+    enableEventThread = false;
+    emit deviceDisconnected();
 }
 
 extern "C" void LIBUSB_CALL asyncBulkReadTransferCallback(struct libusb_transfer *transfer) {
     LibUsbDevice *cthis = static_cast<LibUsbDevice *>(transfer->user_data);
+    if(!cthis->enableEventThread)
+        return;     // shutting down, do not resubmit
+    if(transfer->status != LIBUSB_TRANSFER_COMPLETED) {
+        // LIBUSB_TRANSFER_NO_DEVICE when the device was unplugged. Resubmitting
+        // would leave libusb with no pending transfer at all, which is what made
+        // the event loop block (and closeDevice() hang) afterwards.
+        qDebug() << "Bulk read transfer stopped, status " << transfer->status;
+        cthis->notifyDeviceRemoved();
+        return;
+    }
+    cthis->dataLength = transfer->actual_length;
     cthis->dataAvailable = true;
-    if(cthis->enableEventThread) {
-        cthis->dataLength = transfer->actual_length;
-        libusb_submit_transfer(transfer);
+    if(libusb_submit_transfer(transfer) != LIBUSB_SUCCESS) {
+        qDebug() << "Cannot resubmit bulk read transfer";
+        cthis->notifyDeviceRemoved();
     }
 }
 
@@ -83,6 +105,8 @@ extern "C" void LIBUSB_CALL asyncBulkWriteTransferCallback(struct libusb_transfe
 
 void LibUsbDevice::initializeDevice() {
     if(wayOfConnecting) {
+        if(isInitialiazed)
+            return;     // already initialized, do not leak the libusb context
         int status;
         status = libusb_init(&context); //initialize the library for the session we just declared
         if(status != 0) {
@@ -115,6 +139,7 @@ void LibUsbDevice::initializeDevice() {
 void LibUsbDevice::openDevice(QString nameOfPort) {
     if(wayOfConnecting) {
         size_t i = 0;
+        isDeviceRemoved = false;
         int status;
         status = libusb_get_device_list(context, &devs);
         if(status < 0) {
@@ -168,26 +193,43 @@ void LibUsbDevice::openDevice(QString nameOfPort) {
     }
 }
 
+void LibUsbDevice::stopEventThread() {
+    // Order matters: the callback checks enableEventThread, so it must be cleared
+    // before cancelling, otherwise the cancelled transfer is resubmitted.
+    enableEventThread = false;
+    if(wayOfConnecting) {
+        if(usbDeviceToPcTransfer) {
+            libusb_cancel_transfer(usbDeviceToPcTransfer);
+        }
+        if(pcToUsbDeviceTransfer) {
+            libusb_cancel_transfer(pcToUsbDeviceTransfer);
+        }
+    }
+    future.waitForFinished();
+}
+
 void LibUsbDevice::closeDevice() {
     if(isDeviceConnected) {
         if(wayOfConnecting) {
-            if(usbDeviceToPcTransfer) {
-                libusb_cancel_transfer(usbDeviceToPcTransfer);
-            }
-            if(pcToUsbDeviceTransfer) {
-                libusb_cancel_transfer(pcToUsbDeviceTransfer);
-            }
-            enableEventThread = false;
+            stopEventThread();
             if(hasHotPlugSupport) {
                 //            libusb_hotplug_deregister_callback(context, hotplugHandle[0]);
                 //            libusb_hotplug_deregister_callback(context, hotplugHandle[1]);
             }
-            future.waitForFinished();
-            saveDeviceSettings();
-            libusb_release_interface(deviceHandle, INTERFACE_NUMBER);
-            libusb_close(deviceHandle);
-            libusb_exit(context);
+            if(!isDeviceRemoved)     // the handle is dead once the device is unplugged
+                saveDeviceSettings();
+            if(deviceHandle) {
+                libusb_release_interface(deviceHandle, INTERFACE_NUMBER);
+                libusb_close(deviceHandle);
+                deviceHandle = nullptr;
+            }
+            if(context) {
+                libusb_exit(context);
+                context = nullptr;
+            }
+            isInitialiazed = false;
             isDeviceConnected = false;
+            isDeviceRemoved = false;
         } else {
             serial.sendData = false;
             serial.finish = true;
@@ -199,16 +241,20 @@ void LibUsbDevice::closeDevice() {
             isDeviceConnected = false;
         }
     } else if(isInitialiazed) {
+        enableEventThread = false;
         if(wayOfConnecting) {
-            enableEventThread = false;
             if(hasHotPlugSupport) {
                 //            libusb_hotplug_deregister_callback(context, hotplugHandle[0]);
                 //            libusb_hotplug_deregister_callback(context, hotplugHandle[1]);
             }
             future.waitForFinished();
-            libusb_exit(context);
+            if(context) {
+                libusb_exit(context);
+                context = nullptr;
+            }
+            isInitialiazed = false;
+            isDeviceRemoved = false;
         } else {
-            enableEventThread = false;
             serial.finish = true;
             future.waitForFinished();
             serial.sendData = false;
@@ -220,8 +266,15 @@ void LibUsbDevice::closeDevice() {
 
 void LibUsbDevice::eventThread() {
     if(wayOfConnecting) {
-        while(enableEventThread) {
-            libusb_handle_events(context);
+        // libusb_handle_events() blocks for up to 60 s when nothing is pending,
+        // so a plain blocking call would delay closing the device by that much.
+        // A short timeout keeps the shutdown responsive (closeDevice() joins
+        // this thread).
+        struct timeval tv;
+        tv.tv_sec = 0;
+        tv.tv_usec = 100 * 1000;
+        while(enableEventThread && context) {
+            libusb_handle_events_timeout(context, &tv);
         }
     }
     return;
@@ -288,18 +341,26 @@ void LibUsbDevice::asyncBulkReadTransfer() {
         return;
     }
     if(wayOfConnecting) {
-        int status;
-        usbDeviceToPcTransfer = libusb_alloc_transfer(0);
+        if(!usbDeviceToPcTransfer) {
+            usbDeviceToPcTransfer = libusb_alloc_transfer(0);
+            if(!usbDeviceToPcTransfer) {
+                cstatus = tr("Bulk read transfer failed!");
+                qDebug() << "Cannot allocate transfer";
+                return;
+            }
+        }
         libusb_fill_bulk_transfer(usbDeviceToPcTransfer, deviceHandle, USB_ENDPOINT_IN,
                                   chData, LEN_BULK_IN_BUFFER, asyncBulkReadTransferCallback, this, 0);
-        status = libusb_submit_transfer(usbDeviceToPcTransfer);
+        int status = libusb_submit_transfer(usbDeviceToPcTransfer);
         if(status != 0) {
             cstatus = tr("Bulk read transfer failed!");
             qDebug() << "Transfer Failed! " << status;
             return;
         }
-        if(!future.isRunning())
+        if(!future.isRunning()) {
+            enableEventThread = true;
             future = QtConcurrent::run(&LibUsbDevice::eventThread, this);
+        }
     } else {
         serial.wsk = chData;
         serial.finish = false;

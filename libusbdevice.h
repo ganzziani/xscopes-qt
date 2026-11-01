@@ -2,6 +2,7 @@
 #define LIBUSBDEVICE_H
 #include <QObject>
 #include <QFuture>
+#include <atomic>
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     #include <QtConcurrent/QtConcurrent>
 #else
@@ -21,7 +22,9 @@ public:
     void initializeDevice();
     void openDevice(QString = "");
     void closeDevice();
+    void stopEventThread();
     void eventThread();
+    void notifyDeviceRemoved();
     bool controlReadTransfer(uint8_t command, uint16_t value = 0, uint16_t index = 0);
     void asyncBulkReadTransfer();
     void awgBulkWriteTransfer();
@@ -39,6 +42,9 @@ public:
     void reset();
 
     int requestMM(unsigned char *buffer);
+signals:
+    // Emitted from the event thread when the device goes away, connected queued
+    void deviceDisconnected();
 public slots:
     void newDataAvailable(int);
     void turnOnAutoMode();
@@ -57,11 +63,13 @@ public:
     struct libusb_transfer *pcToUsbDeviceTransfer;
     struct libusb_transfer *usbDeviceToPcTransfer;
     bool dataAvailable;
+    bool isDeviceRemoved;   // set when libusb reports a lost device
     int count, dataLength;
     uint8_t chData[LEN_BULK_IN_BUFFER];
     byte inBuffer[LEN_CONTROL_BUFFER];
     byte awgBuffer[256];
-    bool enableEventThread, hasHotPlugSupport;
+    std::atomic<bool> enableEventThread;   // read from the event thread
+    bool hasHotPlugSupport;
     QFuture<void> future;
 
     SerialPortConnection serial;
