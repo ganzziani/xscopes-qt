@@ -84,6 +84,33 @@ Builds and runs with Qt 6.12.0 MSVC 2022 64-bit (2026-10-31) and works with an X
 - [ ] Later: replace QextSerialPort with QtSerialPort (already a dependency; `serialportconnection.h` has a commented-out
       `QSerialPort *serial`). This drops the vendored library but changes serial I/O, so test with hardware.
 
+## 3b. USB connect / disconnect
+Unplugging the device used to freeze the app: `closeEvent()` → `LibUsbDevice::closeDevice()` sat in
+`future.waitForFinished()` for up to a minute.
+- [x] Root cause: `eventThread()` called the blocking `libusb_handle_events()`, which libusb 1.0.30 implements with
+      a hard-coded 60 s timeout (`WaitForMultipleObjects`; measured with a standalone test program). The
+      `enableEventThread` flag is only checked between calls, so the join in `closeDevice()` waited for that
+      timeout to expire. After a surprise removal the pending bulk read completes with
+      `LIBUSB_TRANSFER_NO_DEVICE`, the callback resubmits it (the resubmit fails), so libusb is left with no
+      pending transfer at all and the event loop just sits in the 60 s wait.
+- [x] `eventThread()` now uses `libusb_handle_events_timeout()` with 100 ms and `enableEventThread` is a
+      `std::atomic<bool>`, so shutdown is immediate instead of up to 60 s.
+- [x] The bulk-read callback checks `transfer->status`, does not resubmit on error, and reports the loss through
+      a queued `deviceDisconnected()` signal.
+- [x] `closeDevice()` (new `stopEventThread()`) clears the flag before cancelling, joins the thread, skips
+      `saveDeviceSettings()` when the device is gone, and no longer touches a dead handle.
+- [x] The main window handles `deviceDisconnected()`: back to "Not Connected" with the UI re-enabled, so Connect
+      works again after replugging.
+- [x] Failed connects no longer leave the central widget disabled ("Device not found"), `initializeDevice()` is
+      idempotent so retries do not leak libusb contexts, and `reset()` frees the transfer objects.
+- [ ] Test with a device: unplug while running, close the app while unplugged, replug and reconnect, and a normal
+      close while connected (the settings are still saved to the device).
+- [ ] Optional: auto-reconnect on replug via `libusb_hotplug_register_callback()`. The callbacks exist but are
+      disabled (`&& 0`); enabling them needs an arrival handler on the GUI thread and a context that outlives the
+      disconnection.
+- [ ] `chData`/`dataLength`/`dataAvailable` are written by the event thread and read by `plotData()` with no
+      synchronization (pre-existing data race, unrelated to the hang).
+
 ## 4. Windows libraries
 - [x] libusb 1.0.30, VS2022 x64 DLL + import lib, GPG-verified (see `libs/win/README.md`). Removed the 32-bit
       `libusb-1.0.dll.a`. **The app now links and runs on Qt 6.12.0** (smoke test 2026-10-31, no device attached).

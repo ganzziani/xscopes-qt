@@ -197,6 +197,7 @@ private slots:
     void itemDoubleClick(QCPAbstractItem *, QMouseEvent *);
     void setTheme(int, CustomColors *customColors = nullptr);
     void on_connectButton_clicked();
+    void onDeviceDisconnected();
     void xAxisChanged(QCPRange);
     void on_stopButton_clicked();
     void on_radioButtonExpo_clicked();

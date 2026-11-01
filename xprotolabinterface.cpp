@@ -123,6 +123,8 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     ui->frequencyValue->setFont(m_mmTabFont2);
     ui->comboBox_9->view()->setFixedWidth(350);
     connect(&usbDevice.serial, SIGNAL(connectionStatus(QString)), this, SLOT(setInfoText(QString)));
+    // Queued: emitted from the libusb event thread
+    connect(&usbDevice, SIGNAL(deviceDisconnected()), this, SLOT(onDeviceDisconnected()));
 }
 
 XprotolabInterface::~XprotolabInterface() {
@@ -1766,6 +1768,12 @@ void XprotolabInterface::on_connectButton_clicked() {
         QString tmp_portName = ui->comboBox_9->currentText();
         tmp_portName = tmp_portName.left(tmp_portName.indexOf(": "));
         usbDevice.openDevice(tmp_portName);
+        if(!usbDevice.isDeviceConnected && !usbDevice.wayOfConnecting) {
+            // Serial protocol did not answer
+            disconnectDevice(false);
+            setInfoText(tr("Port is busy or unreachable."));
+            return;
+        }
         if(usbDevice.isDeviceConnected) {
             ui->connectButton->setText("Close connection");
             QString tmp_version = usbDevice.requestFirmwareVersion();
@@ -1794,6 +1802,10 @@ void XprotolabInterface::on_connectButton_clicked() {
             ui->rescanButton->setDisabled(true);
             ui->connectIcon->setPixmap(QPixmap(":/Bitmaps/Bitmaps/led-on.png"));
             setInfoText();
+        } else {
+            // Nothing to talk to: release the libusb context and re-enable the UI
+            disconnectDevice();
+            setInfoText(tr("Device not found"));
         }
     } else {
         disconnectDevice();
@@ -1801,12 +1813,20 @@ void XprotolabInterface::on_connectButton_clicked() {
     }
 }
 
+void XprotolabInterface::onDeviceDisconnected() {
+    if(!usbDevice.isDeviceConnected)
+        return;
+    qDebug() << "Device disconnected";
+    logToFile("Device disconnected");
+    disconnectDevice();
+    setInfoText(tr("Device disconnected. Reconnect it and press Connect."));
+}
+
 void XprotolabInterface::disconnectDevice(bool mode) {
-    if(mode) {
+    if(mode || usbDevice.wayOfConnecting) {
         usbDevice.closeDevice();
     } else {
-        if(!usbDevice.wayOfConnecting)
-            usbDevice.serial.clearPort();
+        usbDevice.serial.clearPort();
     }
     usbDevice.reset();
     ui->connectButton->setText("Connect");
