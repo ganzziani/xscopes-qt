@@ -50,6 +50,10 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     offset = rangeMax / 2 - ZERO_POS;
     hCursorAPos = 200;
     hCursorBPos = 100;
+    // readDeviceSettings() replots before it reads these from the device
+    ch1ZeroPos = ch2ZeroPos = rangeMax / 2;
+    hCursorAPosCh1 = hCursorAPosCh2 = hCursorAPos;
+    hCursorBPosCh1 = hCursorBPosCh2 = hCursorBPos;
     vCursorAPos = 50;
     vCursorBPos = 150;
     itemIsSelected = false;
@@ -67,7 +71,7 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     connect(ui->plotterWidget, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(selectItem(QMouseEvent *)));
     connect(ui->plotterWidget, SIGNAL(mouseRelease(QMouseEvent *)), this, SLOT(deselectItem(QMouseEvent *)));
     connect(ui->plotterWidget, SIGNAL(itemDoubleClick(QCPAbstractItem *, QMouseEvent *)), this, SLOT(itemDoubleClick(QCPAbstractItem *, QMouseEvent *)));
-    connect(ui->plotterWidget, SIGNAL(sizeChanged()), this, SLOT(on_sizeChanged()));
+    ui->plotterWidget->installEventFilter(this);  // Calls on_sizeChanged() after a resize
     QTimer::singleShot(0, this, SLOT(on_connectButton_clicked()));
     initializing = false;
     connect(&dataTimer, SIGNAL(timeout()), this, SLOT(plotData()));
@@ -2382,6 +2386,13 @@ void XprotolabInterface::readDeviceSettings() {
     checkIfInvertIcon();
     updateTriggerPos();
     m_repaint = true;
+}
+
+bool XprotolabInterface::eventFilter(QObject *watched, QEvent *event) {
+    // Queued, so it runs once the plot has handled the resize itself
+    if(watched == ui->plotterWidget && event->type() == QEvent::Resize)
+        QMetaObject::invokeMethod(this, &XprotolabInterface::on_sizeChanged, Qt::QueuedConnection);
+    return QMainWindow::eventFilter(watched, event);
 }
 
 void XprotolabInterface::closeEvent(QCloseEvent *event) {
