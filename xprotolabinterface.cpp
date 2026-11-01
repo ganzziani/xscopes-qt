@@ -409,10 +409,11 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot) {
     hCursorA->point2->setCoords(10, hCursorAPos); // point to (4, 1.6) in x-y-plot coordinates
     hCursorA->setPen(QPen(QColor("#1692e5"), 1, Qt::DotLine));
     hCursorA->setSelectable(false);
-    hCursorAHead = new QCPItemPixmap(customPlot);
+    // Marker hotspots: the pixel that sits on the marker's position (see MarkerPixmap)
+    hCursorAHead = new MarkerPixmap(customPlot);
     hCursorAHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/hcursorA.png"));
+    hCursorAHead->setHotspot(QPoint(0, 15));    // Tip of the arrow
     hCursorAHead->topLeft->setCoords(-3, hCursorAPos);
-    //hCursorAHead->moveY = 17;
     hCursorA->point1->setParentAnchor(hCursorAHead->right);
     hCursorA->point2->setParentAnchor(hCursorAHead->right);
     hCursorAHead->setVisible(false);
@@ -421,9 +422,9 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot) {
     hCursorB->point2->setCoords(10, hCursorBPos); // point to (4, 1.6) in x-y-plot coordinates
     hCursorB->setPen(QPen(QColor("#1692e5"), 1, Qt::DotLine));
     hCursorB->setSelectable(false);
-    hCursorBHead = new QCPItemPixmap(customPlot);
+    hCursorBHead = new MarkerPixmap(customPlot);
     hCursorBHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/hcursorB.png"));
-    //hCursorBHead->moveY = 17;
+    hCursorBHead->setHotspot(QPoint(0, 15));
     hCursorBHead->topLeft->setCoords(-3, hCursorBPos);
     hCursorB->point1->setParentAnchor(hCursorBHead->right);
     hCursorB->point2->setParentAnchor(hCursorBHead->right);
@@ -457,15 +458,16 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot) {
     ch1Zero = new QCPItemStraightLine(customPlot);
     ch1Zero->setPen(QPen(QColor("#f9a94c"), 1, Qt::DotLine));
     ch1Zero->setSelectable(false);
-    ch1ZeroHead = new QCPItemPixmap(customPlot);
+    ch1ZeroHead = new MarkerPixmap(customPlot);
     ch1ZeroHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/chan1-zero.png"));
+    // Odd height, so the middle row is the tip
+    ch1ZeroHead->setHotspot(QPoint(0, ch1ZeroHead->pixmap().height() / 2));
     ch1ZeroHead->topLeft->setType(QCPItemPosition::ptAbsolute);
     ch1ZeroHead->topLeft->setPixelPosition(QPointF(2, hCursorAPos));
     ch1Zero->point1->setParentAnchor(ch1ZeroHead->right);
     ch1Zero->point2->setParentAnchor(ch1ZeroHead->right);
     ch1ZeroHead->setVisible(true);
     ch1ZeroHead->setClipToAxisRect(false);
-    //ch1ZeroHead->moveY = 9;
     ch1Zero->point1->setPixelPosition(QPointF(1, hCursorAPos));
     ch1Zero->point2->setPixelPosition(QPointF(10, hCursorAPos));
     ch1Zero->point1->setType(QCPItemPosition::ptAbsolute);
@@ -473,35 +475,33 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot) {
     ch2Zero = new QCPItemStraightLine(customPlot);
     ch2Zero->setPen(QPen(QColor("#f9a94c"), 1, Qt::DotLine));
     ch2Zero->setSelectable(false);
-    ch2ZeroHead = new QCPItemPixmap(customPlot);
+    ch2ZeroHead = new MarkerPixmap(customPlot);
     ch2ZeroHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/chan2-zero.png"));
+    // Odd height, so the middle row is the tip
+    ch2ZeroHead->setHotspot(QPoint(0, ch2ZeroHead->pixmap().height() / 2));
     ch2ZeroHead->topLeft->setType(QCPItemPosition::ptAbsolute);
     ch2ZeroHead->topLeft->setPixelPosition(QPointF(2, hCursorBPos));
     ch2Zero->point1->setParentAnchor(ch2ZeroHead->right);
     ch2Zero->point2->setParentAnchor(ch2ZeroHead->right);
     ch2ZeroHead->setVisible(true);
     ch2ZeroHead->setClipToAxisRect(false);
-    //ch2ZeroHead->moveY = 9;
     ch2Zero->point1->setPixelPosition(QPointF(1, hCursorBPos));
     ch2Zero->point2->setPixelPosition(QPointF(10, hCursorBPos));
     ch2Zero->point1->setType(QCPItemPosition::ptAbsolute);
     ch2Zero->point2->setType(QCPItemPosition::ptAbsolute);
-    triggerPixmap = new QCPItemPixmap(customPlot);
+    triggerPixmap = new MarkerPixmap(customPlot);
     triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/dualr.png"));
-    //triggerPixmap->moveX = 9;
-    //triggerPixmap->moveY = 10;
+    triggerPixmap->setHotspot(QPoint(8, 7));
     triggerPixmap->topLeft->setCoords(150, 250);
     triggerPixmap->setVisible(false);
-    triggerWin1Pixmap = new QCPItemPixmap(customPlot);
+    triggerWin1Pixmap = new MarkerPixmap(customPlot);
     triggerWin1Pixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/risingg.png"));
-    //triggerWin1Pixmap->moveX = 9;
-    //triggerWin1Pixmap->moveY = 10;
+    triggerWin1Pixmap->setHotspot(QPoint(8, 8));
     triggerWin1Pixmap->topLeft->setCoords(150, 250);
     triggerWin1Pixmap->setVisible(false);
-    triggerWin2Pixmap = new QCPItemPixmap(customPlot);
+    triggerWin2Pixmap = new MarkerPixmap(customPlot);
     triggerWin2Pixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/fallingg.png"));
-    //triggerWin2Pixmap->moveX = 9;
-    //triggerWin2Pixmap->moveY = 10;
+    triggerWin2Pixmap->setHotspot(QPoint(8, 5));
     triggerWin2Pixmap->topLeft->setCoords(150, 250);
     triggerWin2Pixmap->setVisible(false);
 }
@@ -3618,6 +3618,8 @@ void XprotolabInterface::setupValues() {
     QString tempP = ":/Bitmaps/Bitmaps/";
     triggerIconPathsG << tempP + "risingg.png" << tempP + "fallingg.png" << tempP + "dualg.png" << tempP + "positiveg.png" << tempP + "negativeg.png" << tempP + "window1g.png" << tempP + "window2g.png";
     triggerIconPathsR << tempP + "risingr.png" << tempP + "fallingr.png" << tempP + "dualr.png" << tempP + "positiver.png" << tempP + "negativer.png" << tempP + "window1r.png" << tempP + "window2r.png";
+    // Hotspot of each icon: the stem column and the dashed level row. The slope icons have neither, so use their center.
+    triggerIconHotspots << QPoint(8, 8) << QPoint(8, 5) << QPoint(8, 7) << QPoint(9, 7) << QPoint(9, 7) << QPoint(8, 8) << QPoint(8, 5);
 }
 
 //    customPlot->addGraph(customPlot->axisRect()->axis(QCPAxis::atBottom),customPlot->yAxis);    // red line
@@ -3934,9 +3936,13 @@ void XprotolabInterface::setTriggerIcon(int iconNum) {
         if(ui->comboBoxTrigSource->currentIndex() == 0) {
             triggerWin1Pixmap->setPixmap(QPixmap(triggerIconPathsG[iconNum + 1]));
             triggerWin2Pixmap->setPixmap(QPixmap(triggerIconPathsG[iconNum]));
+            triggerWin1Pixmap->setHotspot(triggerIconHotspots[iconNum + 1]);
+            triggerWin2Pixmap->setHotspot(triggerIconHotspots[iconNum]);
         } else if(ui->comboBoxTrigSource->currentIndex() == 1) {
             triggerWin1Pixmap->setPixmap(QPixmap(triggerIconPathsR[iconNum + 1]));
             triggerWin2Pixmap->setPixmap(QPixmap(triggerIconPathsR[iconNum]));
+            triggerWin1Pixmap->setHotspot(triggerIconHotspots[iconNum + 1]);
+            triggerWin2Pixmap->setHotspot(triggerIconHotspots[iconNum]);
         } else {
             triggerWin1Pixmap->setVisible(false);
             triggerWin2Pixmap->setVisible(false);
@@ -3950,6 +3956,7 @@ void XprotolabInterface::setTriggerIcon(int iconNum) {
             triggerPixmap->setPixmap(QPixmap(triggerIconPathsG[iconNum]));
         else
             triggerPixmap->setPixmap(QPixmap(triggerIconPathsR[iconNum]));
+        triggerPixmap->setHotspot(triggerIconHotspots[iconNum]);
     }
     m_repaint = true;
 }

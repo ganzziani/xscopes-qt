@@ -36,6 +36,7 @@
 #include "customtheme.h"
 #include "bootloader.h"
 #include "qcustomplot.h"
+#include "markerpixmap.h"
 #include "libusbdevice.h"
 #include "fft.h"
 #include "sniffer.h"
@@ -376,8 +377,9 @@ private:
     bool bitChecked[8], itemIsSelected, captureRef, saveWave, displayLoadedWave;
     QCPItemTracer *phaseTracerAA, *phaseTracerAB, *phaseTracerBA, *phaseTracerBB;
     QCPItemStraightLine *hCursorA, *hCursorB, *vCursorA, *vCursorB, *ch1Zero, *ch2Zero;
-    QCPItemPixmap *hCursorAHead, *hCursorBHead, *ch1ZeroHead, *ch2ZeroHead;
-    QCPItemPixmap *triggerPixmap, *vCursorAHead, *vCursorBHead, *triggerWin1Pixmap, *triggerWin2Pixmap;
+    MarkerPixmap *hCursorAHead, *hCursorBHead, *ch1ZeroHead, *ch2ZeroHead;
+    MarkerPixmap *triggerPixmap, *triggerWin1Pixmap, *triggerWin2Pixmap;
+    QCPItemPixmap *vCursorAHead, *vCursorBHead;
     QCPItemText *textLabelBit[8], *textLabelDeltaTime, *textLabelDeltaVoltage;
     QCPItemText *textLabelVoltageA, *textLabelVoltageB, *textLabelFrequency, *textLabelMousePos;
     QString sniffBuffer;
@@ -389,6 +391,7 @@ private:
     bool initializing;
     QString defaultDir;
     QStringList triggerIconPathsG, triggerIconPathsR;
+    QList<QPoint> triggerIconHotspots;
     int trigIcon, offset;
     CustomTheme customThemeDialog;
     Bootloader DialogBootloader;
