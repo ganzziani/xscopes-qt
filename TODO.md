@@ -58,11 +58,19 @@ Compiles cleanly with Qt 6.12.0 MSVC 2022 64-bit (2026-10-31). Linking waits on 
       `vCursorA/BHead` and `ch1/ch2ZeroHead` called `setPixelPosition()` while still in plot coordinates; converting
       through the zero-size axis rect during setup gave NaN. Now the type is set to `ptAbsolute` first. As a side effect,
       the CH1/CH2 zero markers now draw (they were invisible before).
-- [ ] Marker alignment: the custom QCustomPlot 1.1.1 patch `QCPItemPixmap::moveX/moveY` shifted pixmaps so their tips
-      sit on their lines (hCursor heads moveY 17, zero heads moveY 9, trigger icons moveX 9 / moveY 10). It was dropped
-      in the 1.3.2 upgrade, so those markers are now offset; the zero lines run about 9 px above the marker tips.
-      Re-add the 6-line patch to QCPItemPixmap in 2.1.1, or offset the positions in app code.
-- [ ] Visually check cursors, trigger icons and tracers with a device connected.
+- [x] Marker alignment: the custom QCustomPlot 1.1.1 patch `QCPItemPixmap::moveX/moveY` (dropped in the 1.3.2 upgrade)
+      is replaced by `MarkerPixmap` (`markerpixmap.h`), a subclass whose hotspot sits on the position; QCustomPlot stays
+      unmodified. Zero markers are now 18x15 (tip = middle row); each trigger icon has its own hotspot (stem column,
+      dashed row). Checked with an Xprotolab: the CH1 zero marker tip sits on its line, the trigger icon on the level.
+- [x] Lost `sizeChanged()` signal (another 1.1.1 patch): `on_sizeChanged()` now runs from an event filter on the plot.
+- [x] Startup with a device asserted in debug: `ch1ZeroPos`/`ch2ZeroPos` were never initialized and
+      `readDeviceSettings()` replots before setting them. Initialized in the constructor.
+- [ ] `hcursorA/B.png` are 32x32; an odd height (e.g. 32x31, rows 29-31 are blank) would put the cursor line exactly
+      on the tip row instead of half a pixel below.
+- [ ] Window trigger: `setTriggerLevelPosition()` places the other window icon at `coordToPixel(level) + 7`, and the
+      drag code mixes a 0-255 inverted level with plot coords. Check with a device in Window trigger mode.
+- [ ] Visually check horizontal/vertical cursors and tracers with a device connected (zero markers and the
+      rising-edge trigger icon are checked).
 - [ ] Later: replace QextSerialPort with QtSerialPort (already a dependency; `serialportconnection.h` has a commented-out
       `QSerialPort *serial`). This drops the vendored library but changes serial I/O, so test with hardware.
 
@@ -77,9 +85,23 @@ Compiles cleanly with Qt 6.12.0 MSVC 2022 64-bit (2026-10-31). Linking waits on 
 - [ ] Atmel DFU drivers (`xscopes-qt-mine/exe/dfu-drivers`) aren't in the repo yet. Decide in step 6 (installer) or step 4b.
 
 ## 4b. USB drivers and portability (decided 2026-10-31: keep libusb)
-- [ ] Firmware (`D:\Projects\XScopes\Firmware\Source\usb\Descriptors.c`, outside this repo): add Microsoft OS 1.0
-      descriptors (string 0xEE "MSFT100" + Extended Compat ID "WINUSB"). Windows 8+ then loads WinUSB by itself,
-      with no Zadig and no `.inf`. Bump `ReleaseNumber` (bcdDevice) so Windows re-queries devices it has already seen.
+- [ ] Firmware (`D:\Projects\XScopes\Firmware`, separate git repo, outside this repo): add Microsoft OS 1.0
+      descriptors so Windows 8+ binds WinUSB by itself, with no Zadig and no `.inf`. Reviewed 2026-10-31:
+      - Today the device (16D0:06F9 rev 0100, vendor class, one interface) answers no MS OS request, and this PC runs it
+        on WinUSB through a Zadig/libwdi `oem104.inf` ("libusbx.org", 2012).
+      - Needed: string descriptor 0xEE "MSFT100" + vendor code, and the 40-byte Extended Compat ID "WINUSB" answered
+        from the vendor request handler (`EVENT_USB_Device_ControlRequest` in `usb_xmega.c`) *before* `ProcessCommand()`,
+        since every vendor request goes there. Vendor code `'M'` (not a command letter). Bump `ReleaseNumber` to 01.01
+        so Windows re-reads the descriptors (it caches the answer per VID/PID/bcdDevice).
+      - No Extended Properties / `DeviceInterfaceGUID` needed: libusb 1.0.30 opens a non-composite WinUSB device through
+        its `GUID_DEVINTERFACE_USB_DEVICE` path (`windows_winusb.c`: "the first interface is the same as the device").
+      - Cost, measured with the pinned AVR GCC 4.8.1 against the real objects: **+124 bytes** (Descriptors.o +80,
+        usb_xmega.o +44). The current Xprotolab build has **98 bytes** free, so do OPT-001 (`-mrelax`, about +346) first.
+        `Source/usb` is shared, so every ATxmega32A4U variant gets it; check each variant's free flash.
+      - Testing on this PC: the existing `oem104.inf` matches the hardware ID and outranks `winusb.inf`, so it keeps
+        winning after the update. Remove it first (admin: Device Manager → uninstall device + delete the driver, or
+        `pnputil /delete-driver oem104.inf /uninstall`), replug, and expect "XScope" on WinUSB from `winusb.inf` and
+        `HKLM\SYSTEM\CurrentControlSet\Control\usbflags\16D006F90101` value `osvc` = `01 4D`.
 - [ ] Older firmware on Windows: until users upgrade, Zadig is still needed. Optionally have the installer bind WinUSB
       with libwdi (the library Zadig is built on).
 - [ ] DFU bootloader mode is a separate USB device (Atmel FLIP, VID 03EB) and can't be changed on units in the field.

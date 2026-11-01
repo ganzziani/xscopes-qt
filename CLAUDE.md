@@ -47,6 +47,8 @@ Don't modify the sibling folders. Copy what's needed into this repo instead.
 
 - Main window: `xprotolabinterface.cpp/.h/.ui` (large). Device I/O: `libusbdevice.*`, `serialportconnection.*`.
   Firmware: `bootloader.*`, `filedownloader.*`. Theme: `customtheme.*`, `*.qss`.
+- Plot markers (zero markers, cursor heads, trigger icons) are `MarkerPixmap` (`markerpixmap.h`): the pixmap's hotspot,
+  not its top left corner, sits on the position. Give marker bitmaps an odd size so the hotspot is a center pixel.
 - `qcustomplot.*` (QCustomPlot 2.1.1) and `extserialport/` (QextSerialPort, minimally patched for Qt6) are vendored
   third-party code. Patch them minimally, or replace them wholesale.
 - Settings: the org/app name is set once in `main()`. Use a plain `QSettings settings;` everywhere, with theme keys under `Theme/`.
