@@ -20,8 +20,11 @@ port Qt5 → Qt6, and build with a 64-bit MSVC kit. The full rewrite (`Xscopes-Q
 | `xscopes-qt-mine` | Gabriel's local copy. Forked from upstream `c537bf2` (2019-11-08), last edited Dec 2023, never pushed. Has the bootloader dialog, QCustomPlot 1.3.2, new icons and Qt6 prep. | temporary source to merge from, read-only |
 | `xscopes-qt_dfu` | Sep 2023 attempt to compile dfu-programmer sources (`dfu/`) into the app. Unfinished. | source of ideas, read-only |
 | `Xscopes-Qt6` | Rewrite (CMake, Qt6). Has a working bootloader that uses dfu-programmer, plus QCustomPlot 2.1.1. | reference, later work |
+| `XScopes\Firmware` | Device firmware (separate git repo, ATxmega32A4U, Atmel Studio 6.2, pinned AVR GCC 4.8.1, ~830 bytes of flash free). Its `AGENTS.md` covers building, sizing and flashing; `CODE_REVIEW_FINDINGS.md` lists open firmware issues. | separate repo |
+| `Oscilloscope_Watch\Xproto-Watch-Firmware` | Oscilloscope Watch firmware (separate repo, ATxmega256A3U, Microchip Studio 7, avr-gcc 5.4.0). Same USB code and IDs as the XScopes. | separate repo |
 
-Don't modify the sibling folders. Copy what's needed into this repo instead.
+Don't modify the sibling folders. Copy what's needed into this repo instead. Change the firmware repos only when
+asked, on a branch, and leave their uncommitted work (e.g. probe settings in `Xprotolab.cproj`) alone.
 
 ## Build
 
@@ -42,6 +45,16 @@ Don't modify the sibling folders. Copy what's needed into this repo instead.
 - Firmware upgrade runs `dfu-programmer`, found next to the app or on PATH. Atmel DFU drivers are in
   `xscopes-qt-mine/exe/dfu-drivers`.
 - Needs Qt 6.8 or newer (`QStyleHints::setColorScheme`, used to keep the light palette the stylesheets expect).
+- Debug builds: Qt asserts show as dialogs. To find the caller, run under `cdb` with breakpoints on
+  `Qt6Cored!qt_assert` / `Qt6Cored!qt_assert_x`, or add a temporary `qWarning()`.
+
+## Test hardware (this PC)
+
+- An Xprotolab on USB (AWG wired to CH1), running firmware 2.97 with the MS OS descriptors: Windows binds
+  `winusb.inf` by itself and the app connects. Older firmware needs Zadig (WinUSB) on Windows.
+- The same board is on a JTAGICE3 (serial J30200015670, PDI) for flashing. See the firmware's `AGENTS.md`;
+  flash with `erase -ap` + `program -fl` to keep the EEPROM calibration.
+- No Oscilloscope Watch is connected.
 
 ## Code notes
 

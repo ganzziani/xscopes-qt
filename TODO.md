@@ -3,6 +3,16 @@
 Goal: xscopes-qt builds and runs on Qt 6 (MSVC 2022 64-bit) with all local work merged in.
 See [CLAUDE.md](CLAUDE.md) for context. Mark items `[x]` when done and add new ones as found.
 
+**Status 2026-11-01:** branch `modernize` (not pushed, no PR) builds and runs on Qt 6.12.0 MSVC x64, and connects to
+the Xprotolab over USB. Its firmware now binds WinUSB on its own (no Zadig). Steps 0-4 are done apart from the open
+items below.
+
+**Suggested next steps, in order:**
+1. Step 3 visual checks with the device: horizontal/vertical cursors, tracers, Window trigger mode.
+2. Step 5: `selectedFiles()` guard, then decide between in-app DFU and the external `dfu-programmer`.
+3. Step 6: firmware upgrade test, serial test, `windeployqt` + installer, README.
+4. Push `modernize` and open a PR (ask first).
+
 ## 0. Environment
 - [x] Clone GitHub repo into `D:\Projects\xscopes-qt`. Old local copy renamed to `xscopes-qt-mine`.
 - [x] Pick the kit: MSVC 2022 64-bit (not MinGW).
@@ -39,7 +49,7 @@ See [CLAUDE.md](CLAUDE.md) for context. Mark items `[x]` when done and add new o
 - [ ] Once nothing else is needed from it, delete the `xscopes-qt-mine` folder (user's call).
 
 ## 3. Qt5 → Qt6 port
-Compiles cleanly with Qt 6.12.0 MSVC 2022 64-bit (2026-10-31). Linking waits on step 4 (64-bit libusb).
+Builds and runs with Qt 6.12.0 MSVC 2022 64-bit (2026-10-31) and works with an Xprotolab (2026-11-01).
 - [x] QCustomPlot 1.3.2 → 2.1.1 (copied from `Xscopes-Qt6/source`). Call sites adapted: no `addItem()`,
       `setPixelPoint`/`pixelPoint` → `setPixelPosition`/`pixelPosition`, `clearData()` → `data()->clear()`,
       `rpHint` → `rpRefreshHint`, fixed tick steps via shared `QCPAxisTickerFixed` on both axis pairs,
@@ -85,33 +95,26 @@ Compiles cleanly with Qt 6.12.0 MSVC 2022 64-bit (2026-10-31). Linking waits on 
 - [ ] Atmel DFU drivers (`xscopes-qt-mine/exe/dfu-drivers`) aren't in the repo yet. Decide in step 6 (installer) or step 4b.
 
 ## 4b. USB drivers and portability (decided 2026-10-31: keep libusb)
-- [ ] Firmware (`D:\Projects\XScopes\Firmware`, separate git repo, outside this repo): add Microsoft OS 1.0
-      descriptors so Windows 8+ binds WinUSB by itself, with no Zadig and no `.inf`. Reviewed 2026-10-31:
-      - Today the device (16D0:06F9 rev 0100, vendor class, one interface) answers no MS OS request, and this PC runs it
-        on WinUSB through a Zadig/libwdi `oem104.inf` ("libusbx.org", 2012).
-      - Needed: string descriptor 0xEE "MSFT100" + vendor code, and the 40-byte Extended Compat ID "WINUSB" answered
-        from the vendor request handler (`EVENT_USB_Device_ControlRequest` in `usb_xmega.c`) *before* `ProcessCommand()`,
-        since every vendor request goes there. Vendor code `'M'` (not a command letter). Bump `ReleaseNumber` to 01.01
-        so Windows re-reads the descriptors (it caches the answer per VID/PID/bcdDevice).
-      - No Extended Properties / `DeviceInterfaceGUID` needed: libusb 1.0.30 opens a non-composite WinUSB device through
-        its `GUID_DEVINTERFACE_USB_DEVICE` path (`windows_winusb.c`: "the first interface is the same as the device").
-      - Cost, measured with the pinned AVR GCC 4.8.1 against the real objects: **+124 bytes** (Descriptors.o +80,
-        usb_xmega.o +44) on every variant.
-      - **Done 2026-11-01**, on firmware `master` (fast-forwarded from `winusb-msos`, not pushed): c9ecc95 adds the descriptors,
-        f545f62 enables `-mrelax` (OPT-001), bfce6c4 makes it work: bcdUSB 2.00 (Windows skips the MS OS query
-        for 1.10 devices), STALL for DEVICE_QUALIFIER and other unknown descriptors, and a literal bcdDevice 0x0101
-        (`VERSION_BCD(01.01)` rounds to 0x0100 on AVR). All variants have 806..886 bytes free (Xprotolab 830).
-      - **Verified on the Xprotolab:** with `oem104.inf` removed, Windows binds `winusb.inf` on its own
-        (`USB\MS_COMP_WINUSB`, `osvc` = `01 4D`), and libusb 1.0.30 opens it and reads version 2.97. This app
-        connects and runs normally on it (checked by Gabriel). Left: re-run the timing-sensitive firmware paths for
-        `-mrelax`.
-      - Testing on this PC: the existing `oem104.inf` matches the hardware ID and outranks `winusb.inf`, so it keeps
-        winning after the update. Remove it first (admin: Device Manager → uninstall device + delete the driver, or
-        `pnputil /delete-driver oem104.inf /uninstall`), replug, and expect "XScope" on WinUSB from `winusb.inf` and
-        `HKLM\SYSTEM\CurrentControlSet\Control\usbflags\16D006F90101` value `osvc` = `01 4D`.
+- [x] XScopes firmware (`D:\Projects\XScopes\Firmware`, separate repo) answers the Microsoft OS 1.0 descriptors, so
+      Windows 8+ binds `winusb.inf` by itself, with no Zadig and no `.inf`. On firmware `master` (not pushed):
+      c9ecc95 + bfce6c4 (+144 bytes) and f545f62 (`-mrelax` in all projects, -334 bytes). Verified 2026-11-01 on the
+      Xprotolab: `USB\MS_COMP_WINUSB`, `osvc` = `01 4D`, and this app connects and runs. Details and lessons in the
+      firmware's `AGENTS.md` ("WinUSB via MS OS descriptors"). In short:
+      - Device 16D0:06F9, vendor class, one interface. String 0xEE "MSFT100" with vendor code `'M'`, plus an Extended
+        Compat ID "WINUSB" answered before `ProcessCommand()`. No `DeviceInterfaceGUID` is needed, because libusb
+        1.0.30 opens a non-composite WinUSB device through its `GUID_DEVINTERFACE_USB_DEVICE` path.
+      - It needed bcdUSB 2.00 (Windows skips the MS OS query for 1.10 devices), a STALL for DEVICE_QUALIFIER and other
+        unknown descriptors, and a literal bcdDevice 0x0101 (`VERSION_BCD(01.01)` rounds to 0x0100 on AVR).
+      - Windows caches the answer per VID/PID/bcdDevice in `HKLM\SYSTEM\CurrentControlSet\Control\usbflags\16D006F90101`.
+        A PC with an old Zadig `.inf` for 16D0:06F9 keeps using it (hardware-ID match outranks the compatible ID).
+        Remove it with `pnputil /delete-driver oemNN.inf /uninstall` (admin). This PC's `oem104.inf` is already gone.
+- [ ] Firmware, outside this repo: re-run the timing-sensitive paths (trigger, DMA, display, decoders) for `-mrelax`
+      (OPT-001 in the firmware's `CODE_REVIEW_FINDINGS.md`).
 - [ ] Oscilloscope Watch firmware (`D:\Projects\Oscilloscope_Watch\Xproto-Watch-Firmware`, separate repo): same USB
       code and the same 16D0:06F9 IDs. The same change is committed there on branch `winusb-msos` (b2b5cb9, not merged
-      or pushed, +142 bytes; it already linked with `-mrelax`). Builds; not flashed or tested on a Watch yet.
+      or pushed, +142 bytes; its Debug config already linked with `-mrelax -mrmw`). Builds; not flashed or tested on a
+      Watch yet (none connected on 2026-11-01). Note this PC already caches `osvc` for 16D006F90101 from the Xprotolab,
+      so a real test of the Watch's descriptors needs another PC or that `usbflags` key deleted first (admin).
 - [ ] Older firmware on Windows: until users upgrade, Zadig is still needed. Optionally have the installer bind WinUSB
       with libwdi (the library Zadig is built on).
 - [ ] DFU bootloader mode is a separate USB device (Atmel FLIP, VID 03EB) and can't be changed on units in the field.
