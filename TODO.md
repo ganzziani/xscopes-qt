@@ -97,14 +97,14 @@ Compiles cleanly with Qt 6.12.0 MSVC 2022 64-bit (2026-10-31). Linking waits on 
         its `GUID_DEVINTERFACE_USB_DEVICE` path (`windows_winusb.c`: "the first interface is the same as the device").
       - Cost, measured with the pinned AVR GCC 4.8.1 against the real objects: **+124 bytes** (Descriptors.o +80,
         usb_xmega.o +44) on every variant.
-      - **Done 2026-11-01** on firmware branch `winusb-msos` (not pushed): c9ecc95 adds the descriptors,
+      - **Done 2026-11-01**, on firmware `master` (fast-forwarded from `winusb-msos`, not pushed): c9ecc95 adds the descriptors,
         f545f62 enables `-mrelax` (OPT-001), bfce6c4 makes it work: bcdUSB 2.00 (Windows skips the MS OS query
         for 1.10 devices), STALL for DEVICE_QUALIFIER and other unknown descriptors, and a literal bcdDevice 0x0101
         (`VERSION_BCD(01.01)` rounds to 0x0100 on AVR). All variants have 806..886 bytes free (Xprotolab 830).
       - **Verified on the Xprotolab:** with `oem104.inf` removed, Windows binds `winusb.inf` on its own
         (`USB\MS_COMP_WINUSB`, `osvc` = `01 4D`), and libusb 1.0.30 opens it and reads version 2.97. This app
         connects and runs normally on it (checked by Gabriel). Left: re-run the timing-sensitive firmware paths for
-        `-mrelax`, then merge `winusb-msos` in the firmware repo.
+        `-mrelax`.
       - Testing on this PC: the existing `oem104.inf` matches the hardware ID and outranks `winusb.inf`, so it keeps
         winning after the update. Remove it first (admin: Device Manager → uninstall device + delete the driver, or
         `pnputil /delete-driver oem104.inf /uninstall`), replug, and expect "XScope" on WinUSB from `winusb.inf` and
