@@ -103,8 +103,18 @@ Unplugging the device used to freeze the app: `closeEvent()` → `LibUsbDevice::
       works again after replugging.
 - [x] Failed connects no longer leave the central widget disabled ("Device not found"), `initializeDevice()` is
       idempotent so retries do not leak libusb contexts, and `reset()` frees the transfer objects.
-- [ ] Test with a device: unplug while running, close the app while unplugged, replug and reconnect, and a normal
-      close while connected (the settings are still saved to the device).
+- [x] Tested with the Xprotolab (2026-11-01): startup with no device ("Device not found", UI usable), startup with
+the device (auto-connects), unplug while running (immediately back to "Not Connected", process stays responsive),
+several unplug/replug/reconnect cycles, close while unplugged (**0.05 s**, was ~60 s), close while connected
+(0.37 s, settings still sent to the device). No hang, no crash, no leftover crash dumps.
+- [x] First test found a crash of my own making: `reset()` freed the transfers *after* `libusb_exit()` had destroyed
+      the context, and `libusb_free_transfer()` unrefs the transfer's device → access violation in
+      `ntdll!RtlEnterCriticalSection` via `libusb_unref_device` (confirmed with the WER minidump in
+      `%LOCALAPPDATA%\CrashDumps`). The transfers are now freed by `freeTransfers()` in `closeDevice()` before
+      `libusb_exit()`; the "device N still referenced" warnings are gone too.
+- [x] The info label in the Options tab clips long text ("Device disconnected. Reconnect it and press Connect."
+      showed as "sconnected. Reconnect it and press"), so the message is just "Device disconnected".
+- [ ] Optional: widen the info label or set word wrap in `xprotolabinterface.ui` so longer messages fit.
 - [ ] Optional: auto-reconnect on replug via `libusb_hotplug_register_callback()`. The callbacks exist but are
       disabled (`&& 0`); enabling them needs an arrival handler on the GUI thread and a context that outlives the
       disconnection.

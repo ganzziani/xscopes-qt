@@ -23,6 +23,7 @@ public:
     void openDevice(QString = "");
     void closeDevice();
     void stopEventThread();
+    void freeTransfers();
     void eventThread();
     void notifyDeviceRemoved();
     bool controlReadTransfer(uint8_t command, uint16_t value = 0, uint16_t index = 0);
