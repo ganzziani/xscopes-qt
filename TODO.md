@@ -109,6 +109,9 @@ Compiles cleanly with Qt 6.12.0 MSVC 2022 64-bit (2026-10-31). Linking waits on 
         winning after the update. Remove it first (admin: Device Manager → uninstall device + delete the driver, or
         `pnputil /delete-driver oem104.inf /uninstall`), replug, and expect "XScope" on WinUSB from `winusb.inf` and
         `HKLM\SYSTEM\CurrentControlSet\Control\usbflags\16D006F90101` value `osvc` = `01 4D`.
+- [ ] Oscilloscope Watch firmware (`D:\Projects\Oscilloscope_Watch\Xproto-Watch-Firmware`, separate repo): same USB
+      code and the same 16D0:06F9 IDs. The same change is committed there on branch `winusb-msos` (b2b5cb9, not merged
+      or pushed, +142 bytes; it already linked with `-mrelax`). Builds; not flashed or tested on a Watch yet.
 - [ ] Older firmware on Windows: until users upgrade, Zadig is still needed. Optionally have the installer bind WinUSB
       with libwdi (the library Zadig is built on).
 - [ ] DFU bootloader mode is a separate USB device (Atmel FLIP, VID 03EB) and can't be changed on units in the field.
