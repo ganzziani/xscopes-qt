@@ -177,5 +177,39 @@ several unplug/replug/reconnect cycles, close while unplugged (**0.05 s**, was ~
 - [ ] Update README (version history, build instructions).
 - [ ] Optional: make `CMakeLists.txt` work with Qt6.
 
+## 7. Realtime display performance (2026-11-01)
+The PC plot looked slower than the device's own screen (~15 Hz vs ~90 Hz). Measured with an Xprotolab
+(firmware 2.97, AWG on CH1) and a standalone libusb harness that mimics the app's bulk reads.
+- [x] USB side is not the limit. The device pushes one 770-byte frame per acquisition and only starts a new
+      one when the previous transfer completed, so the host must re-submit promptly (it does, from the
+      transfer callback). Measured device frame rates: ~91/s at 8 µs/div, ~87/s at 16 µs/div, ~43/s at
+      500 µs/div, ~4/s at 20 ms/div, ~750/s in roll mode (there it is USB bandwidth that runs out).
+      Frame counters were consecutive: no dropped or duplicated frames while the app renders.
+- [x] Two causes in the app, both in `setupGrid()`:
+      1. QCustomPlot's default plotting hints include `phImmediateRefresh`, so every `replot()` did a
+         synchronous `repaint()`; the paint could never be coalesced or dropped.
+      2. The plot widget was not marked `WA_OpaquePaintEvent`, so Qt composited each frame together with
+         the surrounding widgets.
+- [x] Fix: `setPlottingHints(... & ~QCP::phImmediateRefresh)` and `setAttribute(Qt::WA_OpaquePaintEvent)`
+      (10 lines, no QCustomPlot changes). Release build, measured fps of the visible plot:
+      899x1022 px 87 -> 121 (device and 120 Hz display limit), maximized on 4K 41 -> 69.
+      Rendering checked visually (grid, CH1/CH2 traces, zero markers, trigger icon) in release and debug.
+- [x] Also measured: the per-frame cost is QCustomPlot's `replot()` (~1.4 ms draw at 0.9 Mpx, ~4.3 ms at
+      2.5 Mpx) plus Qt's raster composite of the plot pixmap (~3 ms / ~8.6 ms). A "waveforms on their own
+      buffered layer" scheme (`QCPLayer::replot()`) cuts `replot()` to ~2 ms but composites three full-size
+      pixmaps instead of one, so it only wins on small windows; not used.
+      `setOpenGl(true)` had no effect on QCustomPlot 2.1.1 here.
+- [ ] **Debug builds are ~5x slower** (QCustomPlot 33 ms/frame vs 6 ms in release), which is what the ~15 Hz
+      came from. Use the Release build for looking at signals. Optional: a "debug but optimized" kit
+      (`CONFIG+=force_debug_info` plus /O2) to get a usable debugger and a fast plot.
+- [ ] `chData` is written by libusb into the buffer that `plotData()` reads (the next transfer is submitted
+      immediately), so a frame can be read while the device is writing it. A double buffer with a swap in
+      the transfer callback would remove the tearing risk and the data race noted in section 3b.
+- [ ] Optional: `plotData()` builds ~20 QVectors per frame with `push_back` and no `reserve()`; about
+      0.03 ms/frame, i.e. noise next to the paint cost.
+- [ ] Optional: in roll mode the device sends ~750 frames/s and the app renders every frame it can (120/s),
+      so 6 of 7 frames are discarded. That is the intended behaviour for a scrolling display, but a
+      "render at most N Hz" throttle would leave the GUI thread more idle time.
+
 ## Later
 - [ ] Continue the `Xscopes-Qt6` rewrite.
