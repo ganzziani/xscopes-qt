@@ -186,6 +186,16 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot) {
     // make left and bottom axes transfer their ranges to right and top axes:
     connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
     customPlot->setInteractions(QCP::iSelectPlottables);
+    // Realtime display. QCustomPlot's default plotting hints include phImmediateRefresh, so
+    // replot() calls repaint() and every frame is painted synchronously, right where the data
+    // arrived. Deferring it to update() lets Qt coalesce the paint with everything else the
+    // event loop still has to do (and drop it if a newer frame is already waiting), which is
+    // what makes the frame rate follow the device instead of the cost of a paint.
+    customPlot->setPlottingHints(customPlot->plottingHints() & ~QCP::phImmediateRefresh);
+    // The plot fills its whole area with the (solid) background brush, so tell Qt it does not
+    // have to erase or compose anything underneath it. Without this each frame is composited
+    // together with the surrounding widgets.
+    customPlot->setAttribute(Qt::WA_OpaquePaintEvent);
 }
 
 void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
