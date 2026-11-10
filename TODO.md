@@ -211,5 +211,59 @@ The PC plot looked slower than the device's own screen (~15 Hz vs ~90 Hz). Measu
       so 6 of 7 frames are discarded. That is the intended behaviour for a scrolling display, but a
       "render at most N Hz" throttle would leave the GUI thread more idle time.
 
+## 8. AWG frequency: show and set what the device really plays (2026-11-05)
+The firmware truncates the AWG timer period (firmware `CODE_REVIEW_FINDINGS.md` CR-027, mitigated: the
+owner left it as is because the device's own menu shows the realized frequency, and the software can do
+the same). So the output is at or above the request, by up to one period count: +1.01 % at 44 kHz, and
+the 125.17375 kHz maximum plays 129.03 kHz (+3.08 %). Measured on the bench with the Tester fixture
+(`D:\Projects\Tester`, test `DUT AWG PERIOD`, which also guards the formula below).
+- [ ] Make `actualFreq` mirror `BuildWave()` (firmware `Source/awg.c`) exactly. For a request `c` in
+      0.01 Hz units:
+      - limit it byte by byte: byte 3 = 0, byte 2 <= `0xBE` (not a saturation: 200 kHz becomes 32227.84 Hz),
+        and 0 becomes 1;
+      - `cycles` = 32, halved while `cycles > 1` and `(c >> 16)` < `0x18 >> k` (k = halvings so far), i.e.
+        32 above ~15728 Hz, one octave per halving, 1 below ~983 Hz;
+      - prescaler 256 when `c < 256` (below 2.56 Hz), else 1;
+      - `PER = (12500000 * cycles) / (c * prescaler) - 1`, truncated;
+      - realized f = `cycles * 32 MHz / (256 * prescaler * (PER + 1))`.
+      `on_doubleSpinBoxDesiredFreq_valueChanged()` (and its copy near line 4090) uses an older model: cycles
+      thresholds at 16000 Hz, no prescaler path and a period clamped at 31. Compared with the firmware over the
+      whole range it shows 125.000 kHz where the device plays 129.03 kHz (requests above 125 kHz), is up to
+      0.5 % off below 2.56 Hz and up to 0.4 % near the cycles thresholds (15728..16000 Hz and the octaves below).
+- [ ] Optionally send the request that lands nearest the user's target instead of the target itself: compute
+      the ideal `PER + 1` for the target, round it, and send a `c` whose truncated period gives that value with
+      the same `cycles` (check by running the formula above). Worst error then drops from 3.08 % to about
+      0.5 % (half a count of the shortest periods).
+- [ ] Limit the frequency control to what the device can play (125.17 kHz request, 129.03 kHz realized) so
+      the byte-wise limit never surprises a user.
+
+## 9. Display screenshot over USB (2026-11-10)
+The firmware (both repos, already committed) answers the `'C'` command over USB with the display buffer
+as a BMP stream: a 62 byte header (128 x 64 or 128 x 128, 1 bpp, palette 0 = black, 1 = white), then the
+display transposed into 16 byte rows, bottom row first. The host reads it in 64 byte blocks with
+`wIndex = block number`, so a 2110 byte Watch image takes 33 control transfers, an XScopes 1086 byte image 17.
+- [x] `LibUsbDevice::requestDisplayBitmap()` reads the blocks. The size comes from the width and height
+      (and the data offset) in block 0, so the XScopes and the Watch need no device type detection, and a
+      short or empty answer (firmware without the command) is reported as such.
+- [x] Options tab, Connection box: `pushTakeBMP` (Display Screenshot) fills `label_BMP`. The 8 bit rows are
+      decoded into a `QImage::Format_Mono` (`displayBmpToImage()`), not through Qt's BMP handler, and the
+      palette is taken from the header, so each device looks the way it does on its own screen (the XScopes
+      are dark ink on a light display, the Watch light ink on a dark one).
+- [x] Right click on the label -> "Save Bitmap...": `.bmp` is written exactly as the device sent it,
+      `.png` through the decoded image (the suffix picks the format, `.bmp` is added if there is none).
+- [x] The label has a fixed 160x160 size, so neither resolution is clipped and the Connection group box
+      does not resize with the picture. Scaling is `Qt::FastTransformation` to keep the pixels crisp.
+- [x] Tested 2026-11-10 with the Oscilloscope Watch (128x128) over USB, release build: the picture in
+      `label_BMP` matches the device's screen, and both save paths write a correct file.
+- [ ] Not tested with an Xprotolab (128x64) on hardware yet; no XScopes device was connected.
+- [ ] Serial port: there `'C'` is an XMODEM transfer (128 byte packets, CRC-16/XMODEM). Not implemented;
+      the button reports that the screenshot needs USB. Only the Watch was verified anyway, and it has no
+      serial interface. Worth adding if serial users ask for it.
+- [ ] While the scope runs the device keeps drawing, so a screenshot can mix two frames (33 control
+      transfers take a few tens of ms). Alternatively freeze the acquisition (`stopScope()`) around the
+      read, or read the stream twice and compare.
+- [ ] Older firmware has no `'C'` over USB: the button warns instead of showing a stale picture.
+      Reading `'C'` through QtSerialPort + the XMODEM receiver would also need `'p'`/`'q'` autosend care.
+
 ## Later
 - [ ] Continue the `Xscopes-Qt6` rewrite.

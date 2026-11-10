@@ -1,6 +1,7 @@
 #include "xprotolabinterface.h"
 #include "ui_xprotolabinterface.h"
 #include <stdio.h>
+#include <string.h>
 
 XprotolabInterface::XprotolabInterface(QWidget *parent) :
     QMainWindow(parent),
@@ -125,6 +126,13 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     connect(&usbDevice.serial, SIGNAL(connectionStatus(QString)), this, SLOT(setInfoText(QString)));
     // Queued: emitted from the libusb event thread
     connect(&usbDevice, SIGNAL(deviceDisconnected()), this, SLOT(onDeviceDisconnected()));
+    // Display screenshot: right clicking it opens the save dialog. A fixed size keeps the
+    // 128x64 and 128x128 pictures from being clipped or from resizing the Connection box.
+    ui->label_BMP->setFixedSize(160, 160);
+    ui->label_BMP->setContextMenuPolicy(Qt::CustomContextMenu);
+    ui->label_BMP->setToolTip(tr("Right click to save the screenshot"));
+    connect(ui->label_BMP, SIGNAL(customContextMenuRequested(const QPoint &)),
+            this, SLOT(displayBmpContextMenu(const QPoint &)));
 }
 
 XprotolabInterface::~XprotolabInterface() {
@@ -3692,6 +3700,102 @@ void XprotolabInterface::on_screenShotButton_clicked() {
     defaultDir = filePath;
     sshot.save(filePath + QDir::separator() + fileName);
     ui->notifLabel->setText("File " + fileName + " created!");
+}
+
+// The device sends the display as a 62 byte BMP header plus the 1bpp rows, bottom
+// row first and padded to 4 bytes (BMP order). Decoding it here keeps the exact
+// pixels and does not depend on Qt's BMP image format handler.
+static QImage displayBmpToImage(const QByteArray &bmp) {
+    if(bmp.size() < 62)
+        return QImage();
+    const uchar *data = (const uchar *)bmp.constData();
+    int dataOffset = qFromLittleEndian<qint32>(data + 10);
+    int width = qFromLittleEndian<qint32>(data + 18);
+    int height = qFromLittleEndian<qint32>(data + 22);
+    int bitsPerPixel = qFromLittleEndian<quint16>(data + 28);
+    int rowBytes = (width + 31) / 32 * 4;
+    if(width <= 0 || height <= 0 || bitsPerPixel != 1 || dataOffset < 54 ||
+            bmp.size() < dataOffset + rowBytes * height)
+        return QImage();
+    QImage image(width, height, QImage::Format_Mono);
+    // The palette says how the device looks, so take it from the header: BMP entries
+    // are blue, green, red, unused. The XScopes draw dark ink on a light display, the
+    // Oscilloscope Watch light ink on a dark one, and each firmware sends its colors.
+    if(dataOffset >= 62) {
+        image.setColor(0, qRgb(data[56], data[55], data[54]));
+        image.setColor(1, qRgb(data[60], data[59], data[58]));
+    } else {
+        image.setColor(0, qRgb(255, 255, 255));
+        image.setColor(1, qRgb(0, 0, 0));
+    }
+    for(int y = 0; y < height; y++)
+        memcpy(image.scanLine(y), data + dataOffset + (height - 1 - y) * rowBytes, rowBytes);
+    return image;
+}
+
+void XprotolabInterface::showDisplayBitmap() {
+    if(displayBmpImage.isNull())
+        return;
+    // Scale the 128x64 (XScopes) or 128x128 (Oscilloscope Watch) display to the label,
+    // unsmoothed so the pixels stay crisp
+    QPixmap pixmap = QPixmap::fromImage(displayBmpImage);
+    ui->label_BMP->setPixmap(pixmap.scaled(ui->label_BMP->width(), ui->label_BMP->height(),
+                                           Qt::KeepAspectRatio, Qt::FastTransformation));
+}
+
+void XprotolabInterface::on_pushTakeBMP_clicked() {
+    if(!usbDevice.isDeviceConnected) {
+        setInfoText(tr("Connect a device to take a display screenshot"));
+        return;
+    }
+    if(!usbDevice.wayOfConnecting) {
+        setInfoText(tr("Display screenshot needs a USB connection"));
+        return;
+    }
+    QByteArray bmp;
+    if(!usbDevice.requestDisplayBitmap(bmp)) {
+        setInfoText(usbDevice.cstatus);
+        QMessageBox::warning(this, tr("Display Screenshot"),
+                             tr("Cannot read the display bitmap.\n"
+                                "The device firmware may be too old to send it."));
+        return;
+    }
+    displayBmp = bmp;
+    displayBmpImage = displayBmpToImage(displayBmp);
+    showDisplayBitmap();
+    setInfoText();
+}
+
+void XprotolabInterface::displayBmpContextMenu(const QPoint &pos) {
+    if(displayBmp.isEmpty())
+        return;
+    QMenu menu(this);
+    QAction *saveAction = menu.addAction(tr("Save Bitmap..."));
+    if(menu.exec(ui->label_BMP->mapToGlobal(pos)) != saveAction)
+        return;
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save Display Bitmap"),
+                                                     defaultDir + QDir::separator() + "screenshot" +
+                                                     QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + ".bmp",
+                                                     tr("Bitmap files (*.bmp);;PNG files (*.png)"));
+    if(fileName.isEmpty())
+        return;
+    if(QFileInfo(fileName).suffix().isEmpty())
+        fileName += ".bmp";
+    defaultDir = QFileInfo(fileName).absolutePath();
+    if(!saveDisplayBmp(fileName)) {
+        QMessageBox::warning(this, tr("Save Display Bitmap"), tr("Cannot write %1").arg(fileName));
+        return;
+    }
+    setInfoText(tr("Screenshot saved"));
+}
+
+bool XprotolabInterface::saveDisplayBmp(const QString &fileName) {
+    // A BMP is written exactly as the device sent it, with its own palette; other
+    // formats go through the decoded image
+    if(QFileInfo(fileName).suffix().compare("png", Qt::CaseInsensitive) == 0)
+        return displayBmpImage.save(fileName, "PNG");
+    QFile file(fileName);
+    return file.open(QFile::WriteOnly | QFile::Truncate) && file.write(displayBmp) == displayBmp.size();
 }
 
 void XprotolabInterface::on_saveWave_clicked() {

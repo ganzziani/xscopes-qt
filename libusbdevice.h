@@ -1,6 +1,7 @@
 #ifndef LIBUSBDEVICE_H
 #define LIBUSBDEVICE_H
 #include <QObject>
+#include <QByteArray>
 #include <QFuture>
 #include <atomic>
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
@@ -31,6 +32,7 @@ public:
     void awgBulkWriteTransfer();
     void controlWriteTransfer(uint16_t index, uint8_t value);
     QString requestFirmwareVersion();
+    bool requestDisplayBitmap(QByteArray &bmp);
     void stopScope();
     void startScope();
     void forceTrigger();
