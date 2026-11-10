@@ -1,6 +1,7 @@
 #include "libusbdevice.h"
 #include "libusbdeviceinfo.h"
 
+#include <QtEndian>
 #include "qextserialport.h"
 
 LibUsbDevice::LibUsbDevice(QObject *parent) :
@@ -455,6 +456,73 @@ QString LibUsbDevice::requestFirmwareVersion() {
         qDebug() << "read error: " << bytesRead;
         return NULL;
     }
+}
+
+// Display screenshot. The device answers the 'C' command with one block of the BMP
+// stream per control transfer, wIndex = block number, up to 64 bytes over USB.
+// The stream is a 62 byte BMP header followed by the display transposed into 1bpp
+// rows, bottom row first: the XScopes send 128x64 (1086 bytes, 17 blocks), the
+// Oscilloscope Watch 128x128 (2110 bytes, 33 blocks). The size is read from the
+// width and height in the header, so both are handled the same way.
+bool LibUsbDevice::requestDisplayBitmap(QByteArray &bmp) {
+    bmp.clear();
+    if(!isDeviceConnected) {
+        qDebug() << "Device not connected";
+        return false;
+    }
+    if(!wayOfConnecting) {
+        // Over the serial port 'C' is an XMODEM file transfer, not a block read
+        cstatus = tr("Not available on the serial port");
+        return false;
+    }
+    uint8_t block[LEN_CONTROL_BUFFER];
+    int bmpSize = 0;
+    for(int blockIndex = 0; blockIndex < 64; blockIndex++) {
+        int bytesRead = libusb_control_transfer(deviceHandle, 0xC0, 'C', 0, blockIndex,
+                                                block, LEN_CONTROL_BUFFER, 1000);
+        if(bytesRead < 0) {
+            cstatus = tr("Read Error!");
+            qDebug() << "Display bitmap read error: " << bytesRead;
+            bmp.clear();
+            return false;
+        }
+        if(bytesRead == 0)
+            break;      // no more blocks (or a firmware without the command)
+        if(blockIndex == 0) {
+            // 'BM', then the data offset, width and height at offsets 10, 18 and 22
+            if(bytesRead < 26 || block[0] != 'B' || block[1] != 'M') {
+                cstatus = tr("Device does not send the display bitmap");
+                qDebug() << "Unexpected display bitmap header";
+                return false;
+            }
+            int dataOffset = qFromLittleEndian<qint32>(block + 10);   // 62 in both firmwares
+            int width = qFromLittleEndian<qint32>(block + 18);
+            int height = qFromLittleEndian<qint32>(block + 22);
+            if(width <= 0 || height <= 0 || width > 1024 || height > 1024 ||
+                    dataOffset < 54 || dataOffset > 4096) {
+                cstatus = tr("Invalid display bitmap");
+                qDebug() << "Invalid display bitmap size" << width << height;
+                return false;
+            }
+            bmpSize = dataOffset + ((width + 31) / 32 * 4) * height;
+        }
+        if(bmp.size() + bytesRead > bmpSize)
+            bytesRead = bmpSize - bmp.size();
+        bmp.append((const char *)block, bytesRead);
+        if(bmp.size() >= bmpSize)
+            break;
+    }
+    if(bmpSize == 0) {
+        cstatus = tr("Device does not send the display bitmap");
+        return false;
+    }
+    if(bmp.size() != bmpSize) {
+        cstatus = tr("Incomplete display bitmap");
+        qDebug() << "Incomplete display bitmap" << bmp.size() << "of" << bmpSize;
+        bmp.clear();
+        return false;
+    }
+    return true;
 }
 
 void LibUsbDevice::stopScope() {

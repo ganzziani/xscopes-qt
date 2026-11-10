@@ -42,6 +42,8 @@
 #include "sniffer.h"
 
 #include <QFile>
+#include <QImage>
+#include <QMenu>
 #include <QTextStream>
 #include <QtSerialPort/QSerialPortInfo>
 #include <QtSerialPort/QSerialPort>
@@ -139,6 +141,8 @@ private:
     void setupScatterStyles(bool);
     void saveWavetoFile();
     QString saveWavetoString();
+    void showDisplayBitmap();
+    bool saveDisplayBmp(const QString &fileName);
     void closeEvent(QCloseEvent *);
     bool eventFilter(QObject *watched, QEvent *event) override;
     void selectWaveForm(uint8_t);
@@ -329,6 +333,8 @@ private slots:
     void updateCh2Label();
     void on_rescanButton_clicked();
     void setInfoText(QString text = "", bool mode = false);
+    void on_pushTakeBMP_clicked();
+    void displayBmpContextMenu(const QPoint &pos);
     void disconnectDevice(bool mode = true);
     QString get4Digits(qreal number);
     void showHideCH1ZeroVerticalIndicator();
@@ -440,6 +446,9 @@ private:
     double vppMinCh2;
     double vppMaxCh2;
     BootInfo_t BootInfo;
+
+    QByteArray displayBmp;      // display screenshot as sent by the device (BMP)
+    QImage displayBmpImage;
 };
 
 #endif // XPROTOLABINTERFACE_H
