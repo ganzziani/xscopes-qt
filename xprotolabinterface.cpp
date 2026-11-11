@@ -62,6 +62,8 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     saveWave = false;
     displayLoadedWave = false;
     trigIcon = 0;
+    persistenceIndex = 0;
+    persistenceItem = nullptr;
     bitTriggerSource = false;
     mode = OSCILLOSCOPE;
     lastTriggerSource = 0;
@@ -222,12 +224,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         ch1RefGraph->setPen(ch1RefPen);
         ch2RefPen = QPen(QColor("#4be51c"), 2);
         ch2RefGraph->setPen(ch2RefPen);
-        for(int i = 0; i < TG; i++) {
-            ch1PPen[i] = QPen(QColor(75, 229, 28), (TG - i) / TG);
-            ch2PPen[i] = QPen(Qt::red, (TG - i) / TG);
-            ch1PGraphs[i]->setPen(ch1PPen[i]);
-            ch2PGraphs[i]->setPen(ch2PPen[i]);
-        }
         for(int i = 0; i < 8; i++) {
             chdPen[i] = QPen(QColor(255 - i * 10, 4 + i * 10, 4), 1.5);
             //chdPen[i] = QPen(Qt::red, 1.5);
@@ -278,12 +274,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         ch1RefGraph->setPen(ch1RefPen);
         ch2RefPen = QPen(QColor("#4be51c"), 2);
         ch2RefGraph->setPen(ch2RefPen);
-        for(int i = 0; i < TG; i++) {
-            ch1PPen[i] = QPen(QColor("#2a50fd"), (TG - i) / TG);
-            ch2PPen[i] = QPen(Qt::red, (TG - i) / TG);
-            ch1PGraphs[i]->setPen(ch1PPen[i]);
-            ch2PGraphs[i]->setPen(ch2PPen[i]);
-        }
         for(int i = 0; i < 8; i++) {
             chdPen[i] = QPen(QColor(4 + i * 20, i, 255 - i * 5), 1.5);
             //chdPen[i] = QPen(Qt::red, 1.5);
@@ -334,12 +324,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         ch1RefGraph->setPen(ch1RefPen);
         ch2RefPen = QPen(customColors->ch2ref, 2);
         ch2RefGraph->setPen(ch2RefPen);
-        for(int i = 0; i < TG; i++) {
-            ch1PPen[i] = QPen(customColors->ch1, (TG - i) / TG);
-            ch2PPen[i] = QPen(customColors->ch2, (TG - i) / TG);
-            ch1PGraphs[i]->setPen(ch1PPen[i]);
-            ch2PGraphs[i]->setPen(ch2PPen[i]);
-        }
         for(int i = 0; i < 8; i++) {
             chdPen[i] = QPen(customColors->bit[i], 1.5);
             chdGraph[i]->setPen(chdPen[i]);
@@ -375,11 +359,18 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         textLabelVoltageA->setColor(customColors->label);
         textLabelMousePos->setColor(customColors->label);
     }
-    on_intensitySlider_valueChanged(0);
+    clearPersistenceImage();
+    updatePersistencePens();
     ui->plotterWidget->replot(QCustomPlot::rpRefreshHint);
 }
 
 void XprotolabInterface::setupGraphs(QCustomPlot *customPlot) {
+    // Infinite Persistence lives below the grid: accumulated traces stay behind
+    // the current frame and the grid, and do not affect any QCPGraph data.
+    customPlot->addLayer("persistence", customPlot->layer("grid"), QCustomPlot::limBelow);
+    persistenceItem = new PersistenceItem(customPlot);
+    persistenceItem->setLayer("persistence");
+    persistenceItem->setVisible(false);
     ch1Graph = customPlot->addGraph();
     ch1RefGraph = customPlot->addGraph();
     ch2Graph = customPlot->addGraph();
@@ -650,6 +641,9 @@ void XprotolabInterface::plotData() {
         return;
     } else if(mode != OSCILLOSCOPE || usbDevice.dataLength > 770)
         return;
+    // Only a new device frame may age the persistence trail. Repaints caused by
+    // mouse movement or UI changes reuse the last frame and must not add a copy.
+    const bool newFrame = usbDevice.dataAvailable;
     QVector<double> key;
     double ch1, ch2, minV = 0, maxV = 0, aTrack, bTrack;
     vppMinCh1 = 0, vppMaxCh1 = 0, vppMinCh2 = 0, vppMaxCh2 = 0;
@@ -794,22 +788,13 @@ ENDSCAN:
             minX2 = minX2 >> 1;
         }
     }
-    if(ui->decaySlider->value() > 0) {
-        ch1PBuffer.push_back(ch1Buffer);
-        while(ch1PBuffer.size() > ui->decaySlider->value())
-            ch1PBuffer.pop_front();
-        ch2PBuffer.push_back(ch2Buffer);
-        while(ch2PBuffer.size() > ui->decaySlider->value())
-            ch2PBuffer.pop_front();
-        for(int k = ui->decaySlider->value(); k < TG; k++) {
-            ch1PGraphs[k]->data()->clear();
-            ch2PGraphs[k]->data()->clear();
-        }
-    } else {
-        ch1PGraphs[0]->data()->clear();
-        ch2PGraphs[0]->data()->clear();
-        ch1PBuffer.clear();
-        ch2PBuffer.clear();
+    // CRT persistence: write this frame once into a ring of ghost graphs. They age
+    // by one slot per frame and get dimmer pens (see applyPersistenceStyle()).
+    if(newFrame && !ui->checkBoxPersistence->isChecked() && !ui->xyMode->isChecked() &&
+            ui->intensitySlider->value() > 0) {
+        persistenceIndex = (persistenceIndex + 1) % TG;
+        ch1PGraphs[persistenceIndex]->setData(key, ch1Buffer);
+        ch2PGraphs[persistenceIndex]->setData(key, ch2Buffer);
     }
     if(captureRef) {
         captureRef = false;
@@ -921,48 +906,21 @@ ENDSCAN:
     if(ui->xyMode->isChecked()) {
         ch1Graph->data()->clear();
         ch2Graph->data()->clear();
-        for(int k = 0; k < TG; k++) {
-            ch1PGraphs[k]->data()->clear();
-            ch2PGraphs[k]->data()->clear();
-        }
         ch1Graph->setData(key, ch2Buffer);
         ch1Graph->rescaleValueAxis(true);
     } else {
-        if(!ui->checkBoxPersistence->isChecked()) {
-            ch1Graph->data()->clear();
-            for(int k = 0; k < TG; k++) {
-                ch1PGraphs[k]->data()->clear();
-            }
-        }
+        ch1Graph->data()->clear();
         if(ui->checkBoxCH1Trace->isChecked()) {
-            if(!ui->checkBoxPersistence->isChecked()) {
-                ch1Graph->setData(key, ch1Buffer);
-                for(int k = 0; k < qMin(ch1PBuffer.size(), ui->decaySlider->value() + 1); k++) {
-                    ch1PGraphs[k]->setData(key, ch1PBuffer[k]);
-                }
-            } else {
-                ch1Graph->addData(key, ch1Buffer);
-            }
+            ch1Graph->setData(key, ch1Buffer);
         }
         if(ui->refCH1->isChecked())
             ch1RefGraph->setData(key, ch1RefBuff);
         else {
             ch1RefGraph->data()->clear();
         }
-        if(!ui->checkBoxPersistence->isChecked()) {
-            ch2Graph->data()->clear();
-            for(int k = 0; k < TG; k++) {
-                ch2PGraphs[k]->data()->clear();
-            }
-        }
+        ch2Graph->data()->clear();
         if(ui->checkBoxCH2Trace->isChecked() && ui->samplingSlider->value() > 0) {
-            if(!ui->checkBoxPersistence->isChecked()) {
-                ch2Graph->setData(key, ch2Buffer);
-                for(int k = 0; k < qMin(ch2PBuffer.size(), ui->decaySlider->value() + 1); k++) {
-                    ch2PGraphs[k]->setData(key, ch2PBuffer[k]);
-                }
-            } else
-                ch2Graph->addData(key, ch2Buffer);
+            ch2Graph->setData(key, ch2Buffer);
         }
         if(ui->refCH2->isChecked())
             ch2RefGraph->setData(key, ch2RefBuff);
@@ -970,14 +928,10 @@ ENDSCAN:
             ch2RefGraph->data()->clear();
         }
         for(int k = 0; k < 8; k++) {
-            if(!ui->checkBoxPersistence->isChecked())
-                chdGraph[k]->data()->clear();
+            chdGraph[k]->data()->clear();
             textLabelBit[k]->setVisible(false);
             if(ui->checkBoxCHDTrace->isChecked() && bitChecked[k]) {
-                if(!ui->checkBoxPersistence->isChecked())
-                    chdGraph[k]->setData(key, bit[k]);
-                else
-                    chdGraph[k]->addData(key, bit[k]);
+                chdGraph[k]->setData(key, bit[k]);
                 textLabelBit[k]->setVisible(true);
             }
             if(ui->refLogic->isChecked() && bitChecked[k]) {
@@ -989,10 +943,8 @@ ENDSCAN:
                 chdRefGraph[k]->data()->clear();
             }
         }
-        if(!ui->checkBoxPersistence->isChecked()) {
-            ch1BarGraph->data()->clear();
-            ch2BarGraph->data()->clear();
-        }
+        ch1BarGraph->data()->clear();
+        ch2BarGraph->data()->clear();
         if(ui->checkBoxFFTTrace->isChecked()) {
             double magnitude = 0.0, magnitude2 = 0.0;
             double real1, real2, imag;
@@ -1044,29 +996,27 @@ ENDSCAN:
                     fft1.push_back(magnitude);
                 }
             }
-            if(!ui->checkBoxPersistence->isChecked()) {
-                if(!ui->checkBoxIQFFT->isChecked()) {
-                    ch1BarGraph->data()->clear();
-                    if(ui->checkBoxFFTCH1->isChecked())
-                        ch1BarGraph->setData(key, fft1);
-                    ch2BarGraph->data()->clear();
-                    if(ui->checkBoxFFTCH2->isChecked())
-                        ch2BarGraph->setData(key, fft2);
-                } else {
-                    ch1BarGraph->data()->clear();
+            if(!ui->checkBoxIQFFT->isChecked()) {
+                ch1BarGraph->data()->clear();
+                if(ui->checkBoxFFTCH1->isChecked())
                     ch1BarGraph->setData(key, fft1);
-                }
+                ch2BarGraph->data()->clear();
+                if(ui->checkBoxFFTCH2->isChecked())
+                    ch2BarGraph->setData(key, fft2);
             } else {
-                if(!ui->checkBoxIQFFT->isChecked()) {
-                    if(ui->checkBoxFFTCH1->isChecked())
-                        ch1BarGraph->addData(key, fft1);
-                    if(ui->checkBoxFFTCH2->isChecked())
-                        ch2BarGraph->addData(key, fft2);
-                } else {
-                    ch1BarGraph->addData(key, fft1);
-                }
+                ch1BarGraph->data()->clear();
+                ch1BarGraph->setData(key, fft1);
             }
         }
+    }
+    applyPersistenceStyle();
+    const bool persistenceOn = ui->checkBoxPersistence->isChecked() && !ui->xyMode->isChecked();
+    if(persistenceOn) {
+        if(newFrame)
+            drawPersistenceFrame(key, ch1Buffer, ch2Buffer, bit);
+        persistenceItem->setVisible(true);
+    } else {
+        persistenceItem->setVisible(false);
     }
     if(ui->checkBoxCursorVertical->isChecked()) {
         double deltaTime, freq, value = 0;
@@ -2912,6 +2862,8 @@ void XprotolabInterface::on_checkBoxFlip_clicked() {
 }
 
 void XprotolabInterface::on_checkBoxPersistence_clicked() {
+    clearPersistenceHistory();
+    clearPersistenceImage();
     sendDisplayControls();
 }
 
@@ -3038,6 +2990,8 @@ void XprotolabInterface::on_radioButtonBlackman_clicked() {
 }
 
 void XprotolabInterface::on_xyMode_clicked() {
+    clearPersistenceHistory();
+    clearPersistenceImage();
     sendMFFTControls();
 }
 
@@ -3987,41 +3941,151 @@ void XprotolabInterface::on_clearWaveButton_clicked() {
     }
 }
 
-void XprotolabInterface::on_intensitySlider_valueChanged(int value) {
-    float h, s, lmaxCh1, lmaxCh2;
-    ch1Pen.color().getHslF(&h, &s, &lmaxCh1);
-    ch2Pen.color().getHslF(&h, &s, &lmaxCh2);
-    float h1, h2, s1, s2, l1, l2;
-    QPen t1Pen, t2Pen;
+void XprotolabInterface::updatePersistencePens() {
+    // Retention per frame: Decay 0 fades quickly, Decay 8 leaves a long trail.
+    const double retention = 0.35 + (0.78 - 0.35) * ui->decaySlider->value() / 8.0;
+    for(int age = 0; age < TG; age++) {
+        const double fade = qPow(retention, age);
+        QColor ch1Color = ch1Pen.color();
+        ch1Color.setAlphaF(ch1Color.alphaF() * fade);
+        ch1PPen[age] = QPen(ch1Color, age <= 1 ? ch1Pen.widthF() : 1.0);
+        ch1PPen[age].setStyle(ch1Pen.style());
+        QColor ch2Color = ch2Pen.color();
+        ch2Color.setAlphaF(ch2Color.alphaF() * fade);
+        ch2PPen[age] = QPen(ch2Color, age <= 1 ? ch2Pen.widthF() : 1.0);
+        ch2PPen[age].setStyle(ch2Pen.style());
+    }
+    applyPersistenceStyle();
+}
+
+void XprotolabInterface::applyPersistenceStyle() {
+    const int copies = qBound(0, ui->intensitySlider->value(), TG - 1);
+    const bool trailEnabled = !ui->checkBoxPersistence->isChecked() && !ui->xyMode->isChecked();
+    const bool showCH1 = trailEnabled && ui->checkBoxCH1Trace->isChecked();
+    const bool showCH2 = trailEnabled && ui->checkBoxCH2Trace->isChecked() &&
+                         ui->samplingSlider->value() > 0;
     for(int i = 0; i < TG; i++) {
-        t1Pen = ch1PPen[i];
-        t1Pen.color().getHslF(&h1, &s1, &l1);
-        t2Pen = ch2PPen[i];
-        t2Pen.color().getHslF(&h2, &s2, &l2);
-        if(ui->comboBoxTheme->currentIndex() == Dark) {
-            t1Pen.setColor(QColor::fromHslF(h1, s1,  mapRangeF(((i + 1.0) * (value / 10.0)), i + 1.0, 0, lmaxCh1, 0.05)));
-            t2Pen.setColor(QColor::fromHslF(h2, s2,  mapRangeF(((i + 1.0) * (value / 10.0)), i + 1.0, 0, lmaxCh2, 0.05)));
-            ch1PGraphs[i]->setPen(t1Pen);
-            ch2PGraphs[i]->setPen(t2Pen);
-        } else if(ui->comboBoxTheme->currentIndex() == Light) {
-            t1Pen.setColor(QColor::fromHslF(h1, s1, 1.0 - mapRangeF(((i + 1.0) * (value / 10.0)), i + 1.0, 0, lmaxCh1, 0.05)));
-            t2Pen.setColor(QColor::fromHslF(h2, s2, 1.0 - mapRangeF(((i + 1.0) * (value / 10.0)), i + 1.0, 0, lmaxCh2, 0.05)));
-            ch1PGraphs[i]->setPen(t1Pen);
-            ch2PGraphs[i]->setPen(t2Pen);
-        } else {
-            if(customThemeDialog.idealForegroundColor(customThemeDialog.customColors.background.color()) == "#fffff") {
-                t1Pen.setColor(QColor::fromHslF(h1, s1, 1.0 - mapRangeF(((i + 1.0) * (value / 10.0)), i + 1.0, 0, lmaxCh1, 0.05)));
-                t2Pen.setColor(QColor::fromHslF(h2, s2, 1.0 - mapRangeF(((i + 1.0) * (value / 10.0)), i + 1.0, 0, lmaxCh2, 0.05)));
-                ch1PGraphs[i]->setPen(t1Pen);
-                ch2PGraphs[i]->setPen(t2Pen);
-            } else {
-                t1Pen.setColor(QColor::fromHslF(h1, s1, mapRangeF(((i + 1.0) * (value / 10.0)), i + 1.0, 0, lmaxCh1, 0.05)));
-                t2Pen.setColor(QColor::fromHslF(h2, s2, mapRangeF(((i + 1.0) * (value / 10.0)), i + 1.0, 0, lmaxCh2, 0.05)));
-                ch1PGraphs[i]->setPen(t1Pen);
-                ch2PGraphs[i]->setPen(t2Pen);
+        // Age 0 is the frame just written; the main graph already draws it.
+        const int age = (persistenceIndex - i + TG) % TG;
+        const bool visible = age >= 1 && age <= copies;
+        ch1PGraphs[i]->setPen(ch1PPen[age]);
+        ch2PGraphs[i]->setPen(ch2PPen[age]);
+        ch1PGraphs[i]->setVisible(visible && showCH1);
+        ch2PGraphs[i]->setVisible(visible && showCH2);
+    }
+}
+
+void XprotolabInterface::clearPersistenceHistory() {
+    persistenceIndex = 0;
+    for(int i = 0; i < TG; i++) {
+        ch1PGraphs[i]->data()->clear();
+        ch2PGraphs[i]->data()->clear();
+        ch1PGraphs[i]->setVisible(false);
+        ch2PGraphs[i]->setVisible(false);
+    }
+}
+
+void XprotolabInterface::ensurePersistenceImage() {
+    if(!persistenceItem)
+        return;
+    QCPAxisRect *axisRect = ui->plotterWidget->axisRect();
+    if(!axisRect || axisRect->width() <= 0 || axisRect->height() <= 0)
+        return;
+    const double dpr = ui->plotterWidget->bufferDevicePixelRatio();
+    const QSize pixelSize(qRound(axisRect->width() * dpr),
+                          qRound(axisRect->height() * dpr));
+    QImage &image = persistenceItem->image;
+    if(image.size() != pixelSize || !qFuzzyCompare(image.devicePixelRatio(), dpr)) {
+        image = QImage(pixelSize, QImage::Format_ARGB32_Premultiplied);
+        image.setDevicePixelRatio(dpr);
+        image.fill(Qt::transparent);
+    }
+}
+
+void XprotolabInterface::clearPersistenceImage() {
+    if(!persistenceItem)
+        return;
+    persistenceItem->image = QImage();
+    persistenceItem->setVisible(false);
+}
+
+void XprotolabInterface::drawPersistenceFrame(const QVector<double> &key,
+        const QVector<double> &ch1Buffer, const QVector<double> &ch2Buffer,
+        const QVector<double> *bit) {
+    ensurePersistenceImage();
+    if(!persistenceItem || persistenceItem->image.isNull())
+        return;
+    QCPAxisRect *axisRect = ui->plotterWidget->axisRect();
+    const QPointF origin = axisRect->topLeft();
+    auto toPixel = [&](int index, const QVector<double> &values) {
+        return QPointF(ui->plotterWidget->xAxis->coordToPixel(key[index]) - origin.x(),
+                       ui->plotterWidget->yAxis->coordToPixel(values[index]) - origin.y());
+    };
+    QImage &image = persistenceItem->image;
+    QPainter painter(&image);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    const int count = qMin(key.size(), ch1Buffer.size());
+    if(ui->checkBoxCH1Trace->isChecked() && count > 1) {
+        QPolygonF poly;
+        poly.reserve(count);
+        for(int i = 0; i < count; i++)
+            poly.append(toPixel(i, ch1Buffer));
+        QPen pen(ch1Pen.color(), ch1Pen.widthF());
+        pen.setCapStyle(Qt::RoundCap);
+        pen.setJoinStyle(Qt::RoundJoin);
+        painter.setPen(pen);
+        painter.drawPolyline(poly);
+    }
+    const int count2 = qMin(key.size(), ch2Buffer.size());
+    if(ui->checkBoxCH2Trace->isChecked() && ui->samplingSlider->value() > 0 && count2 > 1) {
+        QPolygonF poly;
+        poly.reserve(count2);
+        for(int i = 0; i < count2; i++)
+            poly.append(toPixel(i, ch2Buffer));
+        QPen pen(ch2Pen.color(), ch2Pen.widthF());
+        pen.setCapStyle(Qt::RoundCap);
+        pen.setJoinStyle(Qt::RoundJoin);
+        painter.setPen(pen);
+        painter.drawPolyline(poly);
+    }
+    if(ui->checkBoxCHDTrace->isChecked()) {
+        for(int k = 0; k < 8; k++) {
+            const int n = qMin(key.size(), bit[k].size());
+            if(!bitChecked[k] || n < 2)
+                continue;
+            QPen pen(chdPen[k].color(), chdPen[k].widthF());
+            pen.setCapStyle(Qt::FlatCap);
+            pen.setJoinStyle(Qt::MiterJoin);
+            painter.setPen(pen);
+            QPolygonF poly;
+            poly.reserve(3 * (n - 1) + 1);
+            QPointF prev = toPixel(0, bit[k]);
+            poly.append(prev);
+            for(int i = 1; i < n; i++) {
+                const QPointF cur = toPixel(i, bit[k]);
+                const double midX = (prev.x() + cur.x()) / 2.0;
+                poly.append(QPointF(midX, prev.y()));
+                poly.append(QPointF(midX, cur.y()));
+                poly.append(cur);
+                prev = cur;
             }
+            painter.drawPolyline(poly);
         }
     }
+}
+
+void XprotolabInterface::on_intensitySlider_valueChanged(int value) {
+    Q_UNUSED(value);
+    // Restart the trail so no old frame can reappear when the slider is moved.
+    clearPersistenceHistory();
+    updatePersistencePens();
+    ui->plotterWidget->replot(QCustomPlot::rpRefreshHint);
+}
+
+void XprotolabInterface::on_decaySlider_valueChanged(int value) {
+    Q_UNUSED(value);
+    updatePersistencePens();
+    ui->plotterWidget->replot(QCustomPlot::rpRefreshHint);
 }
 
 double XprotolabInterface::mapRangeF(double value, double oldMax, double oldMin, double newMax, double newMin) {
@@ -4372,6 +4436,7 @@ void XprotolabInterface::on_sizeChanged() {
     textLabelVoltageB->position->setPixelPosition(QPointF(max_width - 150, max_height - 70));
     textLabelVoltageA->position->setPixelPosition(QPointF(max_width - 150, max_height - 85));
     textLabelMousePos->position->setPixelPosition(QPointF(40, max_height - 55));
+    clearPersistenceImage();
     setVerticalCursors();
 }
 

@@ -29,7 +29,8 @@ HEADERS  += xprotolabinterface.h \
     customcolors.h \
     filedownloader.h \
     bootloader.h \
-    markerpixmap.h
+    markerpixmap.h \
+    persistenceitem.h
 
 FORMS += xprotolabinterface.ui \
     customtheme.ui \

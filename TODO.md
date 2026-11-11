@@ -265,5 +265,33 @@ display transposed into 16 byte rows, bottom row first. The host reads it in 64 
 - [ ] Older firmware has no `'C'` over USB: the button warns instead of showing a stale picture.
       Reading `'C'` through QtSerialPort + the XMODEM receiver would also need `'p'`/`'q'` autosend care.
 
+## 10. CRT decay effect (Intensity / Decay sliders)
+The old code kept `decaySlider` previous frames and drew them with colours scaled by `intensitySlider`; it
+only repeated copies, it did not fade them over time.
+- [x] Ring of `TG = 21` ghost graphs: each frame is written once into the next slot. The main graph draws
+      the current frame; the other 20 slots are the copies. `intensitySlider` (0..20, left = off) selects
+      how many copies are visible, `decaySlider` sets the per-frame brightness retention (0.35 at 0, 0.78 at 8).
+- [x] Colours fade with alpha against the theme background, so dark/light/custom need no special cases.
+      Pens are precomputed on slider/theme changes; per frame there is one `setData()` per channel plus
+      pen/visibility updates, instead of copying every frame into `QList<QVector<double>>` and re-setting
+      all copies.
+- [x] Changing intensity, infinite persistence, or XY mode clears the history so no stale frame reappears.
+- [x] Only new device frames add a copy. Mouse-move repaints (cursor/voltage labels) reuse the last frame,
+      so a stopped scope no longer fades its trail when the pointer moves over the plot.
+- [ ] Visual check with an Xprotolab: tune the 0.35..0.78 retention range and the maximum copy count if the
+      effect looks too short or too long.
+
+## 11. Infinite Persistence
+Infinite Persistence used to append every frame to the same `QCPGraph`, so QCustomPlot connected the end
+of one frame to the start of the next (the vertical zig-zag) and the data container grew without bound.
+- [x] Replaced it with `PersistenceItem` (`persistenceitem.h`), an image-backed item on its own layer below
+      the grid. Each new frame is painted into an axis-rect-sized image (device-pixel-ratio aware) and the
+      image is never cleared while persistence is on. Memory is bounded by the window size, not by time.
+- [x] Main CH1/CH2/CHD graphs and the FFT bars now always show only the current frame; no more `addData()`
+      accumulation. The CRT ghost trail is hidden and its history cleared while Infinite Persistence is on.
+- [x] The image is cleared on theme change, window resize, and persistence/XY mode toggles.
+- [ ] Visual check on hardware. Optional: clear the image when gain/timebase/position settings change, or
+      keep the old traces where they were drawn (current behaviour, same as the old implementation).
+
 ## Later
 - [ ] Continue the `Xscopes-Qt6` rewrite.

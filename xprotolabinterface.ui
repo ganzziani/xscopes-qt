@@ -4549,7 +4549,7 @@ Frequency</string>
                      <number>0</number>
                     </property>
                     <property name="maximum">
-                     <number>10</number>
+                     <number>20</number>
                     </property>
                     <property name="singleStep">
                      <number>1</number>
@@ -4564,10 +4564,10 @@ Frequency</string>
                      <enum>Qt::Orientation::Horizontal</enum>
                     </property>
                     <property name="invertedAppearance">
-                     <bool>true</bool>
+                     <bool>false</bool>
                     </property>
                     <property name="invertedControls">
-                     <bool>true</bool>
+                     <bool>false</bool>
                     </property>
                     <property name="tickPosition">
                      <enum>QSlider::TickPosition::TicksBelow</enum>
