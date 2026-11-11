@@ -37,6 +37,7 @@
 #include "bootloader.h"
 #include "qcustomplot.h"
 #include "markerpixmap.h"
+#include "persistenceitem.h"
 #include "libusbdevice.h"
 #include "fft.h"
 #include "sniffer.h"
@@ -117,9 +118,7 @@ enum Theme {
     Custom
 };
 
-#define TG 9
-
-typedef QVector<double> DataBuffer;
+#define TG 21  // one slot for the current frame plus up to 20 fading copies
 
 namespace Ui {
     class XprotolabInterface;
@@ -168,6 +167,13 @@ private:
     void sendMStatusControls();
     void sendMStatusControlsForMM();
     void updateFrequency();
+    void updatePersistencePens();
+    void applyPersistenceStyle();
+    void clearPersistenceHistory();
+    void ensurePersistenceImage();
+    void clearPersistenceImage();
+    void drawPersistenceFrame(const QVector<double> &key, const QVector<double> &ch1Buffer,
+                              const QVector<double> &ch2Buffer, const QVector<double> *bit);
     void setupValues();
     void setFFTWindow(int);
     void setDecodeProtocol(int);
@@ -318,6 +324,7 @@ private slots:
     void on_loadWave_clicked();
     void on_clearWaveButton_clicked();
     void on_intensitySlider_valueChanged(int value);
+    void on_decaySlider_valueChanged(int value);
     void on_comboBoxTheme_activated(int index);
     void on_radioButtonCH1Multiply_clicked();
     void on_radioButtonCH2Multiply_clicked();
@@ -394,7 +401,7 @@ private:
     int triggerPost, triggerLevel, triggerWin1Level, triggerWin2Level;
     int currentSelected;
     QVector<double> ch1RefBuffer, ch2RefBuffer, ch1SaveBuffer, ch2SaveBuffer;
-    QList<DataBuffer> ch1PBuffer, ch2PBuffer;
+    int persistenceIndex;  // newest frame in the fading-copy ring
     QVector<double> bitRef[8], bitSaveBuffer[8];
     bool initializing;
     QString defaultDir;
@@ -408,6 +415,7 @@ private:
     QCPGraph *ch1BarGraph, *ch2BarGraph;
     QCPGraph *ch1Graph, *ch2Graph, *ch1RefGraph, *ch2RefGraph, *ch1PGraphs[TG], *ch2PGraphs[TG];
     QCPGraph *chdGraph[8], *chdRefGraph[8];
+    PersistenceItem *persistenceItem;
 
     /************** Graph Pens **********/
     QPen  ch1BarPen, ch2BarPen, ch1PPen[TG], ch2PPen[TG];
