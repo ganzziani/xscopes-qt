@@ -17,7 +17,8 @@ public:
     QUrl CurrentUrl() const;
     void newUrl(const QUrl &value);
 signals:
-    void downloaded(int);
+    // Carries the error and its text, so the caller can report why it failed
+    void downloaded(QNetworkReply::NetworkError error, QString errorString);
 private slots:
     void fileDownloaded(QNetworkReply *pReply);
 private:

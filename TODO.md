@@ -1,297 +1,136 @@
 # TODO
 
-Goal: xscopes-qt builds and runs on Qt 6 (MSVC 2022 64-bit) with all local work merged in.
-See [CLAUDE.md](CLAUDE.md) for context. Mark items `[x]` when done and add new ones as found.
+Goal: `xscopes-qt` builds and runs on Qt 6.12.0 MSVC 2022 x64 with all local work merged in.
+See [CLAUDE.md](CLAUDE.md) for context. Only open work lives here; what is already done is in the git history.
 
-**Status 2026-11-01:** branch `modernize` (not pushed, no PR) builds and runs on Qt 6.12.0 MSVC x64, and connects to
-the Xprotolab over USB. Its firmware now binds WinUSB on its own (no Zadig). Steps 0-4 are done apart from the open
-items below.
+**Status 2026-11-10:** branch `modernize` (not pushed, no PR) builds, runs, connects to the Xprotolab over USB,
+plots at the device frame rate and takes display screenshots. Firmware upgrade is the next big piece.
 
-**Suggested next steps, in order:**
-1. Step 3 visual checks with the device: horizontal/vertical cursors, tracers, Window trigger mode.
-2. Step 5: `selectedFiles()` guard, then decide between in-app DFU and the external `dfu-programmer`.
-3. Step 6: firmware upgrade test, serial test, `windeployqt` + installer, README.
-4. Push `modernize` and open a PR (ask first).
+**Open decisions:**
+- DFU route: external `dfu-programmer` exe, or link the code in (1c)? Suggestion: ship 1.1.0 now, land in-app
+  behind a flag, drop the exe once the bench test passes.
+- dfu-programmer base: v1.1.0 release, or v1.1.0 plus the bounded-retry hunk from upstream PR #105?
+- Report the two dfu-programmer bugs we fix locally (1b) upstream?
+- Take the installer, bootloader icons and About box from `Xscopes-Qt6` now, or leave packaging to the rewrite?
 
-## 0. Environment
-- [x] Clone GitHub repo into `D:\Projects\xscopes-qt`. Old local copy renamed to `xscopes-qt-mine`.
-- [x] Pick the kit: MSVC 2022 64-bit (not MinGW).
-- [x] Update Qt: Qt Creator 20.0.2, Qt 6.12.0 MSVC 2022 64-bit + Serial Port (2026-10-31).
-- [ ] After 6.12.0 builds, decide whether to uninstall Qt 6.11.1 (MSVC + MinGW).
+## 1. Firmware upgrade / DFU
+Reference copies: `xscopes-qt_dfu/dfu` is the abandoned linked-in attempt, `Xscopes-Qt6/source` has the installer
+and the About box, `xscopes-qt-mine` has nothing left to merge (only `exe/dfu-drivers/` is still needed, see 2).
 
-## 1. Repo hygiene
-- [x] Fix `.gitignore`: it had `*.cpp`, which ignored every new source file. It now also ignores
-      `*.pro.user*`, `.qtcreator/` and build dirs.
-- [x] Remove `Bitmaps/HcursorA.png` and `VcursorA.png`. They were byte-identical duplicates of the
-      lowercase files the code uses, and the case-only name clash broke checkouts on Windows.
-- [x] New 17x27 `vcursorA.png` / `vcursorB.png`. Odd width centers the pixmap on the cursor line.
-      Cursor B now uses its own bitmap (renamed from `VcursorB.png`, added to `.qrc`), and the drag/position
-      code derives offsets from the pixmap width instead of a hard-coded 32 px.
-      Needs a visual check once the app builds.
+### 1b. Which dfu-programmer we ship
+`libs/win/dfu-programmer.exe` is a local MinGW-w64 15.2.0 build (May 2026) of `xscopes-qt_dfu/dfu`: statically
+linked libusb, `--version` says 0.7.2 (stale `config.h`) yet it supports 0.9.0 options. It is tracked in git with
+no build script, so it is not reproducible. Upstream is at **v1.1.0** (2023-07-08, `master` dormant, open PR #105
+bounds the device-reset/status-retry loops and moves CI to x64). The official `dfu-programmer-x64-1.1.0.zip` works
+(reports 1.1.0, lists atxmega32a4u/256a3u) and ships `libusb-1.0.dll`.
+- [ ] Replace the mislabeled binary with an official/reproducible one (1.1.0 x64 + `libusb-1.0.dll`), or drop it
+      entirely if 1c lands.
+- [ ] `--ignore-outside` needs >= 0.9.0; a stock 0.7.2 build would reject it.
+- [ ] Keep our two local fixes as patches (upstream still has both): the 64 KB clamp
+      `block_end = 64KB*(page+1)-1` in `atmel_read()`, and the missing `goto finally` when `atmel_select_page()`
+      fails.
 
-## 2. Merge local work from `xscopes-qt-mine`
-- [x] Imported as commit `46733a7` on branch `local-work` (based on `c537bf2`, dated 2023-12-11) and
-      merged into `modernize` (`586dd91`). No textual conflicts. Upstream's `Gain` struct and mouse-position label are kept.
-      Brought in: bootloader slot + `RequestInfo`, QSettings org/app name, QCustomPlot 1.3.2, GT-icon set,
-      `nullptr`, `QDesktopWidget` removal.
-- [x] Post-merge fix: restored `RC_FILE` (the local copy had dropped it). The `.rc` and the window icons in
-      `xprotolabinterface.ui` / `customtheme.ui` now use `GT-icon.ico`. They used to point at `gt.ico`, which is no longer in the `.qrc`.
-- [x] Not imported from `-mine`: `exe/` (dfu-programmer.exe and Atmel DFU drivers, see step 4) and `libs/unix/`
-      (prebuilt libusb `.a`/`.so`, unused because the `.pro` links the system `-lusb-1.0`).
-- [x] Removed `Bitmaps/GT-logo-256.png` (outdated, unreferenced).
-- [x] Removed unused `Bitmaps/xscope.ico` and `xscope.png` (2013), plus the `.qrc` entry.
-- [x] Removed `gt.ico`, superseded by `GT-icon.ico`. Kept the `.ico`'s 32 px frame and rewrote
-      `GT-icon32.png` to match it, so the PNG sources and the `.ico` agree at every size.
-- [ ] Update `gt.icns` (macOS): it still shows the outdated design (2014: 16/32/48/128 px + 256 px JPEG 2000).
-      Regenerate it from the GT-icon PNGs. macOS wants 16/32/64/128/256/512 px plus @2x, so 128 and 512 px
-      sources are needed. Also drop it from the `.qrc`: it's embedded (~125 KB per binary) but never loaded from
-      there, because the `.pro`'s `ICON =` reads the file directly.
-- [ ] Once nothing else is needed from it, delete the `xscopes-qt-mine` folder (user's call).
+### 1c. In-app DFU (vendored v1.1.0) -- MSVC port verified 2026-11-10
+The v1.1.0 sources compile clean with MSVC 2022 x64 (as C++), link against `libs/win/libusb-1.0.lib` and run.
+- [ ] Vendor `third_party/dfu-programmer/` (v1.1.0 `.c` files kept as `.cpp`; GPLv2-or-later is compatible with
+      our GPLv3, keep the headers, add `COPYING` + `PATCHES.md`).
+- [ ] Hand-written `config.h`: `PACKAGE*`, `PACKAGE_URL`, `VERSION` = 1.1.0, `HAVE_LIBUSB_1_0`, `HAVE_MALLOC`,
+      `HAVE_STDLIB_H`.
+- [ ] `compat-msvc.h`: `windows.h`, `io.h`, `strcasecmp`/`strncasecmp` -> `_stricmp`/`_strnicmp`, `usleep()`,
+      `isatty`.
+- [ ] `<libusb-1.0/libusb.h>` -> `<libusb.h>` in `dfu.cpp`, `dfu-device.h`, `libdfu.cpp`.
+- [ ] `atmel.cpp`: drop `<unistd.h>`, 3 enum casts (lines 154/658/1232), and
+      `int16_t *ptr = (int16_t *)((char *)info + row->offset);` (line 308).
+- [ ] Re-apply 1b's two fixes plus the `libusb_strerror()` diagnostics (needs a `libusb_error` cast).
+- [ ] Route output: ~250 `fprintf`/`printf` sites. Macro-shim `fprintf`/`vfprintf`/`printf` in `compat-msvc.h`
+      into one Qt-side sink that emits progress lines, so `read` (Intel HEX on stdout) works too. `isatty()`
+      false keeps the `\r` progress meter off.
+- [ ] Call `dfu_programmer(struct programmer_arguments *)` from `QtConcurrent::run`. It creates its own libusb
+      context, so it coexists with `LibUsbDevice`; fill the args with `parse_arguments()`.
+- [ ] Map `enum return_codes_enum` (`DEVICE_ACCESS_ERROR`, `FLASH_WRITE_ERROR`, `VALIDATION_ERROR_*`) to dialog
+      messages instead of scraping text.
+- [ ] Sequence: `0xBB` -> `closeDevice()` -> poll for `03EB:2FF4` -> DFU -> `launch` -> poll for `16D0:06F9` ->
+      reconnect (`deviceDisconnected()` already handles the disappearance).
+- [ ] Keep the QProcess path behind a flag until the in-app path is proven on the bench.
 
-## 3. Qt5 → Qt6 port
-Builds and runs with Qt 6.12.0 MSVC 2022 64-bit (2026-10-31) and works with an Xprotolab (2026-11-01).
-- [x] QCustomPlot 1.3.2 → 2.1.1 (copied from `Xscopes-Qt6/source`). Call sites adapted: no `addItem()`,
-      `setPixelPoint`/`pixelPoint` → `setPixelPosition`/`pixelPosition`, `clearData()` → `data()->clear()`,
-      `rpHint` → `rpRefreshHint`, fixed tick steps via shared `QCPAxisTickerFixed` on both axis pairs,
-      plottable `setSelectable(QCP::stNone)`.
-- [x] Qt6 API: drop `QTextCodec`, `Qt::endl`, `QScreen` instead of `QApplication::desktop()`, `getHslF(float*)`,
-      explicit `QChar(byte)` appends, new `QtConcurrent::run(&fn, obj)` order, char compares instead of `QString(uint8_t)`.
-- [x] QextSerialPort: `QRegExp` → `QRegularExpression`, `qSort` → `std::sort` (minimal patch to vendored code).
-- [x] Unified QSettings: org/app name set once in `main()` before any widget is created (member dialogs read settings
-      in their constructors). Theme lives in the `Theme/` group, and old "Gabotronics Xscope" settings are migrated once.
-      This fixes the maximized state not being restored.
-- [x] Warnings: `QMouseEvent::position()`, `activateWindow()`, CSV open failure now reported, `gains` table without `NULL`.
-      Left alone: `Q_ENUMS` deprecations inside QCustomPlot 2.1.1, `QString::fromUtf16`/`QMetaType` in QextSerialPort,
-      and unchecked `open()` of the built-in `.qss` resources.
-- [x] 8x8 grid checked visually (2026-10-31).
-- [x] Debug-build asserts (`!qIsNaN(value)`, then QCheckedInt "Overflow in operator+") in `QCPItemPixmap::getFinalRect`.
-      `vCursorA/BHead` and `ch1/ch2ZeroHead` called `setPixelPosition()` while still in plot coordinates; converting
-      through the zero-size axis rect during setup gave NaN. Now the type is set to `ptAbsolute` first. As a side effect,
-      the CH1/CH2 zero markers now draw (they were invisible before).
-- [x] Marker alignment: the custom QCustomPlot 1.1.1 patch `QCPItemPixmap::moveX/moveY` (dropped in the 1.3.2 upgrade)
-      is replaced by `MarkerPixmap` (`markerpixmap.h`), a subclass whose hotspot sits on the position; QCustomPlot stays
-      unmodified. Zero markers are now 18x15 (tip = middle row); each trigger icon has its own hotspot (stem column,
-      dashed row). Checked with an Xprotolab: the CH1 zero marker tip sits on its line, the trigger icon on the level.
-- [x] Lost `sizeChanged()` signal (another 1.1.1 patch): `on_sizeChanged()` now runs from an event filter on the plot.
-- [x] Startup with a device asserted in debug: `ch1ZeroPos`/`ch2ZeroPos` were never initialized and
-      `readDeviceSettings()` replots before setting them. Initialized in the constructor.
-- [ ] `hcursorA/B.png` are 32x32; an odd height (e.g. 32x31, rows 29-31 are blank) would put the cursor line exactly
-      on the tip row instead of half a pixel below.
-- [ ] Window trigger: `setTriggerLevelPosition()` places the other window icon at `coordToPixel(level) + 7`, and the
-      drag code mixes a 0-255 inverted level with plot coords. Check with a device in Window trigger mode.
-- [ ] Visually check horizontal/vertical cursors and tracers with a device connected (zero markers and the
-      rising-edge trigger icon are checked).
-- [ ] Later: replace QextSerialPort with QtSerialPort (already a dependency; `serialportconnection.h` has a commented-out
-      `QSerialPort *serial`). This drops the vendored library but changes serial I/O, so test with hardware.
+### 1d. One-click entry into the bootloader
+The upgrade button now sends `0xBB` (`LibUsbDevice::requestBootloader()` from
+`on_upgradeFirmware_clicked()`, USB only) and then disconnects, so the dialog finds the Atmel DFU device.
+- [ ] Verify on hardware: the USB path of `0xBB` in the XScopes firmware had never been exercised (the Watch
+      calls it with `usb = 0` from its own menu). If the transfer stalls, retry with `wLength = 0`.
+- [ ] Firmware, outside this repo: `XScopes/Firmware` branch `fix/bb-usb-only` (ded495d) guards `0xBB` with
+      `if(!usb) break;` (+4 bytes), so a stray byte on the serial port cannot park the device in DFU. Builds;
+      needs flashing and a serial-port test.
+- [ ] Windows needs a libusb-compatible driver for the DFU device either way: Atmel `libusb0` INF
+      (`xscopes-qt-mine/exe/dfu-drivers`) or WinUSB via Zadig. `libusb-1.0.dll` 1.0.30 supports the libusb0,
+      WinUSB, libusbK and UsbDk backends, so both DFU routes need the same driver.
 
-## 3b. USB connect / disconnect
-Unplugging the device used to freeze the app: `closeEvent()` → `LibUsbDevice::closeDevice()` sat in
-`future.waitForFinished()` for up to a minute.
-- [x] Root cause: `eventThread()` called the blocking `libusb_handle_events()`, which libusb 1.0.30 implements with
-      a hard-coded 60 s timeout (`WaitForMultipleObjects`; measured with a standalone test program). The
-      `enableEventThread` flag is only checked between calls, so the join in `closeDevice()` waited for that
-      timeout to expire. After a surprise removal the pending bulk read completes with
-      `LIBUSB_TRANSFER_NO_DEVICE`, the callback resubmits it (the resubmit fails), so libusb is left with no
-      pending transfer at all and the event loop just sits in the 60 s wait.
-- [x] `eventThread()` now uses `libusb_handle_events_timeout()` with 100 ms and `enableEventThread` is a
-      `std::atomic<bool>`, so shutdown is immediate instead of up to 60 s.
-- [x] The bulk-read callback checks `transfer->status`, does not resubmit on error, and reports the loss through
-      a queued `deviceDisconnected()` signal.
-- [x] `closeDevice()` (new `stopEventThread()`) clears the flag before cancelling, joins the thread, skips
-      `saveDeviceSettings()` when the device is gone, and no longer touches a dead handle.
-- [x] The main window handles `deviceDisconnected()`: back to "Not Connected" with the UI re-enabled, so Connect
-      works again after replugging.
-- [x] Failed connects no longer leave the central widget disabled ("Device not found"), `initializeDevice()` is
-      idempotent so retries do not leak libusb contexts, and `reset()` frees the transfer objects.
-- [x] Tested with the Xprotolab (2026-11-01): startup with no device ("Device not found", UI usable), startup with
-the device (auto-connects), unplug while running (immediately back to "Not Connected", process stays responsive),
-several unplug/replug/reconnect cycles, close while unplugged (**0.05 s**, was ~60 s), close while connected
-(0.37 s, settings still sent to the device). No hang, no crash, no leftover crash dumps.
-- [x] First test found a crash of my own making: `reset()` freed the transfers *after* `libusb_exit()` had destroyed
-      the context, and `libusb_free_transfer()` unrefs the transfer's device → access violation in
-      `ntdll!RtlEnterCriticalSection` via `libusb_unref_device` (confirmed with the WER minidump in
-      `%LOCALAPPDATA%\CrashDumps`). The transfers are now freed by `freeTransfers()` in `closeDevice()` before
-      `libusb_exit()`; the "device N still referenced" warnings are gone too.
-- [x] The info label in the Options tab clips long text ("Device disconnected. Reconnect it and press Connect."
-      showed as "sconnected. Reconnect it and press"), so the message is just "Device disconnected".
-- [ ] Optional: widen the info label or set word wrap in `xprotolabinterface.ui` so longer messages fit.
-- [ ] Optional: auto-reconnect on replug via `libusb_hotplug_register_callback()`. The callbacks exist but are
-      disabled (`&& 0`); enabling them needs an arrival handler on the GUI thread and a context that outlives the
-      disconnection.
-- [ ] `chData`/`dataLength`/`dataAvailable` are written by the event thread and read by `plotData()` with no
-      synchronization (pre-existing data race, unrelated to the hang).
+## 2. Packaging / release
+- [ ] Firmware upgrade test on the bench, then the serial-port connection.
+- [ ] `windeployqt` plus `Xscopes-Qt6/installer.nsi` adapted to Qt 6.12 (`Qt6Core/Gui/Widgets/Network/Concurrent/
+      SerialPort/PrintSupport`, `networkinformation`, `imageformats/qico`, `opengl32sw.dll`). Do not copy
+      `Xscopes-Qt6/CMakeLists.txt`: its `qt6_add_resources(... ${RESOURCE})` is broken.
+- [ ] Installer: add `dfu-drivers/`, `docs/xscopes-manual.pdf` (`Xscopes-Qt6/exe/docs`), `ReadMe.txt` and the GPLv3
+      text. Today it ships only the exe, so a clean Windows cannot flash.
+- [ ] Optional: About dialog with version/build/date, plus `build.h` + `build_inc.bat` from `Xscopes-Qt6/source`.
+- [ ] Rewrite README (Qt6/MSVC kit, `libusb-1.0.dll`, DFU route, version history).
+- [ ] Optional: make `CMakeLists.txt` build with Qt 6.
 
-## 4. Windows libraries
-- [x] libusb 1.0.30, VS2022 x64 DLL + import lib, GPG-verified (see `libs/win/README.md`). Removed the 32-bit
-      `libusb-1.0.dll.a`. **The app now links and runs on Qt 6.12.0** (smoke test 2026-10-31, no device attached).
-- [x] `dfu-programmer` is looked up next to the app first, then on PATH. `libs/win/dfu-programmer.exe` (0.7.2, x64,
-      self-contained) comes from `xscopes-qt-mine/exe`. The `.pro` copies it and `libusb-1.0.dll` into the build output.
-- [x] Windows dark mode made the stylesheets unreadable (white text on light backgrounds). `main()` now pins
-      `Qt::ColorScheme::Light`, which needs Qt 6.8 or newer.
-- [ ] Consider updating dfu-programmer to 1.1.0. Check that its Windows build still works with the Atmel/WinUSB driver.
-- [ ] Atmel DFU drivers (`xscopes-qt-mine/exe/dfu-drivers`) aren't in the repo yet. Decide in step 6 (installer) or step 4b.
+## 3. Plot / UI leftovers
+- [ ] Visual check with a device: horizontal/vertical cursors, tracers, CH1/CH2/CHD zero markers, trigger icons.
+- [ ] `hcursorA/B.png` are 32x32; 32x31 with a blank last row would put the cursor line exactly on the tip row.
+- [ ] Window trigger: `setTriggerLevelPosition()` offsets the second icon by +7 px and the drag code mixes a
+      0-255 inverted level with plot coordinates. Check in Window trigger mode.
+- [ ] Tune the CRT decay retention (0.35..0.78) and the copy count (21) if the trail looks too short or long.
+- [ ] Optional: widen the Options-tab info label or enable word wrap (long messages clip).
+- [ ] Optional: render throttle in roll mode (device sends ~750 frames/s, the app draws ~120) and `reserve()` in
+      `plotData()`.
 
-## 4b. USB drivers and portability (decided 2026-10-31: keep libusb)
-- [x] XScopes firmware (`D:\Projects\XScopes\Firmware`, separate repo) answers the Microsoft OS 1.0 descriptors, so
-      Windows 8+ binds `winusb.inf` by itself, with no Zadig and no `.inf`. On firmware `master` (not pushed):
-      c9ecc95 + bfce6c4 (+144 bytes) and f545f62 (`-mrelax` in all projects, -334 bytes). Verified 2026-11-01 on the
-      Xprotolab: `USB\MS_COMP_WINUSB`, `osvc` = `01 4D`, and this app connects and runs. Details and lessons in the
-      firmware's `AGENTS.md` ("WinUSB via MS OS descriptors"). In short:
-      - Device 16D0:06F9, vendor class, one interface. String 0xEE "MSFT100" with vendor code `'M'`, plus an Extended
-        Compat ID "WINUSB" answered before `ProcessCommand()`. No `DeviceInterfaceGUID` is needed, because libusb
-        1.0.30 opens a non-composite WinUSB device through its `GUID_DEVINTERFACE_USB_DEVICE` path.
-      - It needed bcdUSB 2.00 (Windows skips the MS OS query for 1.10 devices), a STALL for DEVICE_QUALIFIER and other
-        unknown descriptors, and a literal bcdDevice 0x0101 (`VERSION_BCD(01.01)` rounds to 0x0100 on AVR).
-      - Windows caches the answer per VID/PID/bcdDevice in `HKLM\SYSTEM\CurrentControlSet\Control\usbflags\16D006F90101`.
-        A PC with an old Zadig `.inf` for 16D0:06F9 keeps using it (hardware-ID match outranks the compatible ID).
-        Remove it with `pnputil /delete-driver oemNN.inf /uninstall` (admin). This PC's `oem104.inf` is already gone.
-- [ ] Firmware, outside this repo: re-run the timing-sensitive paths (trigger, DMA, display, decoders) for `-mrelax`
-      (OPT-001 in the firmware's `CODE_REVIEW_FINDINGS.md`).
-- [ ] Oscilloscope Watch firmware (`D:\Projects\Oscilloscope_Watch\Xproto-Watch-Firmware`, separate repo): same USB
-      code and the same 16D0:06F9 IDs. The same change is committed there on branch `winusb-msos` (b2b5cb9, not merged
-      or pushed, +142 bytes; its Debug config already linked with `-mrelax -mrmw`). Builds; not flashed or tested on a
-      Watch yet (none connected on 2026-11-01). Note this PC already caches `osvc` for 16D006F90101 from the Xprotolab,
-      so a real test of the Watch's descriptors needs another PC or that `usbflags` key deleted first (admin).
-- [ ] Older firmware on Windows: until users upgrade, Zadig is still needed. Optionally have the installer bind WinUSB
-      with libwdi (the library Zadig is built on).
-- [ ] DFU bootloader mode is a separate USB device (Atmel FLIP, VID 03EB) and can't be changed on units in the field.
-      It still needs a driver on Windows (libusb0 from `exe/dfu-drivers/atmel_usb_dfu.inf`, or WinUSB via Zadig/libwdi).
-- [x] Replaced the bundled `libusb.h` with the 1.0.30 header. `libusb_set_debug()` → `libusb_set_option(LIBUSB_OPTION_LOG_LEVEL)`.
-- [ ] Linux: `extra/linux/64-xscope.rules` has `MODE="066"`. That's probably meant to be `"0666"`; better still, use `TAG+="uaccess"`.
-      Match on `ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="06f9"` instead of the manufacturer string.
-- [ ] macOS: `libs/mac/libusb-1.0*.dylib` is x86_64 only. Apple Silicon needs an arm64/universal libusb.
-- [ ] Android: open the device through Java `UsbManager` (permission prompt, file descriptor), then
-      `libusb_wrap_sys_device()` with `LIBUSB_OPTION_NO_DEVICE_DISCOVERY`. `LibUsbDevice::openDevice()` needs a separate
-      code path for this. QtSerialPort isn't available on Android.
-- [ ] Firmware upgrade portability: running `dfu-programmer.exe` as a separate process won't work on Android.
-      DFU code built into the app on top of libusb (the `xscopes-qt_dfu` idea) is the portable route. Weigh this in step 5.
+## 4. Robustness / threading
+- [ ] `chData`/`dataLength`/`dataAvailable` are written by the libusb callback and read by `plotData()` with no
+      synchronization, and the next transfer is submitted immediately, so a frame can be read while the device
+      writes it. Double-buffer with a swap in the transfer callback.
+- [ ] Optional: auto-reconnect on replug with `libusb_hotplug_register_callback()` (the callbacks exist but are
+      disabled with `&& 0`).
+- [ ] Later: replace `extserialport/` with QtSerialPort (already a dependency, but it changes serial I/O and needs
+      hardware).
 
-## 5. Bring over from `xscopes-qt_dfu` (only what's worth it)
-- [ ] Guard against an empty `dialog.selectedFiles()` in `bootloader.cpp`.
-- [ ] Decide between linking dfu-programmer in (`dfu/`, unfinished) and keeping the external exe.
-      `Xscopes-Qt6`'s working bootloader is the reference.
+## 5. AWG frequency: show and set what the device really plays
+The firmware truncates the timer period (firmware CR-027, left as is), so the output is at or above the request:
++1.01 % at 44 kHz, and a 125.17375 kHz request plays 129.03 kHz (+3.08 %).
+- [ ] Make `actualFreq` mirror `BuildWave()` (`Source/awg.c`). For a request `c` in 0.01 Hz: limit it byte by byte
+      (byte 3 = 0, byte 2 <= `0xBE`, 0 becomes 1); `cycles` = 32, halved while `cycles > 1` and
+      `(c >> 16) < 0x18 >> k`; prescaler 256 when `c < 256`, else 1;
+      `PER = (12500000 * cycles) / (c * prescaler) - 1`, truncated; realized
+      f = `cycles * 32 MHz / (256 * prescaler * (PER + 1))`. Both `on_doubleSpinBoxDesiredFreq_valueChanged()`
+      call sites still use an older model (16000 Hz thresholds, no prescaler path, period clamped at 31).
+- [ ] Optional: send the request that lands nearest the user's target (worst error drops from 3.08 % to ~0.5 %).
+- [ ] Limit the control to what the device can play (125.17 kHz request, 129.03 kHz realized).
 
-## 6. Verify and package
-- [ ] Clean build, run, connect to a device over USB and over serial, then test a firmware upgrade.
-- [ ] `windeployqt` deployment and an installer (see `Xscopes-Qt6/installer.nsi`).
-- [ ] Update README (version history, build instructions).
-- [ ] Optional: make `CMakeLists.txt` work with Qt6.
+## 6. Screenshot leftovers
+- [ ] Not tested on an Xprotolab (128x64) yet, only on the Watch (128x128).
+- [ ] Serial port: there `'C'` is an XMODEM transfer; the button currently reports that it needs USB.
+- [ ] A read takes tens of ms, so a screenshot can mix two frames. Freeze with `stopScope()` around it.
 
-## 7. Realtime display performance (2026-11-01)
-The PC plot looked slower than the device's own screen (~15 Hz vs ~90 Hz). Measured with an Xprotolab
-(firmware 2.97, AWG on CH1) and a standalone libusb harness that mimics the app's bulk reads.
-- [x] USB side is not the limit. The device pushes one 770-byte frame per acquisition and only starts a new
-      one when the previous transfer completed, so the host must re-submit promptly (it does, from the
-      transfer callback). Measured device frame rates: ~91/s at 8 µs/div, ~87/s at 16 µs/div, ~43/s at
-      500 µs/div, ~4/s at 20 ms/div, ~750/s in roll mode (there it is USB bandwidth that runs out).
-      Frame counters were consecutive: no dropped or duplicated frames while the app renders.
-- [x] Two causes in the app, both in `setupGrid()`:
-      1. QCustomPlot's default plotting hints include `phImmediateRefresh`, so every `replot()` did a
-         synchronous `repaint()`; the paint could never be coalesced or dropped.
-      2. The plot widget was not marked `WA_OpaquePaintEvent`, so Qt composited each frame together with
-         the surrounding widgets.
-- [x] Fix: `setPlottingHints(... & ~QCP::phImmediateRefresh)` and `setAttribute(Qt::WA_OpaquePaintEvent)`
-      (10 lines, no QCustomPlot changes). Release build, measured fps of the visible plot:
-      899x1022 px 87 -> 121 (device and 120 Hz display limit), maximized on 4K 41 -> 69.
-      Rendering checked visually (grid, CH1/CH2 traces, zero markers, trigger icon) in release and debug.
-- [x] Also measured: the per-frame cost is QCustomPlot's `replot()` (~1.4 ms draw at 0.9 Mpx, ~4.3 ms at
-      2.5 Mpx) plus Qt's raster composite of the plot pixmap (~3 ms / ~8.6 ms). A "waveforms on their own
-      buffered layer" scheme (`QCPLayer::replot()`) cuts `replot()` to ~2 ms but composites three full-size
-      pixmaps instead of one, so it only wins on small windows; not used.
-      `setOpenGl(true)` had no effect on QCustomPlot 2.1.1 here.
-- [ ] **Debug builds are ~5x slower** (QCustomPlot 33 ms/frame vs 6 ms in release), which is what the ~15 Hz
-      came from. Use the Release build for looking at signals. Optional: a "debug but optimized" kit
-      (`CONFIG+=force_debug_info` plus /O2) to get a usable debugger and a fast plot.
-- [ ] `chData` is written by libusb into the buffer that `plotData()` reads (the next transfer is submitted
-      immediately), so a frame can be read while the device is writing it. A double buffer with a swap in
-      the transfer callback would remove the tearing risk and the data race noted in section 3b.
-- [ ] Optional: `plotData()` builds ~20 QVectors per frame with `push_back` and no `reserve()`; about
-      0.03 ms/frame, i.e. noise next to the paint cost.
-- [ ] Optional: in roll mode the device sends ~750 frames/s and the app renders every frame it can (120/s),
-      so 6 of 7 frames are discarded. That is the intended behaviour for a scrolling display, but a
-      "render at most N Hz" throttle would leave the GUI thread more idle time.
+## 7. Portability
+- [ ] `extra/linux/64-xscope.rules`: `MODE="066"` should be `0666` or, better, `TAG+="uaccess"`, and match on
+      `ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="06f9"` instead of the manufacturer string.
+- [ ] macOS: `libs/mac/libusb-1.0*.dylib` is x86_64 only; Apple Silicon needs an arm64/universal libusb.
+- [ ] Android: open the device through Java `UsbManager` + `libusb_wrap_sys_device()`; no QtSerialPort, and no
+      external exe, so in-app DFU (1c) is the portable route.
+- [ ] Older firmware on Windows still needs Zadig; optionally bind WinUSB from the installer with libwdi.
+- [ ] Outside this repo (ask first): re-run the firmware `-mrelax` timing paths (firmware OPT-001), flash the
+      `fix/bb-usb-only` branch (see 1d), and test the Watch's `winusb-msos` branch on real hardware (this PC caches
+      `osvc` for 16D0:06F9/0101 from the Xprotolab).
 
-## 8. AWG frequency: show and set what the device really plays (2026-11-05)
-The firmware truncates the AWG timer period (firmware `CODE_REVIEW_FINDINGS.md` CR-027, mitigated: the
-owner left it as is because the device's own menu shows the realized frequency, and the software can do
-the same). So the output is at or above the request, by up to one period count: +1.01 % at 44 kHz, and
-the 125.17375 kHz maximum plays 129.03 kHz (+3.08 %). Measured on the bench with the Tester fixture
-(`D:\Projects\Tester`, test `DUT AWG PERIOD`, which also guards the formula below).
-- [ ] Make `actualFreq` mirror `BuildWave()` (firmware `Source/awg.c`) exactly. For a request `c` in
-      0.01 Hz units:
-      - limit it byte by byte: byte 3 = 0, byte 2 <= `0xBE` (not a saturation: 200 kHz becomes 32227.84 Hz),
-        and 0 becomes 1;
-      - `cycles` = 32, halved while `cycles > 1` and `(c >> 16)` < `0x18 >> k` (k = halvings so far), i.e.
-        32 above ~15728 Hz, one octave per halving, 1 below ~983 Hz;
-      - prescaler 256 when `c < 256` (below 2.56 Hz), else 1;
-      - `PER = (12500000 * cycles) / (c * prescaler) - 1`, truncated;
-      - realized f = `cycles * 32 MHz / (256 * prescaler * (PER + 1))`.
-      `on_doubleSpinBoxDesiredFreq_valueChanged()` (and its copy near line 4090) uses an older model: cycles
-      thresholds at 16000 Hz, no prescaler path and a period clamped at 31. Compared with the firmware over the
-      whole range it shows 125.000 kHz where the device plays 129.03 kHz (requests above 125 kHz), is up to
-      0.5 % off below 2.56 Hz and up to 0.4 % near the cycles thresholds (15728..16000 Hz and the octaves below).
-- [ ] Optionally send the request that lands nearest the user's target instead of the target itself: compute
-      the ideal `PER + 1` for the target, round it, and send a `c` whose truncated period gives that value with
-      the same `cycles` (check by running the formula above). Worst error then drops from 3.08 % to about
-      0.5 % (half a count of the shortest periods).
-- [ ] Limit the frequency control to what the device can play (125.17 kHz request, 129.03 kHz realized) so
-      the byte-wise limit never surprises a user.
-
-## 9. Display screenshot over USB (2026-11-10)
-The firmware (both repos, already committed) answers the `'C'` command over USB with the display buffer
-as a BMP stream: a 62 byte header (128 x 64 or 128 x 128, 1 bpp, palette 0 = black, 1 = white), then the
-display transposed into 16 byte rows, bottom row first. The host reads it in 64 byte blocks with
-`wIndex = block number`, so a 2110 byte Watch image takes 33 control transfers, an XScopes 1086 byte image 17.
-- [x] `LibUsbDevice::requestDisplayBitmap()` reads the blocks. The size comes from the width and height
-      (and the data offset) in block 0, so the XScopes and the Watch need no device type detection, and a
-      short or empty answer (firmware without the command) is reported as such.
-- [x] Options tab, Connection box: `pushTakeBMP` (Display Screenshot) fills `label_BMP`. The 8 bit rows are
-      decoded into a `QImage::Format_Mono` (`displayBmpToImage()`), not through Qt's BMP handler, and the
-      palette is taken from the header, so each device looks the way it does on its own screen (the XScopes
-      are dark ink on a light display, the Watch light ink on a dark one).
-- [x] Right click on the label -> "Save Bitmap...": `.bmp` is written exactly as the device sent it,
-      `.png` through the decoded image (the suffix picks the format, `.bmp` is added if there is none).
-- [x] The label has a fixed 160x160 size, so neither resolution is clipped and the Connection group box
-      does not resize with the picture. Scaling is `Qt::FastTransformation` to keep the pixels crisp.
-- [x] Tested 2026-11-10 with the Oscilloscope Watch (128x128) over USB, release build: the picture in
-      `label_BMP` matches the device's screen, and both save paths write a correct file.
-- [ ] Not tested with an Xprotolab (128x64) on hardware yet; no XScopes device was connected.
-- [ ] Serial port: there `'C'` is an XMODEM transfer (128 byte packets, CRC-16/XMODEM). Not implemented;
-      the button reports that the screenshot needs USB. Only the Watch was verified anyway, and it has no
-      serial interface. Worth adding if serial users ask for it.
-- [ ] While the scope runs the device keeps drawing, so a screenshot can mix two frames (33 control
-      transfers take a few tens of ms). Alternatively freeze the acquisition (`stopScope()`) around the
-      read, or read the stream twice and compare.
-- [ ] Older firmware has no `'C'` over USB: the button warns instead of showing a stale picture.
-      Reading `'C'` through QtSerialPort + the XMODEM receiver would also need `'p'`/`'q'` autosend care.
-
-## 10. CRT decay effect (Intensity / Decay sliders)
-The old code kept `decaySlider` previous frames and drew them with colours scaled by `intensitySlider`; it
-only repeated copies, it did not fade them over time.
-- [x] Ring of `TG = 21` ghost graphs: each frame is written once into the next slot. The main graph draws
-      the current frame; the other 20 slots are the copies. `intensitySlider` (0..20, left = off) selects
-      how many copies are visible, `decaySlider` sets the per-frame brightness retention (0.35 at 0, 0.78 at 8).
-- [x] Colours fade with alpha against the theme background, so dark/light/custom need no special cases.
-      Pens are precomputed on slider/theme changes; per frame there is one `setData()` per channel plus
-      pen/visibility updates, instead of copying every frame into `QList<QVector<double>>` and re-setting
-      all copies.
-- [x] Changing intensity, infinite persistence, or XY mode clears the history so no stale frame reappears.
-- [x] Only new device frames add a copy. Mouse-move repaints (cursor/voltage labels) reuse the last frame,
-      so a stopped scope no longer fades its trail when the pointer moves over the plot.
-- [ ] Visual check with an Xprotolab: tune the 0.35..0.78 retention range and the maximum copy count if the
-      effect looks too short or too long.
-
-## 11. Infinite Persistence
-Infinite Persistence used to append every frame to the same `QCPGraph`, so QCustomPlot connected the end
-of one frame to the start of the next (the vertical zig-zag) and the data container grew without bound.
-- [x] Replaced it with `PersistenceItem` (`persistenceitem.h`), an image-backed item on its own layer below
-      the grid. Each new frame is painted into an axis-rect-sized image (device-pixel-ratio aware) and the
-      image is never cleared while persistence is on. Memory is bounded by the window size, not by time.
-- [x] Main CH1/CH2/CHD graphs and the FFT bars now always show only the current frame; no more `addData()`
-      accumulation. The CRT ghost trail is hidden and its history cleared while Infinite Persistence is on.
-- [x] The image is cleared on theme change, window resize, and persistence/XY mode toggles.
-- [ ] Visual check on hardware. Optional: clear the image when gain/timebase/position settings change, or
-      keep the old traces where they were drawn (current behaviour, same as the old implementation).
+## 8. Housekeeping
+- [ ] `persistenceitem.h` is untracked. Commit `2cb4a37` contains the code that includes it but not the file, so
+      that commit does not build on a clean checkout.
+- [ ] Regenerate `gt.icns` (still the 2014 design) and drop it from the `.qrc`: the `.pro`'s `ICON =` reads the file
+      directly, so the embedded copy is dead weight.
+- [ ] Delete `xscopes-qt-mine` once `exe/dfu-drivers/` is copied here.
+- [ ] Decide whether to uninstall Qt 6.11.1.
+- [ ] Optional: a "debug but optimized" kit (`CONFIG+=force_debug_info` + `/O2`); debug builds plot ~5x slower.
 
 ## Later
 - [ ] Continue the `Xscopes-Qt6` rewrite.

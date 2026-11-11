@@ -641,6 +641,18 @@ int LibUsbDevice::requestMM(unsigned char *buffer) {
 
 // USB Bootloader Interface
 
+// Asks the running application to restart into its DFU bootloader (vendor request 0xBB,
+// see interface.c in the firmware). The device detaches from USB while it answers, so an
+// error or a timeout here is normal: what counts is that it disappears and re-enumerates
+// as the Atmel DFU device. Over the serial port the same byte would leave the device in a
+// bootloader it cannot be reached through, so this is USB only.
+bool LibUsbDevice::requestBootloader() {
+    if(!isDeviceConnected || !wayOfConnecting)
+        return false;
+    libusb_control_transfer(deviceHandle, 0xC0, 0xBB, 0, 0, inBuffer, LEN_CONTROL_BUFFER, 1000);
+    return true;
+}
+
 void LibUsbDevice::RequestInfo() {
     int bytesRead;
     bytesRead = libusb_control_transfer(deviceHandle, 0xC0, 0xB0, 0, 0, inBuffer, LEN_CONTROL_BUFFER, 1000);

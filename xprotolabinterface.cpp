@@ -4694,6 +4694,15 @@ void XprotolabInterface::on_radioPulse_clicked() {
 }
 
 void XprotolabInterface::on_upgradeFirmware_clicked() {
+    // Hand the device over to its DFU bootloader first, so the user does not have to
+    // power-cycle it into DFU mode by hand.
+    if(usbDevice.isDeviceConnected && usbDevice.wayOfConnecting) {
+        usbDevice.requestBootloader();
+        // The scope handle is gone now: do not try to upload the settings on the way out
+        usbDevice.isDeviceRemoved = true;
+        disconnectDevice();
+        setInfoText(tr("Device restarted in bootloader mode"));
+    }
     DialogBootloader.exec();
 }
 

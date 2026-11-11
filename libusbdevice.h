@@ -41,6 +41,7 @@ public:
     void saveDeviceSettings();
     void restoreSettings();
     void RequestInfo();
+    bool requestBootloader();
     QString getStringFromUnsignedChar(unsigned char *, int);
     void reset();
 
