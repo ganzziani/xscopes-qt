@@ -26,6 +26,9 @@
      <layout class="QHBoxLayout" name="horizontalLayout_4">
       <item>
        <widget class="QRadioButton" name="radioOW">
+        <property name="toolTip">
+         <string>Target: atxmega256a3u</string>
+        </property>
         <property name="text">
          <string>Oscilloscope Watch</string>
         </property>
@@ -36,6 +39,9 @@
       </item>
       <item>
        <widget class="QRadioButton" name="radioXprotolab">
+        <property name="toolTip">
+         <string>Target: atxmega32a4u</string>
+        </property>
         <property name="text">
          <string>Xprotolab</string>
         </property>
@@ -43,6 +49,9 @@
       </item>
       <item>
        <widget class="QRadioButton" name="radioXminilab">
+        <property name="toolTip">
+         <string>Target: atxmega32a4u</string>
+        </property>
         <property name="text">
          <string>Xminilab</string>
         </property>
@@ -50,6 +59,9 @@
       </item>
       <item>
        <widget class="QRadioButton" name="radioXminilabB">
+        <property name="toolTip">
+         <string>Target: atxmega32a4u</string>
+        </property>
         <property name="text">
          <string>Xminilab-2.4</string>
         </property>
@@ -57,6 +69,9 @@
       </item>
       <item>
        <widget class="QRadioButton" name="radioXprotolabPortable">
+        <property name="toolTip">
+         <string>Target: atxmega32a4u</string>
+        </property>
         <property name="text">
          <string>Xprotolab Portable</string>
         </property>
@@ -64,6 +79,9 @@
       </item>
       <item>
        <widget class="QRadioButton" name="radioXminiulabPortable">
+        <property name="toolTip">
+         <string>Target: atxmega32a4u</string>
+        </property>
         <property name="text">
          <string>Xminilab Portable</string>
         </property>
@@ -77,6 +95,9 @@
           <height>0</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>Target: atxmega32a4u</string>
+        </property>
         <property name="text">
          <string>Xminilab Portable 1.11</string>
         </property>
@@ -84,6 +105,9 @@
       </item>
       <item>
        <widget class="QRadioButton" name="radioXprotolabPlain">
+        <property name="toolTip">
+         <string>Target: atxmega32a4u</string>
+        </property>
         <property name="text">
          <string>Xprotolab Plain</string>
         </property>
@@ -227,12 +251,20 @@
        <property name="text">
         <string>Read Flash</string>
        </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>:/Bitmaps/Bitmaps/readtqfp.png</normaloff>:/Bitmaps/Bitmaps/readtqfp.png</iconset>
+       </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushReadEE">
        <property name="text">
         <string>Read EEPROM</string>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>:/Bitmaps/Bitmaps/readtqfp.png</normaloff>:/Bitmaps/Bitmaps/readtqfp.png</iconset>
        </property>
       </widget>
      </item>
@@ -241,12 +273,20 @@
        <property name="text">
         <string>Erase Chip</string>
        </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>:/Bitmaps/Bitmaps/blankcheck.png</normaloff>:/Bitmaps/Bitmaps/blankcheck.png</iconset>
+       </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushFlash">
        <property name="text">
         <string>Program Flash</string>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>:/Bitmaps/Bitmaps/writetqfp.png</normaloff>:/Bitmaps/Bitmaps/writetqfp.png</iconset>
        </property>
       </widget>
      </item>
@@ -255,12 +295,23 @@
        <property name="text">
         <string>Program EEPROM</string>
        </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>:/Bitmaps/Bitmaps/writetqfp.png</normaloff>:/Bitmaps/Bitmaps/writetqfp.png</iconset>
+       </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushStart">
+       <property name="toolTip">
+        <string>Exit bootloader</string>
+       </property>
        <property name="text">
         <string>Start Application</string>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>:/Bitmaps/Bitmaps/play.png</normaloff>:/Bitmaps/Bitmaps/play.png</iconset>
        </property>
       </widget>
      </item>
