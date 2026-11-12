@@ -427,7 +427,7 @@
                  <string/>
                 </property>
                 <property name="currentIndex">
-                 <number>2</number>
+                 <number>0</number>
                 </property>
                 <widget class="QWidget" name="ch1Tab">
                  <attribute name="title">
@@ -644,6 +644,20 @@
                             </property>
                             <property name="text">
                              <string>Math</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QCheckBox" name="checkBoxCH1Derivative">
+                            <property name="text">
+                             <string>Derivative</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QCheckBox" name="checkBoxCH1AC">
+                            <property name="text">
+                             <string>AC</string>
                             </property>
                            </widget>
                           </item>
@@ -968,6 +982,20 @@
                             </property>
                             <property name="text">
                              <string>Math</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QCheckBox" name="checkBoxCH2Derivative">
+                            <property name="text">
+                             <string>Derivative</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QCheckBox" name="checkBoxCH2AC">
+                            <property name="text">
+                             <string>AC</string>
                             </property>
                            </widget>
                           </item>
@@ -2437,7 +2465,7 @@
          <item>
           <widget class="QTabWidget" name="mmTabWidget">
            <property name="currentIndex">
-            <number>1</number>
+            <number>0</number>
            </property>
            <widget class="QWidget" name="tab_3">
             <attribute name="title">
@@ -2961,7 +2989,7 @@
               </size>
              </property>
              <property name="title">
-              <string>Waveform</string>
+              <string>Waveform Selection</string>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_44">
               <item>
@@ -3177,6 +3205,12 @@
             <string>Frequency Range</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3">
+            <property name="leftMargin">
+             <number>4</number>
+            </property>
+            <property name="rightMargin">
+             <number>4</number>
+            </property>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_45">
               <item>
@@ -3422,6 +3456,12 @@ Frequency</string>
             <layout class="QHBoxLayout" name="horizontalLayout_47">
              <item>
               <widget class="QLabel" name="label_43">
+               <property name="minimumSize">
+                <size>
+                 <width>52</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="text">
                 <string>Duty Cycle</string>
                </property>
@@ -3554,7 +3594,7 @@ Frequency</string>
          <item>
           <widget class="QGroupBox" name="groupBox_8">
            <property name="title">
-            <string>Sweep</string>
+            <string>AWG Sweep</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_47">
             <item>
@@ -3966,6 +4006,16 @@ Frequency</string>
                 </layout>
                </item>
                <item>
+                <widget class="QCheckBox" name="checkBoxInvertSS">
+                 <property name="layoutDirection">
+                  <enum>Qt::LayoutDirection::RightToLeft</enum>
+                 </property>
+                 <property name="text">
+                  <string>Invert SS</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_72">
                  <item>
                   <widget class="QLabel" name="label_59">
@@ -4371,7 +4421,7 @@ Frequency</string>
         <attribute name="title">
          <string>Options</string>
         </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_81">
+        <layout class="QVBoxLayout" name="verticalLayout_81" stretch="0,0,0,0,0">
          <item>
           <widget class="QGroupBox" name="groupBox_10">
            <property name="title">
@@ -4531,8 +4581,14 @@ Frequency</string>
                <layout class="QHBoxLayout" name="horizontalLayout_81">
                 <item>
                  <widget class="QLabel" name="label_63">
+                  <property name="minimumSize">
+                   <size>
+                    <width>40</width>
+                    <height>0</height>
+                   </size>
+                  </property>
                   <property name="text">
-                   <string>Intensity</string>
+                   <string>Intensity:</string>
                   </property>
                   <property name="scaledContents">
                    <bool>true</bool>
@@ -4546,62 +4602,58 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_79">
-                  <item>
-                   <widget class="QLabel" name="label_64">
-                    <property name="text">
-                     <string/>
-                    </property>
-                    <property name="pixmap">
-                     <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/lowintense.png</pixmap>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QSlider" name="intensitySlider">
-                    <property name="minimum">
-                     <number>0</number>
-                    </property>
-                    <property name="maximum">
-                     <number>20</number>
-                    </property>
-                    <property name="singleStep">
-                     <number>1</number>
-                    </property>
-                    <property name="pageStep">
-                     <number>1</number>
-                    </property>
-                    <property name="value">
-                     <number>0</number>
-                    </property>
-                    <property name="orientation">
-                     <enum>Qt::Orientation::Horizontal</enum>
-                    </property>
-                    <property name="invertedAppearance">
-                     <bool>false</bool>
-                    </property>
-                    <property name="invertedControls">
-                     <bool>false</bool>
-                    </property>
-                    <property name="tickPosition">
-                     <enum>QSlider::TickPosition::TicksBelow</enum>
-                    </property>
-                    <property name="tickInterval">
-                     <number>1</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="label_67">
-                    <property name="text">
-                     <string/>
-                    </property>
-                    <property name="pixmap">
-                     <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/veryintense.png</pixmap>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
+                 <widget class="QLabel" name="label_64">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/lowintense.png</pixmap>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSlider" name="intensitySlider">
+                  <property name="minimum">
+                   <number>0</number>
+                  </property>
+                  <property name="maximum">
+                   <number>20</number>
+                  </property>
+                  <property name="singleStep">
+                   <number>1</number>
+                  </property>
+                  <property name="pageStep">
+                   <number>1</number>
+                  </property>
+                  <property name="value">
+                   <number>0</number>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="invertedAppearance">
+                   <bool>false</bool>
+                  </property>
+                  <property name="invertedControls">
+                   <bool>false</bool>
+                  </property>
+                  <property name="tickPosition">
+                   <enum>QSlider::TickPosition::TicksBelow</enum>
+                  </property>
+                  <property name="tickInterval">
+                   <number>1</number>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_67">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/veryintense.png</pixmap>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </item>
@@ -4611,12 +4663,12 @@ Frequency</string>
                  <widget class="QLabel" name="label_65">
                   <property name="minimumSize">
                    <size>
-                    <width>43</width>
+                    <width>40</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="text">
-                   <string>Decay</string>
+                   <string>Decay:</string>
                   </property>
                   <property name="scaledContents">
                    <bool>true</bool>
@@ -4630,47 +4682,43 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_80">
-                  <item>
-                   <widget class="QLabel" name="label_66">
-                    <property name="text">
-                     <string/>
-                    </property>
-                    <property name="pixmap">
-                     <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/shortdecay.png</pixmap>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QSlider" name="decaySlider">
-                    <property name="maximum">
-                     <number>8</number>
-                    </property>
-                    <property name="pageStep">
-                     <number>1</number>
-                    </property>
-                    <property name="orientation">
-                     <enum>Qt::Orientation::Horizontal</enum>
-                    </property>
-                    <property name="tickPosition">
-                     <enum>QSlider::TickPosition::TicksBelow</enum>
-                    </property>
-                    <property name="tickInterval">
-                     <number>1</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="label_68">
-                    <property name="text">
-                     <string/>
-                    </property>
-                    <property name="pixmap">
-                     <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/longdecay.png</pixmap>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
+                 <widget class="QLabel" name="label_66">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/shortdecay.png</pixmap>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QSlider" name="decaySlider">
+                  <property name="maximum">
+                   <number>8</number>
+                  </property>
+                  <property name="pageStep">
+                   <number>1</number>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="tickPosition">
+                   <enum>QSlider::TickPosition::TicksBelow</enum>
+                  </property>
+                  <property name="tickInterval">
+                   <number>1</number>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_68">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="pixmap">
+                   <pixmap resource="xprotolabinterface.qrc">:/Bitmaps/Bitmaps/longdecay.png</pixmap>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </item>
@@ -4925,11 +4973,14 @@ Frequency</string>
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox">
+          <widget class="QGroupBox" name="groupBoxCursors">
            <property name="title">
             <string>Cursors</string>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_24">
+            <property name="spacing">
+             <number>4</number>
+            </property>
             <item>
              <layout class="QVBoxLayout" name="verticalLayout_93">
               <item>
@@ -5016,7 +5067,7 @@ Frequency</string>
            <property name="title">
             <string>Connection</string>
            </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_57">
+           <layout class="QHBoxLayout" name="horizontalLayout_57" stretch="0,1,1">
             <item>
              <layout class="QVBoxLayout" name="verticalLayout_89">
               <property name="spacing">
@@ -5079,30 +5130,6 @@ Frequency</string>
              </layout>
             </item>
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout_95">
-              <property name="spacing">
-               <number>4</number>
-              </property>
-              <item>
-               <widget class="QPushButton" name="pushTakeBMP">
-                <property name="text">
-                 <string>Display Screenshot</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_BMP">
-                <property name="text">
-                 <string>bitmap</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
              <layout class="QVBoxLayout" name="verticalLayout_88">
               <property name="spacing">
                <number>4</number>
@@ -5147,7 +5174,7 @@ Frequency</string>
                </layout>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_89" stretch="0,0,0">
+               <layout class="QHBoxLayout" name="horizontalLayout_89" stretch="0,0">
                 <property name="spacing">
                  <number>2</number>
                 </property>
@@ -5195,23 +5222,37 @@ Frequency</string>
                   </property>
                  </widget>
                 </item>
-                <item>
-                 <spacer name="horizontalSpacer_13">
-                  <property name="orientation">
-                   <enum>Qt::Orientation::Horizontal</enum>
-                  </property>
-                  <property name="sizeType">
-                   <enum>QSizePolicy::Policy::Ignored</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
                </layout>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_95">
+              <property name="spacing">
+               <number>4</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="label_BMP">
+                <property name="minimumSize">
+                 <size>
+                  <width>128</width>
+                  <height>128</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>bitmap</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushTakeBMP">
+                <property name="text">
+                 <string>Display Screenshot</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </item>
@@ -5295,7 +5336,7 @@ Frequency</string>
                    </size>
                   </property>
                   <property name="text">
-                   <string>2.45</string>
+                   <string>2.97</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
@@ -5399,7 +5440,7 @@ Frequency</string>
               <number>1</number>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;XScopes Interface Software&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Version:&lt;/span&gt; 1.2.0.0&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;XScopes Interface Software&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Version:&lt;/span&gt; 2.0.0.0&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignmentFlag::AlignCenter</set>

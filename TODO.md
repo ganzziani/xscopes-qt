@@ -6,7 +6,9 @@ See [CLAUDE.md](CLAUDE.md) for context. Only open work lives here; what is alrea
 **Status 2026-11-12:** branch `modernize` (not pushed, no PR). Builds and runs on Qt 6.12.0 MSVC x64, connects over
 USB (WinUSB, no Zadig), plots at the device frame rate, takes display screenshots, and updates firmware in-process
 (dfu-programmer 1.1.0 linked in). Licensing is complete (`licenses/`). Both the Watch and the Xprotolab are usable.
-The sniffer reads the Watch's 2569-byte payload (see 9) and was verified on the bench with real traffic.
+The sniffer reads the Watch's 2569-byte payload (see 9) and was verified on the bench with real traffic. Channels'
+AC coupling and derivative and the SPI sniffer's `/SS` invert are reachable from the app (2026-11-12), and the
+cursors are switched from the plot's right-click menu (3).
 
 **Open decisions:**
 - Report the two dfu-programmer bugs we found (`atmel_read()` 64 KB clamp, missing `goto finally` on a page-select
@@ -74,7 +76,15 @@ and disconnects, then the dialog opens.
 - [ ] Optional: make `CMakeLists.txt` build with Qt 6.
 
 ## 3. Plot / UI leftovers
-- [ ] Visual check with a device: horizontal/vertical cursors, tracers, CH1/CH2/CHD zero markers, trigger icons.
+The cursors are switched from the plot's own right-click menu now (the Options tab's `groupBoxCursors` is hidden
+and is only the state behind it). Checked on the Watch 2026-11-12: the menu reflects the device's cursor byte, and
+"Vertical cursors" and the horizontal CH1/CH2 choice turn the lines on and off in the plot and in GPIO6.
+- [ ] Visual check with a device: tracers, CH1/CH2/CHD zero markers, trigger icons, and the horizontal cursor's
+      "automatic" and "follow" placements.
+- [ ] Optional: delete `groupBoxCursors` from the `.ui` and turn its five widgets into members
+      (`m_cursorHorizontal`, `m_cursorVertical`, `m_cursorAuto`, `m_cursorTrack`): then `plotData()`,
+      `sendCursorControls()` and `readDeviceSettings()` read the state instead of the widgets, and nothing is left
+      hidden in the form.
 - [ ] `hcursorA/B.png` are 32x32; 32x31 with a blank last row would put the cursor line exactly on the tip row.
 - [ ] Window trigger: `setTriggerLevelPosition()` offsets the second icon by +7 px and the drag code mixes a
       0-255 inverted level with plot coordinates. Check in Window trigger mode.
@@ -84,6 +94,10 @@ and disconnects, then the dialog opens.
       `plotData()`.
 
 ## 4. Robustness / threading
+The flash of garbage on the first frame after launch is gone: `chData` is cleared when `LibUsbDevice` is created,
+and `plotData()` only draws a whole USB frame (`dataLength == 770`). It used to draw whatever was in the buffer,
+because the app sets `m_repaint` in `readDeviceSettings()` while the first transfer is still pending
+(`dataLength` 0).
 - [ ] `chData`/`dataLength`/`dataAvailable` are written by the libusb callback and read by `plotData()` with no
       synchronization, and the next transfer is submitted immediately, so a frame can be read while the device
       writes it. Double-buffer with a swap in the transfer callback.
@@ -137,9 +151,10 @@ mid-cycle can end on exactly 1289 bytes (its parts 3+4), so `bcdDevice`'s device
 logged as "Device code") decides which of the two the device sends.
 
 The sniffer settings byte (`sendSnifferSettings()`, `readDeviceSettings()`) now matches `Source/main.h`: bits 0-2
-baud index, 3-4 UART data bits - 5 (the new Data Bits spin box on the UART page), 5 parity enable / SPI `/SS`
-invert, 6 odd parity / SPI CPOL, 7 two stop bits / SPI CPHA, set with `|=` because bit 7 legitimately carries two
-meanings and adding it twice wrapped. The parity read-back was swapped (even/odd) and is fixed.
+baud index, 3-4 UART data bits - 5 (the Data Bits spin box on the UART page), 5 parity enable / SPI `/SS` invert
+(the Invert SS checkbox on the SPI page), 6 odd parity / SPI CPOL, 7 two stop bits / SPI CPHA, set with `|=`
+because bit 7 legitimately carries two meanings and adding it twice wrapped. The parity read-back was swapped
+(even/odd) and is fixed. Measured on the Watch: 0x18 -> clicking Invert SS gives 0x38 with the data bits intact.
 
 Verified 2026-11-12 on the Watch: the settings byte round-trips through the app exactly for 8 device bytes covering
 every field (0x00, 0x1C, 0x2E, 0x5C, 0x60, 0x9C, 0xE0, 0xF3 - the app reads the byte at connect, and the device
@@ -151,9 +166,6 @@ dropped payloads were 244 scope frames arriving while the mode changed. A Watch 
 ever ends on 649/1289/1929 bytes, which the layout and the device code reject.
 - [ ] The XScopes path (1289-byte payload) is unverified on hardware since the bench DUT is the Watch now. The
       offsets it yields are the old 640/1024, but the longer transfer length and the device-code check are new.
-- [ ] The SPI page has no `/SS` invert (`SSINV`, bit 5 of the settings byte) control: a device that has it set -
-      the firmware's own sniffer menu can set it, and the app passes the bit through - inverts which `/SS` level
-      selects, so the app decodes nothing until the user clears it on the device. Decide whether to add the combo.
 - [ ] The UART decoder in the Watch loses a frame at 1200 baud in its longest format (8 data bits + parity + 2
       stop) when frames follow within a few ms; measured with the tester alone, so not this app. The bench harness
       leaves 25 ms between frames. Reported in `Tester/TODO.md` as W-13, for the firmware owner.

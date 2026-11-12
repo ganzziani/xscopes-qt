@@ -205,6 +205,7 @@ private slots:
     void on_autoButton_clicked();
     void writeAppSettings();
     void itemDoubleClick(QCPAbstractItem *, QMouseEvent *);
+    void plotContextMenu(const QPoint &pos);
     void setTheme(int, CustomColors *customColors = nullptr);
     void on_connectButton_clicked();
     void onDeviceDisconnected();
@@ -225,10 +226,14 @@ private slots:
     void on_checkBoxCH1Invert_clicked();
     void on_checkBoxCH1Trace_clicked();
     void on_checkBoxCH1Average_clicked();
+    void on_checkBoxCH1Derivative_clicked();
+    void on_checkBoxCH1AC_clicked();
     void on_checkBoxCH2Math_clicked();
     void on_checkBoxCH2Invert_clicked();
     void on_checkBoxCH2Trace_clicked();
     void on_checkBoxCH2Average_clicked();
+    void on_checkBoxCH2Derivative_clicked();
+    void on_checkBoxCH2AC_clicked();
     void on_radioButtonCH2Sub_clicked();
     void on_radioButtonCH1Sub_clicked();
     void on_checkBoxCHDTrace_clicked();
@@ -280,6 +285,7 @@ private slots:
     void on_comboBoxStopBits_currentIndexChanged(int index);
     void on_comboBoxCPOL_currentIndexChanged(int index);
     void on_comboBoxCPHA_currentIndexChanged(int index);
+    void on_checkBoxInvertSS_clicked();
     void on_forceButton_clicked();
     void on_ch1GainSlider_valueChanged(int value);
     void on_ch2GainSlider_valueChanged(int value);

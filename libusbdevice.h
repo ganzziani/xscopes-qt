@@ -85,7 +85,7 @@ public:
     QFuture<void> future;
 
     SerialPortConnection serial;
-    bool wayOfConnecting;   //0 - usb, 1 - serial port
+    bool wayOfConnecting;   // true: USB, false: serial port
 };
 
 #endif // LIBUSBDEVICE_H
