@@ -74,6 +74,8 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     persistenceIndex = 0;
     persistenceItem = nullptr;
     bitTriggerSource = false;
+    m_cursorChannel = CursorOff;
+    m_cursorVertical = m_cursorAuto = m_cursorTrack = false;
     mode = OSCILLOSCOPE;
     lastTriggerSource = 0;
     connect(&customThemeDialog, SIGNAL(applyCustomTheme(int, CustomColors *)), this, SLOT(setTheme(int, CustomColors *)));
@@ -84,13 +86,12 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     connect(ui->plotterWidget, SIGNAL(mouseRelease(QMouseEvent *)), this, SLOT(deselectItem(QMouseEvent *)));
     connect(ui->plotterWidget, SIGNAL(itemDoubleClick(QCPAbstractItem *, QMouseEvent *)), this, SLOT(itemDoubleClick(QCPAbstractItem *, QMouseEvent *)));
     ui->plotterWidget->installEventFilter(this);  // Calls on_sizeChanged() after a resize
-    // The cursors are switched from the plot itself now (right click, see
-    // plotContextMenu()): the Options tab's "Cursors" group is the state behind
-    // that menu rather than a set of controls.
+    // The cursors are switched from the plot itself (right click, see
+    // plotContextMenu()): m_cursorChannel, m_cursorVertical, m_cursorAuto and
+    // m_cursorTrack replaced the Options tab's "Cursors" group.
     ui->plotterWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->plotterWidget, SIGNAL(customContextMenuRequested(const QPoint &)),
             this, SLOT(plotContextMenu(const QPoint &)));
-    ui->groupBoxCursors->hide();
     QTimer::singleShot(0, this, SLOT(on_connectButton_clicked()));
     initializing = false;
     connect(&dataTimer, SIGNAL(timeout()), this, SLOT(plotData()));
@@ -702,7 +703,7 @@ void XprotolabInterface::plotData() {
         ch2 = ui->ch2PositionSlider->value() + (255 - (int)usbDevice.chData[i + 256]) * 2;
         ch1Buffer.push_back(ch1);
         ch2Buffer.push_back(ch2);
-        if(ui->radioButtonCursorCH1->isChecked()) {
+        if(isCursorOnCh1()) {
             if(xtime == 0) {
                 minV = ch1;
                 maxV = ch1;
@@ -714,7 +715,7 @@ void XprotolabInterface::plotData() {
             } else if(maxV < ch1) {
                 maxV = ch1;
             }
-        } else if(ui->radioButtonCursorCH2->isChecked()) {
+        } else if(isCursorOnCh2()) {
             if(xtime == 0) {
                 minV = ch2;
                 maxV = ch2;
@@ -762,7 +763,7 @@ void XprotolabInterface::plotData() {
     }
     if(ui->mainTabWidget->currentIndex() == 1)
         mm_request();
-    if(ui->radioButtonCursorCH1->isChecked()) {
+    if(isCursorOnCh1()) {
         samples = 255;
         p = usbDevice.chData + i;
         mid = minV + (maxV - minV) / 2;
@@ -1042,7 +1043,7 @@ ENDSCAN:
     } else {
         persistenceItem->setVisible(false);
     }
-    if(ui->checkBoxCursorVertical->isChecked()) {
+    if(m_cursorVertical) {
         double deltaTime, freq, value = 0;
         QString unit;
         unit = (rateText[ui->samplingSlider->value()]);
@@ -1075,20 +1076,20 @@ ENDSCAN:
         textLabelDeltaTime->setVisible(false);
         textLabelFrequency->setVisible(false);
     }
-    if(!ui->radioButtonCursorNone->isChecked()) {
+    if(!isCursorOff()) {
         double deltaVolt, voltA = 0, voltB = 0, gain = 0;
         QString unit = gains[ui->ch1GainSlider->value()].unit;
-        if(ui->radioButtonCursorCH1->isChecked()) {
+        if(isCursorOnCh1()) {
             unit = gains[ui->ch1GainSlider->value()].unit;
             gain = gains[ui->ch1GainSlider->value()].value;
-        } else if(ui->radioButtonCursorCH2->isChecked()) {
+        } else if(isCursorOnCh2()) {
             unit = gains[ui->ch2GainSlider->value()].unit;
             gain = gains[ui->ch1GainSlider->value()].value;
         }
-        if(ui->radioButtonCursorCH1->isChecked()) {
+        if(isCursorOnCh1()) {
             voltA = 64 - (127 - (hCursorAPosCh1 / 4));
             voltB = 64 - (127 - (hCursorBPosCh1 / 4));
-        } else if(ui->radioButtonCursorCH2->isChecked()) {
+        } else if(isCursorOnCh2()) {
             voltA = 64 - (127 - (hCursorAPosCh2 / 4));
             voltB = 64 - (127 - (hCursorBPosCh2 / 4));
         }
@@ -1103,24 +1104,24 @@ ENDSCAN:
         textLabelDeltaVoltage->setText("ΔV = " + get4Digits(deltaVolt) + " " + unit);
         textLabelVoltageA->setText("Va = " + get4Digits(voltA) + " " + unit);
         textLabelVoltageB->setText("Vb = " + get4Digits(voltB) + " " + unit);
-        if(ui->checkBoxCursorAuto->isChecked()) {
-            if(ui->radioButtonCursorCH1->isChecked()) {
+        if(m_cursorAuto) {
+            if(isCursorOnCh1()) {
                 hCursorAPosCh1 = minV;
                 hCursorBPosCh1 = maxV;
-                hCursorAHead->topLeft->setCoords(-3, hCursorAPosCh1);
-                hCursorBHead->topLeft->setCoords(-3, hCursorBPosCh1);
+                hCursorAHead->topLeft->setCoords(-3, clampCursorY(hCursorAPosCh1));
+                hCursorBHead->topLeft->setCoords(-3, clampCursorY(hCursorBPosCh1));
                 hCursorAPosCh1 += - ch1ZeroPos + 256;
                 hCursorBPosCh1 += - ch1ZeroPos + 256;
-            } else if(ui->radioButtonCursorCH2->isChecked()) {
+            } else if(isCursorOnCh2()) {
                 hCursorAPosCh2 = minV;
                 hCursorBPosCh2 = maxV;
-                hCursorAHead->topLeft->setCoords(-3, hCursorAPosCh2);
-                hCursorBHead->topLeft->setCoords(-3, hCursorBPosCh2);
+                hCursorAHead->topLeft->setCoords(-3, clampCursorY(hCursorAPosCh2));
+                hCursorBHead->topLeft->setCoords(-3, clampCursorY(hCursorBPosCh2));
                 hCursorAPosCh2 += - ch2ZeroPos + 256;
                 hCursorBPosCh2 += - ch2ZeroPos + 256;
             }
-        } else if(ui->checkBoxCursorTrack->isChecked()) {
-            if(ui->radioButtonCursorCH1->isChecked()) {
+        } else if(m_cursorTrack) {
+            if(isCursorOnCh1()) {
                 phaseTracerAA->setGraphKey(ui->plotterWidget->xAxis->pixelToCoord(vCursorAHead->bottom->pixelPosition().rx()));
                 phaseTracerAB->setGraphKey(ui->plotterWidget->xAxis->pixelToCoord(vCursorBHead->bottom->pixelPosition().rx()));
                 phaseTracerAA->setVisible(true);
@@ -1133,11 +1134,11 @@ ENDSCAN:
                 bTrack = phaseTracerAB->position->value();
                 hCursorAPosCh1 = aTrack;
                 hCursorBPosCh1 = bTrack;
-                hCursorAHead->topLeft->setCoords(-3, hCursorAPosCh1);
-                hCursorBHead->topLeft->setCoords(-3, hCursorBPosCh1);
+                hCursorAHead->topLeft->setCoords(-3, clampCursorY(hCursorAPosCh1));
+                hCursorBHead->topLeft->setCoords(-3, clampCursorY(hCursorBPosCh1));
                 hCursorAPosCh1 += - ch1ZeroPos + 256;
                 hCursorBPosCh1 += - ch1ZeroPos + 256;
-            } else if(ui->radioButtonCursorCH2->isChecked()) {
+            } else if(isCursorOnCh2()) {
                 phaseTracerBA->setGraphKey(ui->plotterWidget->xAxis->pixelToCoord(vCursorAHead->bottom->pixelPosition().rx()));
                 phaseTracerBB->setGraphKey(ui->plotterWidget->xAxis->pixelToCoord(vCursorBHead->bottom->pixelPosition().rx()));
                 phaseTracerBA->setVisible(true);
@@ -1150,8 +1151,8 @@ ENDSCAN:
                 bTrack = phaseTracerBB->position->value();
                 hCursorAPosCh2 = aTrack;
                 hCursorBPosCh2 = bTrack;
-                hCursorAHead->topLeft->setCoords(-3, hCursorAPosCh2);
-                hCursorBHead->topLeft->setCoords(-3, hCursorBPosCh2);
+                hCursorAHead->topLeft->setCoords(-3, clampCursorY(hCursorAPosCh2));
+                hCursorBHead->topLeft->setCoords(-3, clampCursorY(hCursorBPosCh2));
                 hCursorAPosCh2 += - ch2ZeroPos + 256;
                 hCursorBPosCh2 += - ch2ZeroPos + 256;
             }
@@ -1187,14 +1188,14 @@ void XprotolabInterface::moveCursor(QMouseEvent *event) {
                 else if(hCursorAPos < 8)
                     hCursorAPos = 8;
                 hCursorAHead->topLeft->setPixelPosition(QPointF(9, curPos));
-                if(ui->radioButtonCursorCH1->isChecked()) {
+                if(isCursorOnCh1()) {
                     hCursorAPosCh1 = hCursorAPos - ch1ZeroPos + 256;
                     if(hCursorAPosCh1 >= 512)
                         hCursorAPosCh1 = 511;
                     else if(hCursorAPosCh1 < 0)
                         hCursorAPosCh1 = 0;
                     sendHorizontalCursorCH1A();
-                } else if(ui->radioButtonCursorCH2->isChecked()) {
+                } else if(isCursorOnCh2()) {
                     hCursorAPosCh2 = hCursorAPos - ch2ZeroPos + 256;
                     if(hCursorAPosCh2 >= 512)
                         hCursorAPosCh2 = 511;
@@ -1214,14 +1215,14 @@ void XprotolabInterface::moveCursor(QMouseEvent *event) {
                 else if(hCursorBPos < 8)
                     hCursorBPos = 8;
                 hCursorBHead->topLeft->setPixelPosition(QPointF(9, curPos));
-                if(ui->radioButtonCursorCH1->isChecked()) {
+                if(isCursorOnCh1()) {
                     hCursorBPosCh1 = hCursorBPos - ch1ZeroPos + 256;
                     if(hCursorBPosCh1 >= 512)
                         hCursorBPosCh1 = 511;
                     else if(hCursorBPosCh1 < 0)
                         hCursorBPosCh1 = 0;
                     sendHorizontalCursorCH1B();
-                } else if(ui->radioButtonCursorCH2->isChecked()) {
+                } else if(isCursorOnCh2()) {
                     hCursorBPosCh2 = hCursorBPos - ch2ZeroPos + 256;
                     if(hCursorBPosCh2 >= 512)
                         hCursorBPosCh2 = 511;
@@ -1959,58 +1960,16 @@ void XprotolabInterface::readDeviceSettings() {
     data = usbDevice.inBuffer[6];
     logToFile("GPIO6 Mcursors: " + QString::number(data));
     ui->rollMode->setChecked((data & (byte)(1 << 0)) != 0);  // Roll scope on slow sampling rates
-    if((data & (byte)(1 << 1)) != 0)
-        ui->checkBoxCursorAuto->setChecked(true);   // Auto cursors
-    if((data & (byte)(1 << 2)) != 0)
-        ui->checkBoxCursorTrack->setChecked(true);   // Track vertical with horizontal
-    if((data & (byte)(1 << 3)) != 0) {
-        ui->radioButtonCursorCH1->setChecked(true);   // CH1 Horizontal Cursor on
-        hCursorAHead->setVisible(true);
-        hCursorBHead->setVisible(true);
-        hCursorA->setVisible(true);
-        hCursorB->setVisible(true);
-        textLabelDeltaVoltage->setVisible(true);
-        textLabelVoltageA->setVisible(true);
-        textLabelVoltageB->setVisible(true);
-    } else if((data & (byte)(1 << 4)) != 0) {
-        ui->radioButtonCursorCH2->setChecked(true);   // CH2 Horizontal Cursor on
-        hCursorAHead->setVisible(true);
-        hCursorBHead->setVisible(true);
-        hCursorA->setVisible(true);
-        hCursorB->setVisible(true);
-        textLabelDeltaVoltage->setVisible(true);
-        textLabelVoltageA->setVisible(true);
-        textLabelVoltageB->setVisible(true);
-    } else {
-        ui->radioButtonCursorNone->setChecked(true);
-        hCursorAHead->setVisible(false);
-        hCursorBHead->setVisible(false);
-        hCursorA->setVisible(false);
-        hCursorB->setVisible(false);
-        hCursorA->point1->setCoords(0, 0);
-        hCursorA->point2->setCoords(10, 0);
-        hCursorB->point1->setCoords(0, 0);
-        hCursorB->point2->setCoords(10, 0);
-        textLabelDeltaVoltage->setVisible(false);
-        textLabelVoltageA->setVisible(false);
-        textLabelVoltageB->setVisible(false);
-    }
-    if((data & (byte)(1 << 5)) != 0) {
-        ui->checkBoxCursorVertical->setChecked(true);   // Vertical Cursor on
-        vCursorAHead->setVisible(true);
-        vCursorBHead->setVisible(true);
-        vCursorA->setVisible(true);
-        vCursorB->setVisible(true);
-        textLabelDeltaTime->setVisible(true);
-        textLabelFrequency->setVisible(true);
-    } else {
-        vCursorAHead->setVisible(false);
-        vCursorBHead->setVisible(false);
-        vCursorA->setVisible(false);
-        vCursorB->setVisible(false);
-        textLabelDeltaTime->setVisible(false);
-        textLabelFrequency->setVisible(false);
-    }
+    m_cursorAuto = (data & (byte)(1 << 1)) != 0;             // Auto placement
+    m_cursorTrack = (data & (byte)(1 << 2)) != 0;            // Follow the trace
+    if((data & (byte)(1 << 3)) != 0)
+        m_cursorChannel = CursorCh1;                         // CH1 horizontal pair
+    else if((data & (byte)(1 << 4)) != 0)
+        m_cursorChannel = CursorCh2;                         // CH2 horizontal pair
+    else
+        m_cursorChannel = CursorOff;
+    m_cursorVertical = (data & (byte)(1 << 5)) != 0;         // The vertical pair
+    updateCursorVisibility();
     if((data & (byte)(1 << 7)) != 0)
         ui->radioButtonSniffSingle->setChecked(true);
     else
@@ -2283,14 +2242,9 @@ void XprotolabInterface::readDeviceSettings() {
     logToFile("M 30 Channel 2 position: " + QString::number(data));
     ui->ch2PositionSlider->setValue(mapRange((char)data, 0, ZERO_POS, ZERO_POS, -ZERO_POS) * -1);
     ui->ch2PositionSlider->setSliderPosition(mapRange((char)data, 0, -ZERO_POS, ZERO_POS, -ZERO_POS) * -1);
-    //here
-    if(ui->radioButtonCursorCH1->isChecked()) {
-        hCursorAHead->topLeft->setCoords(-3, hCursorAPosCh1 + ch1ZeroPos - 256);
-        hCursorBHead->topLeft->setCoords(-3, hCursorBPosCh1 + ch1ZeroPos - 256);
-    } else {
-        hCursorAHead->topLeft->setCoords(-3, hCursorAPosCh2 + ch2ZeroPos - 256);
-        hCursorBHead->topLeft->setCoords(-3, hCursorBPosCh2 + ch2ZeroPos - 256);
-    }
+    // The cursor positions above are read before the channel positions, so the
+    // heads are placed once both are known.
+    updateCursorVisibility();
     // M 31 Channel D position
     data = (byte)(ui->chdPositionSlider->maximum() - (usbDevice.inBuffer[31] / 8));
     logToFile("M 31 Channel D position: " + QString::number(data));
@@ -2794,96 +2748,91 @@ void XprotolabInterface::sendCursorControls() {
     byte field = 0;
     if(ui->rollMode->isChecked())
         field += (1 << 0);     // Roll Mode
-    if(ui->checkBoxCursorAuto->isChecked())
-        field += (1 << 1);     // Auto cursors
-    if(ui->checkBoxCursorTrack->isChecked())
-        field += (1 << 2);     // Track vertical with horizontal
-    if(ui->radioButtonCursorCH1->isChecked()) {
-        field += (1 << 3);     // CH1 Horizontal Cursor on
-        hCursorAHead->setVisible(true);
-        hCursorBHead->setVisible(true);
-        hCursorA->setVisible(true);
-        hCursorB->setVisible(true);
-        hCursorAHead->topLeft->setCoords(-3, hCursorAPosCh1 + ch1ZeroPos - 256);
-        hCursorBHead->topLeft->setCoords(-3, hCursorBPosCh1 + ch1ZeroPos - 256);
-        textLabelDeltaVoltage->setVisible(true);
-        textLabelVoltageA->setVisible(true);
-        textLabelVoltageB->setVisible(true);
-    } else if(ui->radioButtonCursorCH2->isChecked()) {
-        field += (1 << 4);     // CH2 Horizontal Cursor on
-        hCursorAHead->setVisible(true);
-        hCursorBHead->setVisible(true);
-        hCursorA->setVisible(true);
-        hCursorB->setVisible(true);
-        hCursorAHead->topLeft->setCoords(-3, hCursorAPosCh2 + ch2ZeroPos - 256);
-        hCursorBHead->topLeft->setCoords(-3, hCursorBPosCh2 + ch2ZeroPos - 256);
-        textLabelDeltaVoltage->setVisible(true);
-        textLabelVoltageA->setVisible(true);
-        textLabelVoltageB->setVisible(true);
-    } else {
-        hCursorAHead->setVisible(false);
-        hCursorBHead->setVisible(false);
-        hCursorA->setVisible(false);
-        hCursorB->setVisible(false);
-        textLabelDeltaVoltage->setVisible(false);
-        textLabelVoltageA->setVisible(false);
-        textLabelVoltageB->setVisible(false);
-    }
-    if(ui->checkBoxCursorVertical->isChecked()) {
-        field += (1 << 5);     // Vertical Cursor on
-        vCursorAHead->setVisible(true);
-        vCursorBHead->setVisible(true);
-        vCursorA->setVisible(true);
-        vCursorB->setVisible(true);
-    } else {
-        vCursorAHead->setVisible(false);
-        vCursorBHead->setVisible(false);
-        vCursorA->setVisible(false);
-        vCursorB->setVisible(false);
-    }
+    if(m_cursorAuto)
+        field += (1 << 1);     // Auto placement
+    if(m_cursorTrack)
+        field += (1 << 2);     // Follow the trace at the vertical cursor
+    if(isCursorOnCh1())
+        field += (1 << 3);     // CH1 horizontal cursor pair
+    else if(isCursorOnCh2())
+        field += (1 << 4);     // CH2 horizontal cursor pair
+    if(m_cursorVertical)
+        field += (1 << 5);     // The vertical pair
     if(ui->radioButtonSniffSingle->isChecked())
-        field += (1 << 7); // Single Sniffer
+        field += (1 << 7);     // Single Sniffer
+    updateCursorVisibility();
     usbDevice.controlWriteTransfer(6, field);
     m_repaint = true;
 }
 
+void XprotolabInterface::updateCursorVisibility() {
+    const bool horizontal = !isCursorOff();
+    hCursorAHead->setVisible(horizontal);
+    hCursorBHead->setVisible(horizontal);
+    hCursorA->setVisible(horizontal);
+    hCursorB->setVisible(horizontal);
+    textLabelDeltaVoltage->setVisible(horizontal);
+    textLabelVoltageA->setVisible(horizontal);
+    textLabelVoltageB->setVisible(horizontal);
+    vCursorAHead->setVisible(m_cursorVertical);
+    vCursorBHead->setVisible(m_cursorVertical);
+    vCursorA->setVisible(m_cursorVertical);
+    vCursorB->setVisible(m_cursorVertical);
+    textLabelDeltaTime->setVisible(m_cursorVertical);
+    textLabelFrequency->setVisible(m_cursorVertical);
+    if(horizontal)
+        positionHorizontalCursors();
+}
+
+void XprotolabInterface::positionHorizontalCursors() {
+    // The head is the handle the user drags and the line is anchored to it, so
+    // both have to be inside the plot. The device reports each cursor relative to
+    // its channel's zero, which the channel's position moves, so a cursor it put
+    // near its own edge can land outside 0..rangeMax once the channel is offset -
+    // and then nothing is drawn where anyone can see or grab it (the case where
+    // only cursor A showed on CH2, whose position slider sat near 127).
+    const int zero = isCursorOnCh2() ? ch2ZeroPos : ch1ZeroPos;
+    const int posA = isCursorOnCh2() ? hCursorAPosCh2 : hCursorAPosCh1;
+    const int posB = isCursorOnCh2() ? hCursorBPosCh2 : hCursorBPosCh1;
+    hCursorAHead->topLeft->setCoords(-3, clampCursorY(posA + zero - 256));
+    hCursorBHead->topLeft->setCoords(-3, clampCursorY(posB + zero - 256));
+}
+
+double XprotolabInterface::clampCursorY(double y) const {
+    // The margin the drag handler keeps, so a clamped cursor behaves like one
+    // dragged to the edge of the plot
+    if(y < 8)
+        return 8;
+    if(y > rangeMax - 8)
+        return rangeMax - 8;
+    return y;
+}
+
+void XprotolabInterface::setCursorChannel(CursorChannel channel) {
+    m_cursorChannel = channel;
+    sendCursorControls();
+}
+
+void XprotolabInterface::setCursorVertical(bool on) {
+    m_cursorVertical = on;
+    sendCursorControls();
+}
+
+void XprotolabInterface::setCursorAuto(bool on) {
+    m_cursorAuto = on;
+    if(on)
+        m_cursorTrack = false;     // the two placements exclude each other
+    sendCursorControls();
+}
+
+void XprotolabInterface::setCursorTrack(bool on) {
+    m_cursorTrack = on;
+    if(on)
+        m_cursorAuto = false;
+    sendCursorControls();
+}
+
 void XprotolabInterface::on_rollMode_clicked() {
-    sendCursorControls();
-}
-
-void XprotolabInterface::on_checkBoxCursorAuto_clicked() {
-    if(ui->checkBoxCursorTrack->isChecked())
-        ui->checkBoxCursorTrack->setChecked(false);
-    sendCursorControls();
-}
-
-void XprotolabInterface::on_checkBoxCursorTrack_clicked() {
-    if(ui->checkBoxCursorAuto->isChecked())
-        ui->checkBoxCursorAuto->setChecked(false);
-    sendCursorControls();
-}
-
-void XprotolabInterface::on_checkBoxCursorVertical_clicked() {
-    sendCursorControls();
-}
-
-void XprotolabInterface::on_radioButtonCursorCH1_clicked() {
-    sendCursorControls();
-    if(ui->radioButtonCursorCH1->isChecked()) {
-        hCursorAHead->topLeft->setCoords(-3, hCursorAPosCh1 + ch1ZeroPos - 256);
-        hCursorBHead->topLeft->setCoords(-3, hCursorBPosCh1 + ch1ZeroPos - 256);
-    }
-}
-
-void XprotolabInterface::on_radioButtonCursorCH2_clicked() {
-    sendCursorControls();
-    if(ui->radioButtonCursorCH2->isChecked()) {
-        hCursorAHead->topLeft->setCoords(-3, hCursorAPosCh2 + ch2ZeroPos - 256);
-        hCursorBHead->topLeft->setCoords(-3, hCursorBPosCh2 + ch2ZeroPos - 256);
-    }
-}
-
-void XprotolabInterface::on_radioButtonCursorNone_clicked() {
     sendCursorControls();
 }
 
@@ -3385,12 +3334,8 @@ void XprotolabInterface::on_doubleSpinBoxTrigAuto_valueChanged(double value) {
 // M 29 Channel 1 position
 void XprotolabInterface::on_ch1PositionSlider_valueChanged(int value) {
     usbDevice.controlWriteTransfer(29, mapRange(value, 128, -128, 0, -128));
-    double tmp_pos = ch1ZeroPos;
     ch1ZeroPos = rangeMax / 2 + ui->ch1PositionSlider->value();
-    if(ui->radioButtonCursorCH1->isChecked()) {
-        hCursorAHead->topLeft->setCoords(-3, hCursorAHead->topLeft->coords().y() + ch1ZeroPos - tmp_pos);
-        hCursorBHead->topLeft->setCoords(-3, hCursorBHead->topLeft->coords().y() + ch1ZeroPos - tmp_pos);
-    }
+    updateCursorVisibility();   // the cursors are placed relative to the new zero
     initPosScroll = ui->horizontalScrollBar->value();
     ch1ZeroHead->topLeft->setPixelPosition(QPointF(2, ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
     if(ui->comboBoxTrigSource->currentIndex() == 0 && !initializing) {
@@ -3402,12 +3347,8 @@ void XprotolabInterface::on_ch1PositionSlider_valueChanged(int value) {
 // M 30 Channel 2 position
 void XprotolabInterface::on_ch2PositionSlider_valueChanged(int value) {
     usbDevice.controlWriteTransfer(30, mapRange(value, 128, -128, 0, -128));
-    double tmp_pos = ch2ZeroPos;
     ch2ZeroPos = rangeMax / 2 + ui->ch2PositionSlider->value();
-    if(ui->radioButtonCursorCH2->isChecked()) {
-        hCursorAHead->topLeft->setCoords(-3, hCursorAHead->topLeft->coords().y() + ch2ZeroPos - tmp_pos);
-        hCursorBHead->topLeft->setCoords(-3, hCursorBHead->topLeft->coords().y() + ch2ZeroPos - tmp_pos);
-    }
+    updateCursorVisibility();   // the cursors are placed relative to the new zero
     initPosScroll = ui->horizontalScrollBar->value();
     ch2ZeroHead->topLeft->setPixelPosition(QPointF(2, ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
     if(ui->comboBoxTrigSource->currentIndex() == 1 && !initializing) {
@@ -3800,11 +3741,10 @@ void XprotolabInterface::on_pushTakeBMP_clicked() {
 }
 
 void XprotolabInterface::plotContextMenu(const QPoint &pos) {
-    // Right clicking the plot offers what the device's cursor byte holds: the
-    // horizontal cursor (none, or on CH1 or CH2), the pair of vertical cursors,
-    // and where the horizontal one goes (automatic, or following the trace at the
-    // vertical cursor). The menu drives the same widgets the device settings are
-    // read into, so the two never disagree.
+    // Right clicking the plot offers what the device's cursor byte holds: which
+    // channel's horizontal cursor pair is on (or none), the pair of vertical
+    // cursors, and where the horizontal one goes (placed automatically, or
+    // following the trace at the vertical cursor).
     QMenu menu(this);
     QActionGroup *horizontal = new QActionGroup(&menu);
     QAction *off = menu.addAction(tr("No horizontal cursor"));
@@ -3814,47 +3754,36 @@ void XprotolabInterface::plotContextMenu(const QPoint &pos) {
         a->setCheckable(true);
         horizontal->addAction(a);
     }
-    // The device has only the two channel bits: neither set means no cursor, which
-    // is also the state at startup, before any of the three radios is checked.
-    off->setChecked(!ui->radioButtonCursorCH1->isChecked() &&
-                    !ui->radioButtonCursorCH2->isChecked());
-    ch1->setChecked(ui->radioButtonCursorCH1->isChecked());
-    ch2->setChecked(ui->radioButtonCursorCH2->isChecked());
+    off->setChecked(isCursorOff());
+    ch1->setChecked(isCursorOnCh1());
+    ch2->setChecked(isCursorOnCh2());
     menu.addSeparator();
     QAction *vertical = menu.addAction(tr("Vertical cursors"));
     vertical->setCheckable(true);
-    vertical->setChecked(ui->checkBoxCursorVertical->isChecked());
+    vertical->setChecked(m_cursorVertical);
     menu.addSeparator();
     QAction *automatic = menu.addAction(tr("Place the horizontal cursor automatically"));
     automatic->setCheckable(true);
-    automatic->setChecked(ui->checkBoxCursorAuto->isChecked());
+    automatic->setChecked(m_cursorAuto);
     QAction *follow = menu.addAction(tr("Follow the signal at the vertical cursor"));
     follow->setCheckable(true);
-    follow->setChecked(ui->checkBoxCursorTrack->isChecked());
+    follow->setChecked(m_cursorTrack);
 
     QAction *chosen = menu.exec(ui->plotterWidget->mapToGlobal(pos));
     if(chosen == nullptr)
         return;
-    if(chosen == off) {
-        ui->radioButtonCursorNone->setChecked(true);
-        on_radioButtonCursorNone_clicked();
-    } else if(chosen == ch1) {
-        ui->radioButtonCursorCH1->setChecked(true);
-        on_radioButtonCursorCH1_clicked();
-    } else if(chosen == ch2) {
-        ui->radioButtonCursorCH2->setChecked(true);
-        on_radioButtonCursorCH2_clicked();
-    } else if(chosen == vertical) {
-        ui->checkBoxCursorVertical->setChecked(!ui->checkBoxCursorVertical->isChecked());
-        on_checkBoxCursorVertical_clicked();
-    } else if(chosen == automatic) {
-        ui->checkBoxCursorAuto->setChecked(!ui->checkBoxCursorAuto->isChecked());
-        on_checkBoxCursorAuto_clicked();
-    } else if(chosen == follow) {
-        ui->checkBoxCursorTrack->setChecked(!ui->checkBoxCursorTrack->isChecked());
-        on_checkBoxCursorTrack_clicked();
-    }
-    m_repaint = true;
+    if(chosen == off)
+        setCursorChannel(CursorOff);
+    else if(chosen == ch1)
+        setCursorChannel(CursorCh1);
+    else if(chosen == ch2)
+        setCursorChannel(CursorCh2);
+    else if(chosen == vertical)
+        setCursorVertical(!m_cursorVertical);
+    else if(chosen == automatic)
+        setCursorAuto(!m_cursorAuto);
+    else if(chosen == follow)
+        setCursorTrack(!m_cursorTrack);
 }
 
 void XprotolabInterface::displayBmpContextMenu(const QPoint &pos) {

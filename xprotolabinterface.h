@@ -132,6 +132,9 @@ public:
     ~XprotolabInterface();
 
 private:
+    // Which channel the horizontal cursor pair is on (GPIO6 bits 3 and 4; neither
+    // set means off). The plot's context menu switches it.
+    enum CursorChannel { CursorOff, CursorCh1, CursorCh2 };
     void setupGrid(QCustomPlot *);
     void setupGraphs(QCustomPlot *);
     void setupTracers(QCustomPlot *);
@@ -153,6 +156,13 @@ private:
     void sendCHDBitControls();
     void sendTriggerControls();
     void sendCursorControls();
+    void updateCursorVisibility();
+    void positionHorizontalCursors();
+    double clampCursorY(double y) const;
+    void setCursorChannel(CursorChannel channel);
+    void setCursorVertical(bool on);
+    void setCursorAuto(bool on);
+    void setCursorTrack(bool on);
     void sendMFFTControls();
     void prepareMFFTControlsForMM();
     void sendVerticalCursorA();
@@ -317,12 +327,6 @@ private slots:
     void on_checkBoxVectors_clicked();
     void on_comboBoxGrid_currentIndexChanged(int index);
     void on_elasticMode_clicked();
-    void on_checkBoxCursorAuto_clicked();
-    void on_checkBoxCursorTrack_clicked();
-    void on_checkBoxCursorVertical_clicked();
-    void on_radioButtonCursorCH1_clicked();
-    void on_radioButtonCursorCH2_clicked();
-    void on_radioButtonCursorNone_clicked();
     void on_startSnifferButton_clicked();
     void on_protocolTabWidget_currentChanged(int index);
     void on_captureButton_clicked();
@@ -385,6 +389,19 @@ private:
     bool isScrolling;
     QString filePath;
     static const int rangeMax = 512;
+    // Cursors: the Options tab's "Cursors" group is gone; the plot's context menu
+    // (plotContextMenu()) sets these, and GPIO6 is built from them.
+    CursorChannel m_cursorChannel;
+    bool m_cursorVertical, m_cursorAuto, m_cursorTrack;
+    bool isCursorOnCh1() const {
+        return m_cursorChannel == CursorCh1;
+    }
+    bool isCursorOnCh2() const {
+        return m_cursorChannel == CursorCh2;
+    }
+    bool isCursorOff() const {
+        return m_cursorChannel == CursorOff;
+    }
     int hCursorAPos, hCursorBPos, vCursorAPos, vCursorBPos;
     double fftWindow[256];
     int ch1ZeroPos, ch2ZeroPos, hCursorAPosCh1, hCursorBPosCh1, hCursorAPosCh2, hCursorBPosCh2;

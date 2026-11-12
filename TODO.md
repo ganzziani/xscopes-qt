@@ -76,15 +76,16 @@ and disconnects, then the dialog opens.
 - [ ] Optional: make `CMakeLists.txt` build with Qt 6.
 
 ## 3. Plot / UI leftovers
-The cursors are switched from the plot's own right-click menu now (the Options tab's `groupBoxCursors` is hidden
-and is only the state behind it). Checked on the Watch 2026-11-12: the menu reflects the device's cursor byte, and
-"Vertical cursors" and the horizontal CH1/CH2 choice turn the lines on and off in the plot and in GPIO6.
+The cursors are switched from the plot's own right-click menu, and their state is `m_cursorChannel`,
+`m_cursorVertical`, `m_cursorAuto` and `m_cursorTrack`: the Options tab's `groupBoxCursors` and the five widgets in
+it are gone from the `.ui`. Checked on the Watch 2026-11-12: GPIO6 0x2C comes back as "CH1 / follow / vertical" in
+the menu, and the four setters write their bits (CH2, automatic, follow, vertical in turn; follow and automatic
+exclude each other).
+Cursor heads are clamped inside the plot (`clampCursorY()`, the 8..504 margin the drag handler keeps) wherever
+they are placed. The device reports each cursor relative to its channel's zero, so with CH2's position slider near
++127 cursor B landed at plot y 574 - outside 0..rangeMax - and was simply not drawn: CH2 showed cursor A only.
 - [ ] Visual check with a device: tracers, CH1/CH2/CHD zero markers, trigger icons, and the horizontal cursor's
       "automatic" and "follow" placements.
-- [ ] Optional: delete `groupBoxCursors` from the `.ui` and turn its five widgets into members
-      (`m_cursorHorizontal`, `m_cursorVertical`, `m_cursorAuto`, `m_cursorTrack`): then `plotData()`,
-      `sendCursorControls()` and `readDeviceSettings()` read the state instead of the widgets, and nothing is left
-      hidden in the form.
 - [ ] `hcursorA/B.png` are 32x32; 32x31 with a blank last row would put the cursor line exactly on the tip row.
 - [ ] Window trigger: `setTriggerLevelPosition()` offsets the second icon by +7 px and the drag code mixes a
       0-255 inverted level with plot coordinates. Check in Window trigger mode.
