@@ -17,7 +17,11 @@ enum {
 };
 
 enum BUFFER_SIZE {
-    LEN_BULK_IN_BUFFER = 1290,                         //(256*3)+2 CH1+CH2+CHD+frame number
+    // The largest payload the firmware streams on endpoint 1: a scope frame is
+    // (256*3)+2 = 770 (CH1+CH2+CHD+frame number), the sniffer's is 1289 on the
+    // XScopes and 2569 on the Oscilloscope Watch (sniffer.h). Every payload ends
+    // on a short packet, so a longer transfer only sets a ceiling.
+    LEN_BULK_IN_BUFFER = 2570,
     LEN_CONTROL_BUFFER = 64
 };
 #endif // LIBUSBDEVICEINFO_H

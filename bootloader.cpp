@@ -3,7 +3,6 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
-#include <QMessageBox>
 #include <QScrollBar>
 #include <QSettings>
 #include <QStandardPaths>
@@ -15,21 +14,16 @@ Bootloader::Bootloader(QWidget *parent) :
     ui->textEdit->clear();
     if(ui->radioOW->isChecked())
         on_radioOW_clicked();
-    myProcess = new QProcess(this);
-    // dfu-programmer ships next to the application on Windows; otherwise use the one on PATH
-    program = QStandardPaths::findExecutable("dfu-programmer", {QCoreApplication::applicationDirPath()});
-    if(program.isEmpty())
-        program = "dfu-programmer";
     doEverything = false;
+    dfu = new DfuProgrammer(this);
+    connect(dfu, SIGNAL(log(QString)), this, SLOT(Log(QString)));
+    connect(dfu, SIGNAL(finished(int)), this, SLOT(DfuFinished(int)));
     HEXDownloader = new FileDownloader(0, HEXFileUrl, this);
     EEPDownloader = new FileDownloader(0, EEPFileUrl, this);
     connect(HEXDownloader, SIGNAL(downloaded(QNetworkReply::NetworkError, QString)),
             this, SLOT(HEXDownloaded(QNetworkReply::NetworkError, QString)));
     connect(EEPDownloader, SIGNAL(downloaded(QNetworkReply::NetworkError, QString)),
             this, SLOT(EEPDownloaded(QNetworkReply::NetworkError, QString)));
-    connect(myProcess, SIGNAL(finished(int)), this, SLOT(ProcessDone(int)));
-    connect(myProcess, SIGNAL(errorOccurred(QProcess::ProcessError)),
-            this, SLOT(ShowProcessError(QProcess::ProcessError)));
     QSettings settings;
     workingDir = settings.value("workingDir").toString();
     // A read-back has to go somewhere the user can find it and that is writable even when the
@@ -62,15 +56,15 @@ void Bootloader::Log(const QString &text) {
 
 // Starts dfu-programmer unless one is already running. Returns false if it was refused.
 // The argument list only replaces the stored one when the run really starts, because
-// ProcessDone() uses it to find out which operation finished.
+// OperationDone() uses it to find out which operation finished.
 bool Bootloader::RunDfu(const QString &what, const QStringList &args) {
-    if(myProcess->state() != QProcess::NotRunning) {
+    if(dfu->isRunning()) {
         Log(tr("Busy, wait for the running operation to finish"));
         return false;
     }
     arguments = args;
     Log(what);
-    myProcess->start(program, arguments);
+    dfu->start(arguments);
     return true;
 }
 
@@ -297,12 +291,13 @@ void Bootloader::on_checkPreserveEE_toggled(bool checked) {
     }
 }
 
-// The dfu process has completed an operation
-void Bootloader::ProcessDone(int exit_val) {
-    QByteArray StandardOutput = myProcess->readAllStandardOutput();
-    QString StandardError = QString::fromLocal8Bit(myProcess->readAllStandardError());
-    if(!StandardError.isEmpty())
-        Log(StandardError);
+// dfu-programmer has completed an operation
+void Bootloader::DfuFinished(int result) {
+    OperationDone(result, dfu->standardOutput());
+}
+
+// Save a read-back, report the result, run the Do-Everything chain
+void Bootloader::OperationDone(int result, const QByteArray &standardOutput) {
     bool isRead = arguments.contains("read");
     bool isEeprom = arguments.contains("--eeprom");
     if(isRead) {
@@ -311,12 +306,12 @@ void Bootloader::ProcessDone(int exit_val) {
             file.setFileName(workingDir + "/" + ui->lineTarget->text() + ".eep");
         else
             file.setFileName(workingDir + "/" + ui->lineTarget->text() + ".hex");
-        if(exit_val != 0 || StandardOutput.isEmpty()) {
+        if(result != 0 || standardOutput.isEmpty()) {
             Log(tr("Read failed, no file was written"));
         } else if(!file.open(QFile::WriteOnly | QFile::Text)) {
             Log(QString("Can't open file: ") + file.fileName() + ": " + file.errorString());
         } else {
-            file.write(StandardOutput.data(), StandardOutput.length());
+            file.write(standardOutput.data(), standardOutput.length());
             file.close();
             if(isEeprom)
                 ui->lineEEPROM->setText(file.fileName());
@@ -324,11 +319,20 @@ void Bootloader::ProcessDone(int exit_val) {
                 ui->lineFlash->setText(file.fileName());
             Log(QString("File saved at: ") + file.fileName());
         }
-    } else if(!StandardOutput.isEmpty()) {
-        Log(QString::fromLocal8Bit(StandardOutput));
+    } else if(!standardOutput.isEmpty()) {
+        Log(QString::fromLocal8Bit(standardOutput));
     }
-    if(exit_val != 0)
-        Log(QString("dfu-programmer exited with code %1").arg(exit_val));
+    if(result != 0) {
+        Log(QString("dfu-programmer: %1").arg(DfuProgrammer::resultText(result)));
+        if(result == 3) {   // DEVICE_ACCESS_ERROR: no bootloader to talk to, or no driver for it
+            Log(tr("The DFU bootloader device is not available."));
+            Log(tr("XScopes: it cannot be started from the application (Atmel's bootloader only "
+                   "enters DFU on the hardware condition), so hold K1 and power-cycle the "
+                   "instrument, then press the button again."));
+            Log(tr("Watch: it switches over by itself; if it did not, check that it has a WinUSB "
+                   "driver (Zadig / libwdi), or on Linux that the udev rule covers 03EB:2FEC/2FE4."));
+        }
+    }
     if(doEverything) {  // Doing all operations?
         if(isRead && isEeprom)
             on_pushErase_clicked();
@@ -340,31 +344,6 @@ void Bootloader::ProcessDone(int exit_val) {
             on_pushStart_clicked();
         else
             doEverything = false;
-    }
-}
-
-void Bootloader::ShowProcessError(QProcess::ProcessError error) {
-    Log(QString("Error when starting %1:").arg(program));
-    switch(error) {
-        case QProcess::FailedToStart:
-        Log(QString("The process failed to start. Either %1 is missing, or you may have "
-                    "insufficient permissions or resources to invoke it.").arg(program));
-        break;
-        case QProcess::Crashed:
-        Log("The process crashed some time after starting successfully.");
-        break;
-        case QProcess::Timedout:
-        Log("The last waitFor...() function timed out.");
-        break;
-        case QProcess::WriteError:
-        Log("An error occurred when attempting to write to the process.");
-        break;
-        case QProcess::ReadError:
-        Log("An error occurred when attempting to read from the process.");
-        break;
-        case QProcess::UnknownError:
-        Log("An unknown error occurred.");
-        break;
     }
 }
 

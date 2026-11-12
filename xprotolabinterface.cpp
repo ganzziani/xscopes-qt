@@ -6,7 +6,15 @@
 XprotolabInterface::XprotolabInterface(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::XprotolabInterface) {
-    QFontDatabase::addApplicationFont(":/Bitmaps/cour.ttf");
+    // The interface is laid out for a Courier-sized monospace font. The bundled Liberation Mono
+    // is metric compatible with Courier New and may be redistributed (SIL OFL 1.1), which Courier
+    // New may not, so it is used everywhere; the system families are only a fallback.
+    m_monospaceFamily = QStringLiteral("Courier New");
+    int regularFont = QFontDatabase::addApplicationFont(":/Bitmaps/Bitmaps/LiberationMono-Regular.ttf");
+    QFontDatabase::addApplicationFont(":/Bitmaps/Bitmaps/LiberationMono-Bold.ttf");
+    QStringList fontFamilies = QFontDatabase::applicationFontFamilies(regularFont);
+    if(!fontFamilies.isEmpty())
+        m_monospaceFamily = fontFamilies.first();
     logging = false;
     logFile = new QFile("log.txt");
     if(logFile->open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -84,8 +92,8 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     updateCh1Label();
     updateCh2Label();
     ui->rescanButton->setDisabled(!ui->radioButton->isChecked());
-    QFont m_mmTabFont = QFont("Courier New", 50, QFont::DemiBold);
-    QFont m_mmTabFont2 = QFont("Courier New", 40, QFont::DemiBold);
+    QFont m_mmTabFont = QFont(m_monospaceFamily, 50, QFont::DemiBold);
+    QFont m_mmTabFont2 = QFont(m_monospaceFamily, 40, QFont::DemiBold);
 #ifdef Q_OS_WIN
     int dpiX = QPaintDevice::logicalDpiX();
     int dpiY = QPaintDevice::logicalDpiY();
@@ -553,7 +561,7 @@ void XprotolabInterface::setupTracers(QCustomPlot *customPlot) {
 }
 
 void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot) {
-    QFont m_monospaceFont = QFont("Courier New", 10, QFont::DemiBold);
+    QFont m_monospaceFont = QFont(m_monospaceFamily, 10, QFont::DemiBold);
 #ifdef Q_OS_MAC
     m_monospaceFont.setPixelSize(13);
 #endif
@@ -1499,13 +1507,22 @@ void XprotolabInterface::setFFTWindow(int type) {
 }
 
 void XprotolabInterface::sniffProtocol() {
-    if(usbDevice.dataLength < 1289)
+    // The payload length is the geometry: the XScopes streams 1289 bytes per
+    // cycle and the Watch 2569 (sniffer.h). Anything else is a scope frame or a
+    // read that started mid-cycle, which the firmware marks with a short packet.
+    const SnifferLayout layout = snifferLayout(usbDevice.dataLength);
+    if(!layout.isValid())
         return;
+    const int expected = usbDevice.snifferPayloadSize();
+    if(expected != 0 && layout.payloadSize != expected)
+        return;     // a mid-cycle tail that only looks like another family's cycle
+    const uint8_t *chData = usbDevice.chData;
     bool static toggleC = ui->checkBoxCircular->isChecked();
     bool static toggleA = ui->checkBoxASCII->isChecked();
     QString tempBuffer;
+    tempBuffer.reserve(usbDevice.dataLength);
     for(int s = 0; s < usbDevice.dataLength; s++)
-        tempBuffer.append(QChar(usbDevice.chData[s]));
+        tempBuffer.append(QChar(chData[s]));
     if(sniffBuffer == tempBuffer && toggleC == ui->checkBoxCircular->isChecked() && toggleA == ui->checkBoxASCII->isChecked()) {
         toggleC = ui->checkBoxCircular->isChecked();
         toggleA = ui->checkBoxASCII->isChecked();
@@ -1513,7 +1530,6 @@ void XprotolabInterface::sniffProtocol() {
     }
     toggleC = ui->checkBoxCircular->isChecked();
     toggleA = ui->checkBoxASCII->isChecked();
-    sniffLogic = (Sniffer *)usbDevice.chData;
     int j = 0;
     uint16_t i = 0, n = 0;
     ui->rxTextEdit->clear();
@@ -1524,30 +1540,30 @@ void XprotolabInterface::sniffProtocol() {
     byte data, addrData;
     QByteArray bdata;
     QString rxData, txData, i2cData;
+    const int half = layout.serialHalf;
+    const int i2cSize = layout.i2cSize;
     int protocol = ui->protocolTabWidget->currentIndex();
-    int max = 640;
+    int max = half;
     uint16_t indexrx = 0, indextx = 0;
-    indexrx = ((unsigned short)usbDevice.chData[1281]) * 256 + usbDevice.chData[1282];
-    indexrx = qFromBigEndian(indexrx);
-    indextx = ((unsigned short)usbDevice.chData[1283]) * 256 + usbDevice.chData[1284];
-    indextx = qFromBigEndian(indextx);
+    indexrx = layout.indrx(chData);
+    indextx = layout.indtx(chData);
     if(protocol == SPI || protocol == RS232) {
         if(ui->checkBoxCircular->isChecked()) {
             i = indexrx;
-            if(i >= 640)
-                i -= 640;
-            max = 640;
+            if(i >= half)
+                i -= half;
+            max = half;
         } else {
             max = indexrx;
-            if(max > 640)
-                max = 640;
+            if(max > half)
+                max = half;
         }
         for(n = i, j = 0; j < max; n++, j++) {
             if(ui->checkBoxCircular->isChecked()) {
-                if(n > 639)
+                if(n > half - 1)
                     n = 0;
             }
-            data = sniffLogic->data.serial.RX[n];
+            data = layout.rx(chData, n);
             if(ui->checkBoxASCII->isChecked()) {
                 if(data < 0x20)
                     rxData.append("_");    // Special character
@@ -1556,7 +1572,6 @@ void XprotolabInterface::sniffProtocol() {
                     eAscii = eAscii.fromLatin1(data);
                     rxData.append(eAscii);
                 }
-                rxData.append(" ");
             } else {
                 bdata.append(data);
                 rxData.append(bdata.toHex());
@@ -1572,20 +1587,20 @@ void XprotolabInterface::sniffProtocol() {
         i = 0;
         if(ui->checkBoxCircular->isChecked()) {
             i = indextx;
-            if(i >= 640)
-                i -= 640;
-            max = 640;
+            if(i >= half)
+                i -= half;
+            max = half;
         } else {
             max = indextx;
-            if(max > 640)
-                max = 640;
+            if(max > half)
+                max = half;
         }
         for(n = i, j = 0; j < max; n++, j++) {
             if(ui->checkBoxCircular->isChecked()) {
-                if(n > 639)
+                if(n > half - 1)
                     n = 0;
             }
-            data = sniffLogic->data.serial.TX[n];
+            data = layout.tx(chData, n);
             if(ui->checkBoxASCII->isChecked()) {
                 if(data < 0x20)
                     txData.append("_");    // Special character
@@ -1594,7 +1609,6 @@ void XprotolabInterface::sniffProtocol() {
                     eAscii = eAscii.fromLatin1(data);
                     txData.append(eAscii);
                 }
-                txData.append(" ");
             } else {
                 bdata.append(data);
                 txData.append(bdata.toHex());
@@ -1611,23 +1625,23 @@ void XprotolabInterface::sniffProtocol() {
         j = 0;
         if(ui->checkBoxCircular->isChecked()) {
             i = indexrx;
-            if(i >= 1024)
-                i -= 1024;
-            max = 1024;
+            if(i >= i2cSize)
+                i -= i2cSize;
+            max = i2cSize;
         } else {
             max = indexrx;
-            if(max > 1024)
-                max = 1024;
+            if(max > i2cSize)
+                max = i2cSize;
         }
         for(n = i; j < max; n++, j++) {
             if(ui->checkBoxCircular->isChecked()) {
-                if(n > 1023)
+                if(n > i2cSize - 1)
                     n = 0;
             }
             uint8_t shift, ack;
             shift = (n & 0x0003) * 2;
-            data = usbDevice.chData[n];
-            addrData = sniffLogic->data.i2c.addr_ack[n / 4];
+            data = layout.decoded(chData, n);
+            addrData = layout.addrAck(chData, n);
             ack = (addrData << (shift + 1)) & 0x80;
             addrData = (addrData << shift) & 0x80;
             if(addrData) {
@@ -1814,6 +1828,7 @@ void XprotolabInterface::readDeviceSettings() {
         return;
     double freq;
     byte data;
+    logToFile("Device code: " + QString::number(usbDevice.deviceCode));
     logToFile("Device Settings: ");
     // Sampling rate
     data = usbDevice.inBuffer[0];
@@ -2084,19 +2099,20 @@ void XprotolabInterface::readDeviceSettings() {
     data = usbDevice.inBuffer[10]; // param
     logToFile("GPIOA Sniffer Controls: " + QString::number(data));
     ui->comboBoxBaud->setCurrentIndex(data & 0x07);
-    if((data & (byte)(1 << 3)) != 0)
+    ui->spinBoxDataBits->setValue(((data & 0x18) >> 3) + 5);
+    if((data & (byte)(1 << 6)) != 0)
         ui->comboBoxCPOL->setCurrentIndex(1);
     else
         ui->comboBoxCPOL->setCurrentIndex(0);
-    if((data & (byte)(1 << 4)) != 0)
+    if((data & (byte)(1 << 7)) != 0)
         ui->comboBoxCPHA->setCurrentIndex(1);
     else
         ui->comboBoxCPHA->setCurrentIndex(0);
     if((data & (byte)(1 << 5)) != 0) {
         if((data & (byte)(1 << 6)) != 0)
-            ui->comboBoxParity->setCurrentIndex(1);
+            ui->comboBoxParity->setCurrentIndex(2);    // Odd: parmode and parity
         else
-            ui->comboBoxParity->setCurrentIndex(2);
+            ui->comboBoxParity->setCurrentIndex(1);    // Even: parmode only
     } else
         ui->comboBoxParity->setCurrentIndex(0);
     if((data & (byte)(1 << 7)) != 0)
@@ -3052,20 +3068,25 @@ void XprotolabInterface::on_checkBoxAccelDirection_clicked() {
 
 // GPIOA
 void XprotolabInterface::sendSnifferSettings() {
+    // One byte holds the settings of all three protocols (Source/main.h in the
+    // firmware): bits 0-2 the UART baud index, 3-4 the UART data bits - 5, and the
+    // top three are UART parity enable / odd parity / two stop bits, or for SPI
+    // /SS invert / CPOL / CPHA; a protocol only reads the bits it needs. The bits
+    // are set, not added: bit 7 means two stop bits for the UART and CPHA for SPI,
+    // so two controls can legitimately want the same bit.
     byte field;
     field = (byte)ui->comboBoxBaud->currentIndex();
+    field |= (byte)((ui->spinBoxDataBits->value() - 5) << 3);
     if(ui->comboBoxCPOL->currentIndex() == 1)
-        field += (1 << 3);
+        field |= (1 << 6);
     if(ui->comboBoxCPHA->currentIndex() == 1)
-        field += (1 << 4);
-    if(ui->comboBoxParity->currentIndex() == 1)
-        field += (1 << 5);
-    if(ui->comboBoxParity->currentIndex() == 2) {
-        field += (1 << 5);
-        field += (1 << 6);
-    }
+        field |= (1 << 7);
+    if(ui->comboBoxParity->currentIndex() >= 1)
+        field |= (1 << 5);
+    if(ui->comboBoxParity->currentIndex() == 2)
+        field |= (1 << 6);
     if(ui->comboBoxStopBits->currentIndex() == 1)
-        field += (1 << 7);
+        field |= (1 << 7);
     usbDevice.controlWriteTransfer(10, field);
 }
 
@@ -3090,6 +3111,10 @@ void XprotolabInterface::on_comboBoxStopBits_currentIndexChanged(int) {
 }
 
 void XprotolabInterface::on_comboBoxCPOL_currentIndexChanged(int) {
+    sendSnifferSettings();
+}
+
+void XprotolabInterface::on_spinBoxDataBits_valueChanged(int) {
     sendSnifferSettings();
 }
 

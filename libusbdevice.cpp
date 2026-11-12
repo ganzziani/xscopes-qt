@@ -20,6 +20,7 @@ LibUsbDevice::LibUsbDevice(QObject *parent) :
     isDeviceRemoved = false;
     hasHotPlugSupport = false;
     deviceFound = nullptr;
+    deviceCode = 0;
     connect(&serial, SIGNAL(newData(int)), this, SLOT(newDataAvailable(int)));
     connect(&serial, SIGNAL(clear()), this, SLOT(clearData()));
 }
@@ -34,6 +35,7 @@ void LibUsbDevice::reset() {
     dataAvailable = false;
     hasHotPlugSupport = false;
     deviceFound = nullptr;
+    deviceCode = 0;
 }
 
 void LibUsbDevice::clearData() {
@@ -175,6 +177,10 @@ void LibUsbDevice::openDevice(QString nameOfPort) {
             isDeviceConnected = false;
             return;
         }
+        // Same convention as the firmware's DEVICE_CODE: the low byte names the
+        // device, its high nibble the family (sniffer.h reads the payload size
+        // from it).
+        deviceCode = deviceDesc.bcdDevice & 0xFF;
         isDeviceConnected = true;
     } else {
         isDeviceConnected = serial.connectToPort(nameOfPort);

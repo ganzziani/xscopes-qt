@@ -11,6 +11,7 @@
 #endif
 #include "libusb.h"
 #include "libusbdeviceinfo.h"
+#include "sniffer.h"
 #include <QDebug>
 #include "serialportconnection.h"
 
@@ -56,6 +57,13 @@ public slots:
     void clearData();
 public:
     bool isDeviceConnected, isInitialiazed;
+    // bcdDevice low byte: DEVICE_CODE in the firmware's hardware.h, 0 when the
+    // serial port is in use or the descriptor was not read. The sniffer stream's
+    // geometry differs between the families (sniffer.h).
+    int deviceCode;
+    int snifferPayloadSize() const {
+        return snifferPayloadSizeForDeviceCode(deviceCode);
+    }
     QString cstatus;
     libusb_device **devs;
     libusb_device *deviceFound;

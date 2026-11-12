@@ -40,10 +40,11 @@ asked, on a branch, and leave their uncommitted work (e.g. probe settings in `Xp
   ```
 
   Use a build dir outside the repo, such as the session scratchpad. Never build in the source tree.
-- Runtime needs `libusb-1.0.dll` and `dfu-programmer.exe` next to the exe. The `.pro` copies both from `libs/win`
-  at build time (qmake `COPIES`). Run `windeployqt --release xscope.exe` for the Qt DLLs.
-- Firmware upgrade runs `dfu-programmer`, found next to the app or on PATH. Atmel DFU drivers are in
-  `xscopes-qt-mine/exe/dfu-drivers`.
+- Runtime needs `libusb-1.0.dll` next to the exe. The `.pro` copies it from `libs/win` at build time (qmake
+  `COPIES`). Run `windeployqt --release xscope.exe` for the Qt DLLs.
+- Firmware upgrade runs dfu-programmer **inside** the app (`third_party/dfu-programmer`, v1.1.0, see
+  `dfuprogrammerqt.cpp`); there is no external executable. Atmel DFU drivers (for PCs without the WinUSB
+  descriptors) are in `xscopes-qt-mine/exe/dfu-drivers`.
 - Needs Qt 6.8 or newer (`QStyleHints::setColorScheme`, used to keep the light palette the stylesheets expect).
 - Debug builds: Qt asserts show as dialogs. To find the caller, run under `cdb` with breakpoints on
   `Qt6Cored!qt_assert` / `Qt6Cored!qt_assert_x`, or add a temporary `qWarning()`.
@@ -54,12 +55,18 @@ asked, on a branch, and leave their uncommitted work (e.g. probe settings in `Xp
   `winusb.inf` by itself and the app connects. Older firmware needs Zadig (WinUSB) on Windows.
 - The same board is on a JTAGICE3 (serial J30200015670, PDI) for flashing. See the firmware's `AGENTS.md`;
   flash with `erase -ap` + `program -fl` to keep the EEPROM calibration.
-- No Oscilloscope Watch is connected.
+- An Oscilloscope Watch can take the same USB slot (it enumerates only in its oscilloscope mode, bcdDevice
+  0x0120). Its stream is 2569 bytes per sniffer cycle, the XScopes' 1289 - `sniffer.h` holds both.
+- The `Tester` jig (`D:\Projects\Tester`) sits between them: its PORTC bus is on the DUT's logic/sniffer pins, so
+  it can play UART/I2C/SPI traffic for the app's Protocol Sniffer tab. `python Tools/app_sniffer.py` there drives
+  the app through UI Automation and checks what it displayed (the app owns the DUT's USB, the jig's serial link
+  does not conflict). Do not leave that jig's own suite running while the app is connected: one WinUSB handle.
 
 ## Code notes
 
 - Main window: `xprotolabinterface.cpp/.h/.ui` (large). Device I/O: `libusbdevice.*`, `serialportconnection.*`.
-  Firmware: `bootloader.*`, `filedownloader.*`. Theme: `customtheme.*`, `*.qss`.
+  Firmware: `bootloader.*`, `dfuprogrammerqt.*`, `third_party/dfu-programmer/`, `filedownloader.*`.
+  Theme: `customtheme.*`, `*.qss`.
 - Plot markers (zero markers, cursor heads, trigger icons) are `MarkerPixmap` (`markerpixmap.h`): the pixmap's hotspot,
   not its top left corner, sits on the position. Give marker bitmaps an odd size so the hotspot is a center pixel.
 - `qcustomplot.*` (QCustomPlot 2.1.1) and `extserialport/` (QextSerialPort, minimally patched for Qt6) are vendored
@@ -78,6 +85,10 @@ asked, on a branch, and leave their uncommitted work (e.g. probe settings in `Xp
 - `GT-icon24.png`: window icon of the bootloader dialog and the message box in `xprotolabinterface.cpp`.
 - `GT-logo.png` (184x92): logo shown in the main window `.ui`.
 - `gt.icns`: macOS bundle icon (`ICON` in the `.pro`). Outdated design, to be regenerated (see TODO.md).
+- `LiberationMono-Regular.ttf` / `-Bold.ttf`: the monospace font the interface is laid out for, embedded in
+  the `.qrc` and registered in the `XprotolabInterface` constructor, which keeps the family name it reports
+  (`m_monospaceFamily`) for the meter readouts and plot labels. Metric compatible with Courier New, SIL OFL
+  1.1 (`licenses/OFL-1.1.txt`). It replaced the bundled Courier New, whose EULA forbids redistribution.
 
 ## Workflow
 
