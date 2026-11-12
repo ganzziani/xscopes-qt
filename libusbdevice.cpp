@@ -21,6 +21,7 @@ LibUsbDevice::LibUsbDevice(QObject *parent) :
     hasHotPlugSupport = false;
     deviceFound = nullptr;
     deviceCode = 0;
+    clearData();    // chData is read before the device has filled it
     connect(&serial, SIGNAL(newData(int)), this, SLOT(newDataAvailable(int)));
     connect(&serial, SIGNAL(clear()), this, SLOT(clearData()));
 }

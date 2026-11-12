@@ -1,5 +1,6 @@
 #include "xprotolabinterface.h"
 #include "ui_xprotolabinterface.h"
+#include <QActionGroup>
 #include <stdio.h>
 #include <string.h>
 
@@ -83,6 +84,13 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     connect(ui->plotterWidget, SIGNAL(mouseRelease(QMouseEvent *)), this, SLOT(deselectItem(QMouseEvent *)));
     connect(ui->plotterWidget, SIGNAL(itemDoubleClick(QCPAbstractItem *, QMouseEvent *)), this, SLOT(itemDoubleClick(QCPAbstractItem *, QMouseEvent *)));
     ui->plotterWidget->installEventFilter(this);  // Calls on_sizeChanged() after a resize
+    // The cursors are switched from the plot itself now (right click, see
+    // plotContextMenu()): the Options tab's "Cursors" group is the state behind
+    // that menu rather than a set of controls.
+    ui->plotterWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->plotterWidget, SIGNAL(customContextMenuRequested(const QPoint &)),
+            this, SLOT(plotContextMenu(const QPoint &)));
+    ui->groupBoxCursors->hide();
     QTimer::singleShot(0, this, SLOT(on_connectButton_clicked()));
     initializing = false;
     connect(&dataTimer, SIGNAL(timeout()), this, SLOT(plotData()));
@@ -648,6 +656,14 @@ void XprotolabInterface::plotData() {
         sniffProtocol();
         return;
     } else if(mode != OSCILLOSCOPE || usbDevice.dataLength > 770)
+        return;
+    // Only a whole USB frame may be drawn. The first transfer after connecting
+    // starts wherever the device is in its frame and ends with that frame's short
+    // packet, so it can carry a tail of 1..769 bytes, and the rest of the buffer
+    // holds whatever was there before - the flash of garbage at startup. (The
+    // serial port fills this same buffer progressively and reports 3 bytes per
+    // sample in roll mode, so it is not held to the frame length.)
+    if(usbDevice.wayOfConnecting && usbDevice.dataLength != 770)
         return;
     // Only a new device frame may age the persistence trail. Repaints caused by
     // mouse movement or UI changes reuse the last frame and must not add a copy.
@@ -1842,6 +1858,8 @@ void XprotolabInterface::readDeviceSettings() {
     data = usbDevice.inBuffer[1];
     logToFile("GPIO1 CH1 Option: " + QString::number(data));
     ui->checkBoxCH1Trace->setChecked(((data & (byte)(1 << 0)) != 0));
+    ui->checkBoxCH1Derivative->setChecked(((data & (byte)(1 << 2)) != 0));
+    ui->checkBoxCH1AC->setChecked(((data & (byte)(1 << 3)) != 0));
     ui->checkBoxCH1Invert->setChecked(((data & (byte)(1 << 4)) != 0));
     ui->checkBoxCH1Average->setChecked(((data & (byte)(1 << 5)) != 0));
     ui->checkBoxCH1Math->setChecked(((data & (byte)(1 << 6)) != 0));
@@ -1853,6 +1871,8 @@ void XprotolabInterface::readDeviceSettings() {
     data = usbDevice.inBuffer[2];
     logToFile("GPIO2 CH2 Option: " + QString::number(data));
     ui->checkBoxCH2Trace->setChecked((data & (byte)(1 << 0)) != 0);
+    ui->checkBoxCH2Derivative->setChecked((data & (byte)(1 << 2)) != 0);
+    ui->checkBoxCH2AC->setChecked((data & (byte)(1 << 3)) != 0);
     ui->checkBoxCH2Invert->setChecked((data & (byte)(1 << 4)) != 0);
     ui->checkBoxCH2Average->setChecked((data & (byte)(1 << 5)) != 0);
     ui->checkBoxCH2Math->setChecked((data & (byte)(1 << 6)) != 0);
@@ -2100,6 +2120,7 @@ void XprotolabInterface::readDeviceSettings() {
     logToFile("GPIOA Sniffer Controls: " + QString::number(data));
     ui->comboBoxBaud->setCurrentIndex(data & 0x07);
     ui->spinBoxDataBits->setValue(((data & 0x18) >> 3) + 5);
+    ui->checkBoxInvertSS->setChecked((data & (byte)(1 << 5)) != 0);   // SPI /SS invert
     if((data & (byte)(1 << 6)) != 0)
         ui->comboBoxCPOL->setCurrentIndex(1);
     else
@@ -2469,9 +2490,15 @@ void XprotolabInterface::on_saveAWGButton_clicked() {
 }
 
 void XprotolabInterface::sendCH1Controls() {
+    // GPIO1, the CH1 option byte (main.h): bit 0 channel on, 1 x10 probe, 2
+    // derivative, 3 AC coupling, 4 invert, 5 average, 6 math, 7 multiply.
     byte field = 0;
     if(ui->checkBoxCH1Trace->isChecked())
         field += (1 << 0);
+    if(ui->checkBoxCH1Derivative->isChecked())
+        field += (1 << 2);
+    if(ui->checkBoxCH1AC->isChecked())
+        field += (1 << 3);
     if(ui->checkBoxCH1Invert->isChecked())
         field += (1 << 4);
     if(ui->checkBoxCH1Average->isChecked())
@@ -2501,6 +2528,14 @@ void XprotolabInterface::on_checkBoxCH1Average_clicked() {
     sendCH1Controls();
 }
 
+void XprotolabInterface::on_checkBoxCH1Derivative_clicked() {
+    sendCH1Controls();
+}
+
+void XprotolabInterface::on_checkBoxCH1AC_clicked() {
+    sendCH1Controls();
+}
+
 void XprotolabInterface::on_checkBoxCH1Math_clicked() {
     sendCH1Controls();
     updateCh1Label();
@@ -2517,9 +2552,14 @@ void XprotolabInterface::on_radioButtonCH1Multiply_clicked() {
 }
 
 void XprotolabInterface::sendCH2Controls() {
+    // GPIO2, the CH2 option byte, bit for bit like CH1's.
     byte field = 0;
     if(ui->checkBoxCH2Trace->isChecked())
         field += (1 << 0);
+    if(ui->checkBoxCH2Derivative->isChecked())
+        field += (1 << 2);
+    if(ui->checkBoxCH2AC->isChecked())
+        field += (1 << 3);
     if(ui->checkBoxCH2Invert->isChecked())
         field += (1 << 4);
     if(ui->checkBoxCH2Average->isChecked())
@@ -2546,6 +2586,14 @@ void XprotolabInterface::on_checkBoxCH2Trace_clicked() {
 }
 
 void XprotolabInterface::on_checkBoxCH2Average_clicked() {
+    sendCH2Controls();
+}
+
+void XprotolabInterface::on_checkBoxCH2Derivative_clicked() {
+    sendCH2Controls();
+}
+
+void XprotolabInterface::on_checkBoxCH2AC_clicked() {
     sendCH2Controls();
 }
 
@@ -3081,6 +3129,8 @@ void XprotolabInterface::sendSnifferSettings() {
         field |= (1 << 6);
     if(ui->comboBoxCPHA->currentIndex() == 1)
         field |= (1 << 7);
+    if(ui->checkBoxInvertSS->isChecked())
+        field |= (1 << 5);          // SPI: /SS invert (the UART's parity enable)
     if(ui->comboBoxParity->currentIndex() >= 1)
         field |= (1 << 5);
     if(ui->comboBoxParity->currentIndex() == 2)
@@ -3115,6 +3165,10 @@ void XprotolabInterface::on_comboBoxCPOL_currentIndexChanged(int) {
 }
 
 void XprotolabInterface::on_spinBoxDataBits_valueChanged(int) {
+    sendSnifferSettings();
+}
+
+void XprotolabInterface::on_checkBoxInvertSS_clicked() {
     sendSnifferSettings();
 }
 
@@ -3745,6 +3799,64 @@ void XprotolabInterface::on_pushTakeBMP_clicked() {
     setInfoText();
 }
 
+void XprotolabInterface::plotContextMenu(const QPoint &pos) {
+    // Right clicking the plot offers what the device's cursor byte holds: the
+    // horizontal cursor (none, or on CH1 or CH2), the pair of vertical cursors,
+    // and where the horizontal one goes (automatic, or following the trace at the
+    // vertical cursor). The menu drives the same widgets the device settings are
+    // read into, so the two never disagree.
+    QMenu menu(this);
+    QActionGroup *horizontal = new QActionGroup(&menu);
+    QAction *off = menu.addAction(tr("No horizontal cursor"));
+    QAction *ch1 = menu.addAction(tr("Horizontal cursor on CH1"));
+    QAction *ch2 = menu.addAction(tr("Horizontal cursor on CH2"));
+    for(QAction *a : {off, ch1, ch2}) {
+        a->setCheckable(true);
+        horizontal->addAction(a);
+    }
+    // The device has only the two channel bits: neither set means no cursor, which
+    // is also the state at startup, before any of the three radios is checked.
+    off->setChecked(!ui->radioButtonCursorCH1->isChecked() &&
+                    !ui->radioButtonCursorCH2->isChecked());
+    ch1->setChecked(ui->radioButtonCursorCH1->isChecked());
+    ch2->setChecked(ui->radioButtonCursorCH2->isChecked());
+    menu.addSeparator();
+    QAction *vertical = menu.addAction(tr("Vertical cursors"));
+    vertical->setCheckable(true);
+    vertical->setChecked(ui->checkBoxCursorVertical->isChecked());
+    menu.addSeparator();
+    QAction *automatic = menu.addAction(tr("Place the horizontal cursor automatically"));
+    automatic->setCheckable(true);
+    automatic->setChecked(ui->checkBoxCursorAuto->isChecked());
+    QAction *follow = menu.addAction(tr("Follow the signal at the vertical cursor"));
+    follow->setCheckable(true);
+    follow->setChecked(ui->checkBoxCursorTrack->isChecked());
+
+    QAction *chosen = menu.exec(ui->plotterWidget->mapToGlobal(pos));
+    if(chosen == nullptr)
+        return;
+    if(chosen == off) {
+        ui->radioButtonCursorNone->setChecked(true);
+        on_radioButtonCursorNone_clicked();
+    } else if(chosen == ch1) {
+        ui->radioButtonCursorCH1->setChecked(true);
+        on_radioButtonCursorCH1_clicked();
+    } else if(chosen == ch2) {
+        ui->radioButtonCursorCH2->setChecked(true);
+        on_radioButtonCursorCH2_clicked();
+    } else if(chosen == vertical) {
+        ui->checkBoxCursorVertical->setChecked(!ui->checkBoxCursorVertical->isChecked());
+        on_checkBoxCursorVertical_clicked();
+    } else if(chosen == automatic) {
+        ui->checkBoxCursorAuto->setChecked(!ui->checkBoxCursorAuto->isChecked());
+        on_checkBoxCursorAuto_clicked();
+    } else if(chosen == follow) {
+        ui->checkBoxCursorTrack->setChecked(!ui->checkBoxCursorTrack->isChecked());
+        on_checkBoxCursorTrack_clicked();
+    }
+    m_repaint = true;
+}
+
 void XprotolabInterface::displayBmpContextMenu(const QPoint &pos) {
     if(displayBmp.isEmpty())
         return;
@@ -4154,6 +4266,7 @@ void XprotolabInterface::enableSnifferControls(bool value) {
     ui->comboBoxParity->setEnabled(value);
     ui->comboBoxCPHA->setEnabled(value);
     ui->comboBoxCPOL->setEnabled(value);
+    ui->checkBoxInvertSS->setEnabled(value);
     ui->modeGroupBox->setEnabled(value);
 }
 
