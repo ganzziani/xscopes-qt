@@ -30,3 +30,6 @@ CMakeLists.txt.user*
 
 # Runtime logs
 log.txt
+
+# Qt Designer autosave
+*.autosave

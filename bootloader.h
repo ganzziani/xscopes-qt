@@ -2,8 +2,8 @@
 #define BOOTLOADER_H
 
 #include <QDialog>
-#include <QProcess>
 #include <QTemporaryDir>
+#include "dfuprogrammerqt.h"
 #include "filedownloader.h"
 
 namespace Ui {
@@ -38,17 +38,17 @@ private slots:
     void on_checkPreserveEE_toggled(bool checked);
     void on_pushReadFlash_clicked();
     void on_pushReadEE_clicked();
-    void ProcessDone(int exit_val);
+    void DfuFinished(int result);          // dfu-programmer finished
+    void Log(const QString &text);         // one line in the dialog's log, also fed by dfu->log
     QString SelectFile(bool LoadHEX);
-    void ShowProcessError(QProcess::ProcessError error);
     void ShowDownloadError(QNetworkReply::NetworkError error);
 private:
     // Starts dfu-programmer, false if one is already running
     bool RunDfu(const QString &what, const QStringList &args);
-    void Log(const QString &text);
+    // Saves a read-back, reports the result, runs the Do-Everything chain
+    void OperationDone(int result, const QByteArray &standardOutput);
     bool doEverything;
-    QProcess *myProcess;
-    QString program;
+    DfuProgrammer *dfu;
     QString workingDir;             // Working Directory for HEX/EEP files and read-backs
     QStringList arguments;
     FileDownloader *HEXDownloader;

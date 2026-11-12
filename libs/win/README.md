@@ -6,3 +6,10 @@
   The GPG signature was verified against Tormod Volden's key (C681 8737 9B23 DE9E FC46 651E 2C80 FF56 C683 0A0E).
 - The matching header is `libusb.h` in the repo root.
 - License: LGPL-2.1. It is dynamically linked, so `libusb-1.0.dll` must ship next to the exe.
+
+## dfu-programmer
+
+No longer shipped here: the programmer is linked into the application from
+[`third_party/dfu-programmer/`](../../third_party/dfu-programmer) (upstream v1.1.0), so there is no
+external executable to deploy. `libusb-1.0.dll` above is what it uses, exactly like the scope
+connection.

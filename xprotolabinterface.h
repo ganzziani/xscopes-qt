@@ -275,6 +275,7 @@ private slots:
     void on_radioButtonSniffNormal_clicked();
     void on_radioButtonSniffSingle_clicked();
     void on_comboBoxBaud_currentIndexChanged(int index);
+    void on_spinBoxDataBits_valueChanged(int value);
     void on_comboBoxParity_currentIndexChanged(int index);
     void on_comboBoxStopBits_currentIndexChanged(int index);
     void on_comboBoxCPOL_currentIndexChanged(int index);
@@ -372,9 +373,9 @@ private slots:
 private:
     Ui::XprotolabInterface *ui;
     int m_mainTimerDelay;
+    QString m_monospaceFamily;      // family of the bundled font, see the constructor
     QTimer dataTimer;
     LibUsbDevice usbDevice;
-    Sniffer *sniffLogic;
     bool isScrolling;
     QString filePath;
     static const int rangeMax = 512;
