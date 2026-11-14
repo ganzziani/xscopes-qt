@@ -687,30 +687,26 @@
                             <property name="title">
                              <string>Math</string>
                             </property>
-                            <layout class="QVBoxLayout" name="verticalLayout_4">
+                            <layout class="QHBoxLayout" name="horizontalLayout_24">
                              <item>
-                              <layout class="QHBoxLayout" name="horizontalLayout_5">
-                               <item>
-                                <widget class="QRadioButton" name="radioButtonCH1Sub">
-                                 <property name="toolTip">
-                                  <string>The channel trace will be replaced with CH1-CH2</string>
-                                 </property>
-                                 <property name="text">
-                                  <string>Sub</string>
-                                 </property>
-                                </widget>
-                               </item>
-                               <item>
-                                <widget class="QRadioButton" name="radioButtonCH1Multiply">
-                                 <property name="toolTip">
-                                  <string>The channel trace will be replaced with CH1xCH2</string>
-                                 </property>
-                                 <property name="text">
-                                  <string>Multiply</string>
-                                 </property>
-                                </widget>
-                               </item>
-                              </layout>
+                              <widget class="QRadioButton" name="radioButtonCH1Sub">
+                               <property name="toolTip">
+                                <string>The channel trace will be replaced with CH1-CH2</string>
+                               </property>
+                               <property name="text">
+                                <string>Sub</string>
+                               </property>
+                              </widget>
+                             </item>
+                             <item>
+                              <widget class="QRadioButton" name="radioButtonCH1Multiply">
+                               <property name="toolTip">
+                                <string>The channel trace will be replaced with CH1xCH2</string>
+                               </property>
+                               <property name="text">
+                                <string>Multiply</string>
+                               </property>
+                              </widget>
                              </item>
                             </layout>
                            </widget>
@@ -3214,6 +3210,20 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_45">
               <item>
+               <widget class="QRadioButton" name="radioButton0_1">
+                <property name="text">
+                 <string>0.1</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="radioButton1">
+                <property name="text">
+                 <string>1</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QRadioButton" name="radioButton10">
                 <property name="text">
                  <string>10</string>
@@ -3298,10 +3308,13 @@
                 <item>
                  <widget class="QDoubleSpinBox" name="doubleSpinBoxDesiredFreq">
                   <property name="minimum">
-                   <double>1.000000000000000</double>
+                   <double>0.010000000000000</double>
                   </property>
                   <property name="maximum">
                    <double>200000.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.010000000000000</double>
                   </property>
                   <property name="value">
                    <double>1000.000000000000000</double>
@@ -4421,7 +4434,7 @@ Frequency</string>
         <attribute name="title">
          <string>Options</string>
         </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_81" stretch="0,0,0,0,0">
+        <layout class="QVBoxLayout" name="verticalLayout_81" stretch="0,0,0,0">
          <item>
           <widget class="QGroupBox" name="groupBox_10">
            <property name="title">
@@ -4972,7 +4985,7 @@ Frequency</string>
            </layout>
           </widget>
          </item>
-                  <item>
+         <item>
           <widget class="QGroupBox" name="groupBox_12">
            <property name="title">
             <string>Connection</string>

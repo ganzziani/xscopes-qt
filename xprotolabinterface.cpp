@@ -2326,8 +2326,8 @@ void XprotolabInterface::readDeviceSettings() {
     ui->ch1Label->setText("CH1 = " + gains[ui->ch1GainSlider->value()].display + "/div");
     ui->ch2Label->setText("CH2 = " + gains[ui->ch2GainSlider->value()].display + "/div");
     ui->timeLabel->setText("Time = " + (rateText[ui->samplingSlider->value()]));
-    if(freq < 1)
-        freq = 1;
+    if(freq < 0.01)
+        freq = 0.01;
     if(freq > 100000)
         freq = 100000;
     ui->doubleSpinBoxDesiredFreq->setValue(freq);
@@ -2343,9 +2343,15 @@ void XprotolabInterface::readDeviceSettings() {
     } else if(freq >= 10) {
         ui->radioButton100->setChecked(true);
         ui->frequencySlider->setValue((int)freq);
+    } else if(freq >= 1) {
+        ui->radioButton10->setChecked(true);
+        ui->frequencySlider->setValue(qRound(freq * 10));
+    } else if(freq >= 0.1) {
+        ui->radioButton1->setChecked(true);
+        ui->frequencySlider->setValue(qRound(freq * 100));
     } else {
-        ui->radioButton100K->setChecked(true);
-        ui->frequencySlider->setValue((int)freq * 10);
+        ui->radioButton0_1->setChecked(true);
+        ui->frequencySlider->setValue(qRound(freq * 1000));
     }
     ch1ZeroPos = rangeMax / 2 + ui->ch1PositionSlider->value();
     ch2ZeroPos = rangeMax / 2 + ui->ch2PositionSlider->value();
@@ -3545,12 +3551,19 @@ void XprotolabInterface::on_offsetSlider_valueChanged(int value) {
 void XprotolabInterface::on_doubleSpinBoxDesiredFreq_valueChanged(double value) {
     if(ui->doubleSpinBoxDesiredFreq->hasFocus())
         return;
+    sendDesiredFrequency(value);
+}
+
+// Requested in 0.01 Hz steps; the firmware plays down to 0.01 Hz (c = 1).
+void XprotolabInterface::sendDesiredFrequency(double value) {
     byte i, cycles;
     qint64 fLevel = 1600000;
     qint64 period;
     qint64 desiredFreq;
     double actualFreq;
-    desiredFreq = (int)(value * 100);
+    desiredFreq = qRound64(value * 100);
+    if(desiredFreq < 1)
+        desiredFreq = 1;
     // Find Period and number of cycles depending on the desired frequency
     for(i = 0, cycles = 64; i < 6; i++) {
         if(desiredFreq > fLevel)
@@ -3575,8 +3588,12 @@ void XprotolabInterface::on_doubleSpinBoxDesiredFreq_valueChanged(double value) 
 void XprotolabInterface::updateFrequency() {
     float f;
     f = ui->frequencySlider->value();
-    if(ui->radioButton10->isChecked())
-        ui->doubleSpinBoxDesiredFreq->setValue(f / 10);
+    if(ui->radioButton0_1->isChecked())
+        ui->doubleSpinBoxDesiredFreq->setValue(f / 1000.0);
+    else if(ui->radioButton1->isChecked())
+        ui->doubleSpinBoxDesiredFreq->setValue(f / 100.0);
+    else if(ui->radioButton10->isChecked())
+        ui->doubleSpinBoxDesiredFreq->setValue(f / 10.0);
     else if(ui->radioButton100->isChecked())
         ui->doubleSpinBoxDesiredFreq->setValue(f);
     else if(ui->radioButton1K->isChecked())
@@ -3588,6 +3605,14 @@ void XprotolabInterface::updateFrequency() {
 }
 
 void XprotolabInterface::on_frequencySlider_valueChanged(int) {
+    updateFrequency();
+}
+
+void XprotolabInterface::on_radioButton0_1_clicked() {
+    updateFrequency();
+}
+
+void XprotolabInterface::on_radioButton1_clicked() {
     updateFrequency();
 }
 
@@ -4326,32 +4351,7 @@ void XprotolabInterface::on_radioButton_2_clicked() {
 void XprotolabInterface::on_doubleSpinBoxDesiredFreq_editingFinished() {
     if(!ui->doubleSpinBoxDesiredFreq->hasFocus())
         return;
-    double value = ui->doubleSpinBoxDesiredFreq->value();
-    byte i, cycles;
-    qint64 fLevel = 1600000;
-    qint64 period;
-    qint64 desiredFreq;
-    double actualFreq;
-    desiredFreq = (int)(value * 100);
-    // Find Period and number of cycles depending on the desired frequency
-    for(i = 0, cycles = 64; i < 6; i++) {
-        if(desiredFreq > fLevel)
-            break;
-        fLevel = (int)(fLevel >> 1);
-        cycles = (byte)(cycles >> 1);
-    }
-    period = (int)(((6250000 * cycles) / desiredFreq) - 1);
-    if(period < 31)
-        period = 31;
-    actualFreq = (double)(cycles * 50 * (125000000L / (period + 1))) / 100000;
-    if(desiredFreq < 100000)
-        ui->labelHertz->setText("Hz");
-    else {
-        actualFreq = actualFreq / 1000;
-        ui->labelHertz->setText("kHz");
-    }
-    ui->actualFreqText->setText(QString::number(actualFreq));//.ToString("##.000");
-    usbDevice.controlReadTransfer('c', (uint16_t)(desiredFreq >> 16), (uint16_t)(desiredFreq & 0x0000FFFF));
+    sendDesiredFrequency(ui->doubleSpinBoxDesiredFreq->value());
 }
 
 void XprotolabInterface::updateTriggerPos() {
