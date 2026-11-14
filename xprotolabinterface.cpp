@@ -16,18 +16,16 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     QStringList fontFamilies = QFontDatabase::applicationFontFamilies(regularFont);
     if(!fontFamilies.isEmpty())
         m_monospaceFamily = fontFamilies.first();
-    logging = false;
     logFile = new QFile("log.txt");
     if(logFile->open(QIODevice::WriteOnly | QIODevice::Text)) {
         ts = new QTextStream(logFile);
     }
-    loggingCounter = 0;
-    logsToSave = "";
-    lastFrame = 0;
     recordingWaves = false;
     recordWaveFile = new QFile();
     loadRecordedWave = false;
     m_repaint = false;
+    m_shownFrame = -1;
+    m_shownIndex = -1;
     ui->setupUi(this);
     m_prevTabIndex = 0;
     ui->mainTabWidget->setCurrentIndex(0);
@@ -156,7 +154,6 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
 
 XprotolabInterface::~XprotolabInterface() {
     if(logFile->isOpen()) {
-        logToFile(logsToSave);
         logFile->close();
         delete logFile;
         delete ts;
@@ -666,9 +663,33 @@ void XprotolabInterface::plotData() {
     // sample in roll mode, so it is not held to the frame length.)
     if(usbDevice.wayOfConnecting && usbDevice.dataLength != 770)
         return;
-    // Only a new device frame may age the persistence trail. Repaints caused by
-    // mouse movement or UI changes reuse the last frame and must not add a copy.
-    const bool newFrame = usbDevice.dataAvailable;
+    // The device streams its buffer at its own pace even when it acquired nothing new:
+    // on a slow timebase the same 770 bytes arrive ~50 times a second (measured on the
+    // Watch at 20ms/div and above: ~50 transfers/s, 1..5 new frame numbers/s). Repainting
+    // those identical frames is what makes the display sluggish there, because one
+    // repaint costs a few ms at the slow rates - more than the whole frame at a fast
+    // one. So a repaint needs either new data - the frame counter moved, or the write
+    // index did (roll mode and the progressive fill of a slow sweep) - or a request from
+    // the UI (m_repaint).
+    const int frame = usbDevice.chData[768];
+    const int writeIndex = usbDevice.chData[769];
+    // Only a payload with new samples may age the persistence trail or be recorded.
+    // Repaints caused by mouse movement or UI changes reuse the last one and must not.
+    const bool newFrame = frame != m_shownFrame;        // a whole new frame
+    const bool newSamples = newFrame || writeIndex != m_shownIndex;
+    if(usbDevice.wayOfConnecting && !m_repaint) {
+        if(!newSamples) {
+            usbDevice.dataAvailable = false;    // identical payload, nothing to draw
+            return;
+        }
+        // New firmware streams up to ~750 frames/s in roll mode and the plot is only
+        // 128 pixels wide, so cap what one second of frames may cost.
+        if(m_repaintClock.isValid() && m_repaintClock.elapsed() < kMinRepaintIntervalMs)
+            return;         // dataAvailable stays set: the 4 ms timer retries
+    }
+    m_shownFrame = frame;
+    m_shownIndex = writeIndex;
+    m_repaintClock.start();
     QVector<double> key;
     double ch1, ch2, minV = 0, maxV = 0, aTrack, bTrack;
     vppMinCh1 = 0, vppMaxCh1 = 0, vppMinCh2 = 0, vppMaxCh2 = 0;
@@ -815,7 +836,7 @@ ENDSCAN:
     }
     // CRT persistence: write this frame once into a ring of ghost graphs. They age
     // by one slot per frame and get dimmer pens (see applyPersistenceStyle()).
-    if(newFrame && !ui->checkBoxPersistence->isChecked() && !ui->xyMode->isChecked() &&
+    if(newSamples && !ui->checkBoxPersistence->isChecked() && !ui->xyMode->isChecked() &&
             ui->intensitySlider->value() > 0) {
         persistenceIndex = (persistenceIndex + 1) % TG;
         ch1PGraphs[persistenceIndex]->setData(key, ch1Buffer);
@@ -879,33 +900,18 @@ ENDSCAN:
         saveWavetoFile();
     }
     QString tmp_wave;
-    int currentFrame = QString::number(usbDevice.chData[768]).toInt();
-    if(lastFrame != currentFrame) {
-        lastFrame = currentFrame;
-        if(logging || recordingWaves) {
-            ch1SaveBuffer.clear();
-            ch1SaveBuffer = ch1Buffer;
-            ch2SaveBuffer.clear();
-            ch2SaveBuffer = ch2Buffer;
-            for(int k = 0; k < 8; k++) {
-                bitSaveBuffer[k].clear();
-                bitSaveBuffer[k] = bit[k];
-            }
-            tmp_wave = saveWavetoString();
+    if(newFrame && recordingWaves) {
+        ch1SaveBuffer.clear();
+        ch1SaveBuffer = ch1Buffer;
+        ch2SaveBuffer.clear();
+        ch2SaveBuffer = ch2Buffer;
+        for(int k = 0; k < 8; k++) {
+            bitSaveBuffer[k].clear();
+            bitSaveBuffer[k] = bit[k];
         }
-        if(logging) {
-            logsToSave += tmp_wave;
-            loggingCounter++;
-            if(loggingCounter == 200) {
-                logToFile(logsToSave);
-                loggingCounter = 0;
-                logsToSave = "";
-            }
-        }
-        if(recordingWaves) {
-            dataToSave += QString::number(ui->samplingSlider->value()) + "<*>\n";
-            dataToSave += tmp_wave;
-        }
+        tmp_wave = saveWavetoString();
+        dataToSave += QString::number(ui->samplingSlider->value()) + "<*>\n";
+        dataToSave += tmp_wave;
     }
     if(ui->refCH1->isChecked() && !ch1RefBuffer.isEmpty()) {
         for(int k = 0; k < ch1RefBuffer.size(); k++) {
@@ -1037,7 +1043,7 @@ ENDSCAN:
     applyPersistenceStyle();
     const bool persistenceOn = ui->checkBoxPersistence->isChecked() && !ui->xyMode->isChecked();
     if(persistenceOn) {
-        if(newFrame)
+        if(newSamples)
             drawPersistenceFrame(key, ch1Buffer, ch2Buffer, bit);
         persistenceItem->setVisible(true);
     } else {
@@ -1829,6 +1835,9 @@ void XprotolabInterface::disconnectDevice(bool mode) {
         usbDevice.serial.clearPort();
     }
     usbDevice.reset();
+    // The next device starts with its own frame counter: draw its first frame
+    m_shownFrame = -1;
+    m_shownIndex = -1;
     ui->connectButton->setText("Connect");
     ui->connectLabel->setText(tr("Not Connected"));
     this->setWindowTitle("Gabotronics Xscope Interface - Not Connected");
@@ -2317,10 +2326,6 @@ void XprotolabInterface::readDeviceSettings() {
     ui->ch1Label->setText("CH1 = " + gains[ui->ch1GainSlider->value()].display + "/div");
     ui->ch2Label->setText("CH2 = " + gains[ui->ch2GainSlider->value()].display + "/div");
     ui->timeLabel->setText("Time = " + (rateText[ui->samplingSlider->value()]));
-    if(ui->samplingSlider->value() >= 11)
-        logging = true;
-    else
-        logging = false;
     if(freq < 1)
         freq = 1;
     if(freq > 100000)

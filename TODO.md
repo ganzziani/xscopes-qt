@@ -91,8 +91,25 @@ they are placed. The device reports each cursor relative to its channel's zero, 
       0-255 inverted level with plot coordinates. Check in Window trigger mode.
 - [ ] Tune the CRT decay retention (0.35..0.78) and the copy count (21) if the trail looks too short or long.
 - [ ] Optional: widen the Options-tab info label or enable word wrap (long messages clip).
-- [ ] Optional: render throttle in roll mode (device sends ~750 frames/s, the app draws ~120) and `reserve()` in
-      `plotData()`.
+
+### 3a. Redraw pacing: the sluggishness at slow sample rates (done 2026-11-14)
+The device streams its buffer at its own pace even when it acquired nothing new. Measured with libusb on the
+Watch at 20ms/div and slower: ~57 transfers/s of the same 770-byte payload, with only 1..5 new frame numbers/s
+(50s/div: 57 transfers/s, ~1 new frame/s). `plotData()` repainted every one of those transfers, and a slow-rate
+repaint costs 3.6..5 ms (256 samples per channel plus the 8 CHD bits) against ~1 ms on a fast timebase, so the GUI
+thread spent ~25 % of a core - and the debug build, ~5x slower, was saturated: that is the sluggishness. The app
+cannot slow the device down (it is a push stream), so `plotData()` now repaints only when the payload changed -
+`chData[768]` (frame counter) or `chData[769]` (write index, which roll mode and the progressive fill of a slow
+sweep advance) - or when the UI asked for it via `m_repaint`, and device frames are capped at
+`kMinRepaintIntervalMs` (30 ms; newer firmware streams ~750 frames/s in roll mode into a 128-pixel-wide plot).
+Measured after the change: 1..2 repaints/s at 50s/div (the trace still grows one sample per repaint), ~30/s at
+50ms/div, and 30/s at 8µs/div (was 57). Debug build at 50s/div: 7 % of a core instead of saturated.
+The hidden `logging` that `readDeviceSettings()` switched on for 11+ (20ms/div and slower) is gone as well: it
+appended every frame to `log.txt` (10 MB in 15 s, 6 MB in the old debug build's copy) and had no UI to turn it
+off. `log.txt` still gets the settings dump when the app connects.
+- [ ] Verify on an Xprotolab and in roll mode: the plot must still scroll/fill, and the persistence trail and the
+      record button (both now age per payload with new samples rather than per USB transfer) must behave.
+- [ ] Optional: `reserve()` the `plotData()` QVectors.
 
 ## 4. Robustness / threading
 The flash of garbage on the first frame after launch is gone: `chData` is cleared when `LibUsbDevice` is created,
