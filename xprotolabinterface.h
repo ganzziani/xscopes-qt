@@ -33,6 +33,7 @@
 #include <QtEndian>
 #include <QInputDialog>
 #include <QSettings>
+#include <QElapsedTimer>
 #include "customtheme.h"
 #include "bootloader.h"
 #include "qcustomplot.h"
@@ -453,12 +454,8 @@ private:
     int initPosScroll, lastTriggerSource;
     bool bitTriggerSource;
 
-    bool logging;
     QFile *logFile;
     QTextStream *ts;
-    int loggingCounter;
-    QString logsToSave;
-    int lastFrame;
 
     bool recordingWaves;
     QFile *recordWaveFile;
@@ -469,6 +466,12 @@ private:
     bool loadRecordedWave;
     int freqBeforeLoaded;
     bool m_repaint;
+    // Frame throttle: what the plot shows, and when it last repainted a device
+    // frame. Only a payload that changed these bytes is worth a repaint.
+    int m_shownFrame;       // chData[768], the device's frame counter
+    int m_shownIndex;       // chData[769], the write index (roll mode advances it)
+    static const int kMinRepaintIntervalMs = 30;
+    QElapsedTimer m_repaintClock;
 
     int m_prevTabIndex;
     QTimer m_mmTimer;
