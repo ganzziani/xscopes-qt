@@ -178,6 +178,7 @@ private:
     void sendMStatusControls();
     void sendMStatusControlsForMM();
     void updateFrequency();
+    void sendDesiredFrequency(double value);
     void updatePersistencePens();
     void applyPersistenceStyle();
     void clearPersistenceHistory();
@@ -316,6 +317,8 @@ private slots:
     void on_offsetSlider_valueChanged(int value);
     void on_doubleSpinBoxDesiredFreq_valueChanged(double arg1);
     void on_frequencySlider_valueChanged(int value);
+    void on_radioButton0_1_clicked();
+    void on_radioButton1_clicked();
     void on_radioButton10_clicked();
     void on_radioButton100_clicked();
     void on_radioButton1K_clicked();

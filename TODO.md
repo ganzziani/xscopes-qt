@@ -127,12 +127,21 @@ because the app sets `m_repaint` in `readDeviceSettings()` while the first trans
 ## 5. AWG frequency: show and set what the device really plays
 The firmware truncates the timer period (firmware CR-027, left as is), so the output is at or above the request:
 +1.01 % at 44 kHz, and a 125.17375 kHz request plays 129.03 kHz (+3.08 %).
+
+The Frequency Range buttons now reach the 0.01 Hz minimum the firmware plays: `radioButton0_1` is the
+0.01..0.1 Hz decade (slider / 1000) and `radioButton1` the 0.1..1 Hz one (slider / 100); the desired-frequency
+spin box accepts 0.01 Hz in 0.01 steps, and `readDeviceSettings()` selects both from the device's read-back (the
+old `else` picked 100K for anything under 10 Hz). Verified on the Watch 2026-11-14: 0.01 Hz set in the app
+survives an app restart (read-back 0.01), and 0.1 / 0.55 / 0.05 / 5 Hz round-trip through the UI. The requested
+value is now rounded to 0.01 Hz (`qRound64`) and floored at `c = 1` instead of truncating, so the 0.01 Hz request
+cannot become 0 and divide by zero.
 - [ ] Make `actualFreq` mirror `BuildWave()` (`Source/awg.c`). For a request `c` in 0.01 Hz: limit it byte by byte
       (byte 3 = 0, byte 2 <= `0xBE`, 0 becomes 1); `cycles` = 32, halved while `cycles > 1` and
       `(c >> 16) < 0x18 >> k`; prescaler 256 when `c < 256`, else 1;
       `PER = (12500000 * cycles) / (c * prescaler) - 1`, truncated; realized
-      f = `cycles * 32 MHz / (256 * prescaler * (PER + 1))`. Both `on_doubleSpinBoxDesiredFreq_valueChanged()`
-      call sites still use an older model (16000 Hz thresholds, no prescaler path, period clamped at 31).
+      f = `cycles * 32 MHz / (256 * prescaler * (PER + 1))`. `sendDesiredFrequency()` - shared by
+      `on_doubleSpinBoxDesiredFreq_valueChanged()` and `editingFinished()` since 2026-11-14 - still uses an older
+      model (16000 Hz thresholds, no prescaler path, period clamped at 31).
 - [ ] Optional: send the request that lands nearest the user's target (worst error drops from 3.08 % to ~0.5 %).
 - [ ] Limit the control to what the device can play (125.17 kHz request, 129.03 kHz realized).
 
