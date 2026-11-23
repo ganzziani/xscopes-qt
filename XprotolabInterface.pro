@@ -122,15 +122,4 @@ DISTFILES += \
     third_party/dfu-programmer/AUTHORS \
     third_party/dfu-programmer/PATCHES.md
 
-# Release packaging: the Windows installer script, its artwork and what it ships
-OTHER_FILES += \
-    packaging/README.md \
-    packaging/windows/installer.nsi \
-    packaging/windows/build-installer.bat \
-    packaging/windows/qt-third-party.py \
-    packaging/windows/make-art.ps1 \
-    packaging/windows/ReadMe.txt \
-    packaging/windows/header.bmp \
-    packaging/windows/welcome.bmp
-
 include(extserialport/qextserialport.pri)

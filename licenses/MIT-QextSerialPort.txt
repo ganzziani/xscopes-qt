@@ -32,5 +32,5 @@ SOFTWARE.
 --------------------------------------------------------------------------------
 This is the same notice as the header block of every file in extserialport/,
 collected here so a binary distribution can ship it as one file. The only
-local change to QextSerialPort is the Qt6 compatibility patch described in
-CLAUDE.md (QRegExp -> QRegularExpression, qSort -> std::sort).
+local change to QextSerialPort is the Qt6 compatibility patch (QRegExp ->
+QRegularExpression, qSort -> std::sort).

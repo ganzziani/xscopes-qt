@@ -27,14 +27,6 @@ The executable needs `libusb-1.0.dll` next to it on Windows; `windeployqt` colle
 dependencies. The application version lives in one place, `VERSION` in
 [XprotolabInterface.pro](XprotolabInterface.pro).
 
-Installers
-----------
-
-Windows: `packaging\windows\build-installer.bat` builds the release binary, stages it with
-`windeployqt` and packs an NSIS installer (`/user` gives a per-user install with no admin
-rights). The rest — what it installs, what is still missing, and the macOS and Linux routes —
-is in [packaging/README.md](packaging/README.md).
-
 Third-party software
 --------------------
 
