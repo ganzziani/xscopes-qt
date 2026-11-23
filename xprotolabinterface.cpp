@@ -4,6 +4,17 @@
 #include <stdio.h>
 #include <string.h>
 
+// Channel positions (M 29 / M 30): the range the position sliders used to have.
+static const int kChPositionMin = -128;
+static const int kChPositionMax = 127;
+// CHD position (M 31): 8 steps, each one moving the eight bit traces by 50 plot
+// units. plotData() draws bit 0's low level at 10 + position * 50, so the marker
+// that drags the group sits at kChdPositionBase + position * kChdPositionStep.
+static const int kChdPositionMin = 0;
+static const int kChdPositionMax = 7;
+static const int kChdPositionBase = 20;
+static const int kChdPositionStep = 50;
+
 XprotolabInterface::XprotolabInterface(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::XprotolabInterface) {
@@ -47,8 +58,6 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
 #endif
     file_tab.open(QFile::ReadOnly);
     QString tabStyleSheet = QLatin1String(file_tab.readAll());
-    ui->tabWidget1->setStyleSheet(tabStyleSheet);
-    ui->mainTabWidget->setStyleSheet(tabStyleSheet);
     file_tab.close();
     ui->labelHertz->setStyleSheet("QLabel{font-size: 32px};");
     ui->connectLabel->setStyleSheet("QLabel{font-size: 12px};");
@@ -60,6 +69,9 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     hCursorBPos = 100;
     // readDeviceSettings() replots before it reads these from the device
     ch1ZeroPos = ch2ZeroPos = rangeMax / 2;
+    m_ch1Position = m_ch2Position = 0;
+    m_chdPosition = 3;      // the old sliders' default
+    chdZeroPos = kChdPositionBase + m_chdPosition * kChdPositionStep;
     hCursorAPosCh1 = hCursorAPosCh2 = hCursorAPos;
     hCursorBPosCh1 = hCursorBPosCh2 = hCursorBPos;
     vCursorAPos = 50;
@@ -76,6 +88,10 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     m_cursorVertical = m_cursorAuto = m_cursorTrack = false;
     mode = OSCILLOSCOPE;
     lastTriggerSource = 0;
+    m_meterSrate = 0;
+    m_meterCh1Gain = m_meterCh2Gain = -1;   // unknown until 'u' has been read
+    m_meterLastF1 = m_meterLastF2 = m_meterLastSrate = -1;
+    m_meterStableSamples = 0;
     connect(&customThemeDialog, SIGNAL(applyCustomTheme(int, CustomColors *)), this, SLOT(setTheme(int, CustomColors *)));
     setupValues();
     setupGrid(ui->plotterWidget);
@@ -518,6 +534,16 @@ void XprotolabInterface::setupCursors(QCustomPlot *customPlot) {
     ch2Zero->point2->setPixelPosition(QPointF(10, hCursorBPos));
     ch2Zero->point1->setType(QCPItemPosition::ptAbsolute);
     ch2Zero->point2->setType(QCPItemPosition::ptAbsolute);
+    // CHD position: the digital group has no zero line, only this head, which drags
+    // the eight bit traces up and down (bit 0's level is its reference).
+    chdZeroHead = new MarkerPixmap(customPlot);
+    chdZeroHead->setPixmap(QPixmap(":/Bitmaps/Bitmaps/chand-zero.png"));
+    // Odd height, so the middle row is the tip
+    chdZeroHead->setHotspot(QPoint(0, chdZeroHead->pixmap().height() / 2));
+    chdZeroHead->topLeft->setType(QCPItemPosition::ptAbsolute);
+    chdZeroHead->topLeft->setPixelPosition(QPointF(2, chdZeroPos));
+    chdZeroHead->setVisible(false);
+    chdZeroHead->setClipToAxisRect(false);
     triggerPixmap = new MarkerPixmap(customPlot);
     triggerPixmap->setPixmap(QPixmap(":/Bitmaps/Bitmaps/dualr.png"));
     triggerPixmap->setHotspot(QPoint(8, 7));
@@ -655,6 +681,13 @@ void XprotolabInterface::plotData() {
         return;
     } else if(mode != OSCILLOSCOPE || usbDevice.dataLength > 770)
         return;
+    // Meter mode pauses the stream and grays the plot out (enterMeterMode()). The
+    // frame that was in flight when it paused, or a UI repaint request, is dropped.
+    if(ui->mainTabWidget->currentIndex() == 1) {
+        usbDevice.dataAvailable = false;
+        m_repaint = false;
+        return;
+    }
     // Only a whole USB frame may be drawn. The first transfer after connecting
     // starts wherever the device is in its frame and ends with that frame's short
     // packet, so it can carry a tail of 1..769 bytes, and the rest of the buffer
@@ -718,10 +751,8 @@ void XprotolabInterface::plotData() {
         } else {
             key.push_back(xtime);
         }
-        ch1 = rangeMax - ((rangeMax / 8 + ui->ch1PositionSlider->minimum() - ui->ch1PositionSlider->value()) + (double)usbDevice.chData[i]) * 2;
-        ch2 = rangeMax - ((rangeMax / 8 + ui->ch2PositionSlider->minimum() - ui->ch2PositionSlider->value()) + (double)usbDevice.chData[i + 256]) * 2;
-        ch1 = ui->ch1PositionSlider->value() + (255 - (int)usbDevice.chData[i]) * 2;
-        ch2 = ui->ch2PositionSlider->value() + (255 - (int)usbDevice.chData[i + 256]) * 2;
+        ch1 = m_ch1Position + (255 - (int)usbDevice.chData[i]) * 2;
+        ch2 = m_ch2Position + (255 - (int)usbDevice.chData[i + 256]) * 2;
         ch1Buffer.push_back(ch1);
         ch2Buffer.push_back(ch2);
         if(isCursorOnCh1()) {
@@ -766,24 +797,23 @@ void XprotolabInterface::plotData() {
         int pos;
         for(int m = 0; m < 8; m++) {
             byte data = usbDevice.chData[i + 512];
+            const int chdOffset = 20 + (m * 20) + m_chdPosition * kChdPositionStep;
             if((data & (byte)(1 << m)) != 0) {
-                pos = 20 + (m * 20) + ui->chdPositionSlider->value() * 50 + ui->chdSizeSlider->value();
+                pos = chdOffset + ui->chdSizeSlider->value();
                 bit[m].push_back(pos);
                 textLabelBit[m]->position->setCoords(246, pos - 5);
                 if(m + 2 == ui->comboBoxTrigSource->currentIndex() && ui->checkBoxCHDTrace->isChecked())
                     moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost - ui->horizontalScrollBar->value()) * 2), ui->plotterWidget->yAxis->coordToPixel(pos)));
             } else {
-                pos = 10 + (m * 20) + ui->chdPositionSlider->value() * 50 - ui->chdSizeSlider->value();
-                bit[m].push_back(10 + (m * 20) + ui->chdPositionSlider->value() * 50);
-                pos = 20 + (m * 20) + ui->chdPositionSlider->value() * 50 + ui->chdSizeSlider->value();
+                pos = chdOffset - 10 - ui->chdSizeSlider->value();
+                bit[m].push_back(chdOffset - 10);
+                pos = chdOffset + ui->chdSizeSlider->value();
                 textLabelBit[m]->position->setCoords(246, pos - 5);
                 if(m + 2 == ui->comboBoxTrigSource->currentIndex() && ui->checkBoxCHDTrace->isChecked())
                     moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost - ui->horizontalScrollBar->value()) * 2), ui->plotterWidget->yAxis->coordToPixel(pos)));
             }
         }
     }
-    if(ui->mainTabWidget->currentIndex() == 1)
-        mm_request();
     if(isCursorOnCh1()) {
         samples = 255;
         p = usbDevice.chData + i;
@@ -913,26 +943,15 @@ ENDSCAN:
         dataToSave += QString::number(ui->samplingSlider->value()) + "<*>\n";
         dataToSave += tmp_wave;
     }
-    if(ui->refCH1->isChecked() && !ch1RefBuffer.isEmpty()) {
-        for(int k = 0; k < ch1RefBuffer.size(); k++) {
-            ch1RefBuff.push_back(ch1RefBuffer[k] + ui->ch1CaptureSlider->value());
-        }
-    }
-    if(ui->refCH2->isChecked() && !ch2RefBuffer.isEmpty()) {
-        for(int k = 0; k < ch2RefBuffer.size(); k++) {
-            ch2RefBuff.push_back(ch2RefBuffer[k] + ui->ch2CaptureSlider->value());
-        }
-    }
+    // The reference traces are drawn where they were captured; the capture
+    // sliders that used to offset them are gone, so there is nothing to add.
+    if(ui->refCH1->isChecked() && !ch1RefBuffer.isEmpty())
+        ch1RefBuff = ch1RefBuffer;
+    if(ui->refCH2->isChecked() && !ch2RefBuffer.isEmpty())
+        ch2RefBuff = ch2RefBuffer;
     if(ui->refLogic->isChecked()) {
-        for(int k = 0; k < 8; k++) {
-            if(bitRef[k].isEmpty()) {
-                continue;
-            } else {
-                for(int m = 0; m < bitRef[k].size(); m++) {
-                    bitRefBuff[k].push_back(bitRef[k].at(m) + ui->chdCaptureSlider->value());
-                }
-            }
-        }
+        for(int k = 0; k < 8; k++)
+            bitRefBuff[k] = bitRef[k];
     }
     if(ui->xyMode->isChecked()) {
         ch1Graph->data()->clear();
@@ -1166,9 +1185,10 @@ ENDSCAN:
     }
     ch1ZeroHead->topLeft->setPixelPosition(QPointF(2, ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
     ch2ZeroHead->topLeft->setPixelPosition(QPointF(2, ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
+    chdZeroPos = kChdPositionBase + m_chdPosition * kChdPositionStep;
+    chdZeroHead->topLeft->setPixelPosition(QPointF(2, ui->plotterWidget->yAxis->coordToPixel(chdZeroPos)));
     //ui->plotterWidget->m_infinity = ui->checkBoxPersistence->isChecked();
-    if(ui->mainTabWidget->currentIndex() != 1)
-        ui->plotterWidget->replot(QCustomPlot::rpRefreshHint);
+    ui->plotterWidget->replot(QCustomPlot::rpRefreshHint);
     usbDevice.dataAvailable = false;
     m_repaint = false;
 }
@@ -1177,9 +1197,9 @@ void XprotolabInterface::moveCursor(QMouseEvent *event) {
     int curPos;
     int offset;
     if(ui->comboBoxTrigSource->currentIndex() == 0)
-        offset = ui->ch1PositionSlider->value();
+        offset = m_ch1Position;
     else
-        offset = ui->ch2PositionSlider->value();
+        offset = m_ch2Position;
     if(event->type() == QMouseEvent::MouseMove) {
         if(event->buttons() & Qt::LeftButton & (currentSelected != isNone)) {
             if(currentSelected == isHCursorAHead) {
@@ -1274,7 +1294,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event) {
                     curPos = ui->plotterWidget->yAxis->coordToPixel(maxp);
                 ch1ZeroHead->topLeft->setPixelPosition(QPointF(2, curPos));
                 value = ui->plotterWidget->yAxis->pixelToCoord(curPos);
-                ui->ch1PositionSlider->setValue(mapRange(value, maxp, minp, 128, -128) * -1);
+                setCh1Position(mapRange(value, maxp, minp, kChPositionMax, kChPositionMin) * -1);
             } else if(currentSelected == isCH2Zero) {
                 int value, maxp, minp;
                 maxp = rangeMax * 3 / 4;
@@ -1286,7 +1306,11 @@ void XprotolabInterface::moveCursor(QMouseEvent *event) {
                     curPos = ui->plotterWidget->yAxis->coordToPixel(maxp);
                 ch2ZeroHead->topLeft->setPixelPosition(QPointF(2, curPos));
                 value = ui->plotterWidget->yAxis->pixelToCoord(curPos);
-                ui->ch2PositionSlider->setValue(mapRange(value, maxp, minp, 128, -128) * -1);
+                setCh2Position(mapRange(value, maxp, minp, kChPositionMax, kChPositionMin) * -1);
+            } else if(currentSelected == isCHDZero) {
+                // The CHD position is 8 discrete steps, so snap to the nearest one
+                const int chdValue = ui->plotterWidget->yAxis->pixelToCoord(event->position().toPoint().y());
+                setChdPosition(qRound((chdValue - kChdPositionBase) / (double)kChdPositionStep));
             } else if(currentSelected == isTriggerPixmap) {
                 triggerLevel = 511 - ui->plotterWidget->yAxis->pixelToCoord(event->position().toPoint().y());
                 triggerLevel += offset;
@@ -1401,6 +1425,23 @@ void XprotolabInterface::moveWinTrigger(double curPosX, double curPosY1, double 
 void XprotolabInterface::selectItem(QMouseEvent *event) {
     if(!(event->buttons() & Qt::LeftButton))
         return;
+    // The three zero markers form a column on the left edge and can overlap, so take
+    // the nearest one within the hit radius instead of the first one in a list.
+    MarkerPixmap *zeroHead = nullptr;
+    Selected zeroId = isNone;
+    double nearestZero = 8.0;
+    MarkerPixmap *zeroHeads[] = { ch1ZeroHead, ch2ZeroHead, chdZeroHead };
+    const Selected zeroIds[] = { isCH1Zero, isCH2Zero, isCHDZero };
+    for(int k = 0; k < 3; k++) {
+        if(!zeroHeads[k]->visible())
+            continue;
+        const double distance = zeroHeads[k]->selectTest(event->pos(), false);
+        if(distance >= 0 && distance < nearestZero) {
+            nearestZero = distance;
+            zeroHead = zeroHeads[k];
+            zeroId = zeroIds[k];
+        }
+    }
     if(hCursorAHead->selectTest(event->pos(), false) >= 0 && hCursorAHead->selectTest(event->pos(), false) < 8.0) {
         currentSelected = isHCursorAHead;
         hCursorAHead->setPen(QPen(QColor("#1692e5")));
@@ -1413,12 +1454,9 @@ void XprotolabInterface::selectItem(QMouseEvent *event) {
     } else if(vCursorBHead->selectTest(event->pos(), false) >= 0 && vCursorBHead->selectTest(event->pos(), false) < 8.0) {
         currentSelected = isVCursorBHead;
         vCursorBHead->setPen(QPen(QColor("#e04e4e")));
-    } else if(ch1ZeroHead->selectTest(event->pos(), false) >= 0 && ch1ZeroHead->selectTest(event->pos(), false) < 8.0) {
-        currentSelected = isCH1Zero;
-        ch1ZeroHead->setPen(QPen(QColor("#f9a94c")));
-    } else if(ch2ZeroHead->selectTest(event->pos(), false) >= 0 && ch2ZeroHead->selectTest(event->pos(), false) < 8.0) {
-        currentSelected = isCH2Zero;
-        ch2ZeroHead->setPen(QPen(QColor("#f9a94c")));
+    } else if(zeroHead) {
+        currentSelected = zeroId;
+        zeroHead->setPen(QPen(QColor("#f9a94c")));
     } else if(triggerPixmap->selectTest(event->pos(), false) >= 0 && triggerPixmap->selectTest(event->pos(), false) < 8.0) {
         currentSelected = isTriggerPixmap;
         if(ui->comboBoxTrigSource->currentIndex() == 0)
@@ -1452,6 +1490,7 @@ void XprotolabInterface::deselectItem(QMouseEvent *) {
     triggerWin2Pixmap->setPen(QPen(Qt::NoPen));
     ch1ZeroHead->setPen(QPen(Qt::NoPen));
     ch2ZeroHead->setPen(QPen(Qt::NoPen));
+    chdZeroHead->setPen(QPen(Qt::NoPen));
 }
 
 void XprotolabInterface::setTriggerLevelPosition(QPointF pos, int type) {
@@ -1807,6 +1846,8 @@ void XprotolabInterface::on_connectButton_clicked() {
             ui->rescanButton->setDisabled(true);
             ui->connectIcon->setPixmap(QPixmap(":/Bitmaps/Bitmaps/led-on.png"));
             setInfoText();
+            if(ui->mainTabWidget->currentIndex() == 1)
+                enterMeterMode();   // connected with the Meter tab already shown
         } else {
             // Nothing to talk to: release the libusb context and re-enable the UI
             disconnectDevice();
@@ -1838,6 +1879,10 @@ void XprotolabInterface::disconnectDevice(bool mode) {
     // The next device starts with its own frame counter: draw its first frame
     m_shownFrame = -1;
     m_shownIndex = -1;
+    m_meterCh1Gain = m_meterCh2Gain = -1;
+    m_meterLastF1 = m_meterLastF2 = m_meterLastSrate = -1;
+    m_meterStableSamples = 0;
+    m_meterContextClock.invalidate();
     ui->connectButton->setText("Connect");
     ui->connectLabel->setText(tr("Not Connected"));
     this->setWindowTitle("Gabotronics Xscope Interface - Not Connected");
@@ -1896,6 +1941,7 @@ void XprotolabInterface::readDeviceSettings() {
     data = usbDevice.inBuffer[3]; // option
     logToFile("GPIO3 CHD Option: " + QString::number(data));
     ui->checkBoxCHDTrace->setChecked((data & (byte)(1 << 0)) != 0);
+    showHideCHDZeroIndicator();
     if((data & (byte)(1 << 1)) != 0) {
         if((data & (byte)(1 << 2)) != 0) {
             ui->chdPullSlider->setValue(2);
@@ -2063,10 +2109,6 @@ void XprotolabInterface::readDeviceSettings() {
     }
     ui->checkBoxLogY->setChecked((data & (byte)(1 << 3)) != 0);
     ui->checkBoxIQFFT->setChecked((data & (byte)(1 << 4)) != 0);
-    if(ui->checkBoxIQFFT->isChecked())
-        ui->groupBoxPlot->setEnabled(false);
-    else
-        ui->groupBoxPlot->setEnabled(true);
     ui->xyMode->setChecked((data & (byte)(1 << 6)) != 0);
     ui->checkBoxFFTTrace->setChecked((data & (byte)(1 << 7)) != 0);
     if(((data & (byte)(1 << 5)) == 0) && ((data & (byte)(1 << 6)) == 0) && ((data & (byte)(1 << 7)) == 0)) {
@@ -2242,23 +2284,23 @@ void XprotolabInterface::readDeviceSettings() {
     logToFile("M 28 Trigger Timeout: " + QString::number(data));
     ui->doubleSpinBoxTrigAuto->setValue(((double)data + 1) * 0.04096);
     // M 29 Channel 1 position
-    data = (byte)(ui->ch1PositionSlider->minimum() - (char)usbDevice.inBuffer[29]);
+    // M.CH1pos is an int8_t; the app's position is the inverse of the mapping
+    // setCh1Position() writes (device = -(position + 128) / 2).
+    data = (byte)(kChPositionMin - (char)usbDevice.inBuffer[29]);
     logToFile("M 29 Channel 1 position: " + QString::number(data));
-    ui->ch1PositionSlider->setValue(mapRange((char)data, 0, ZERO_POS, ZERO_POS, -ZERO_POS) * -1);
-    ui->ch1PositionSlider->setSliderPosition(mapRange((char)data, 0, -ZERO_POS, ZERO_POS, -ZERO_POS) * -1);
+    setCh1Position(mapRange((char)data, 0, -ZERO_POS, ZERO_POS, -ZERO_POS) * -1);
     // M 30 Channel 2 position
-    data = (byte)(ui->ch2PositionSlider->minimum() - (char)usbDevice.inBuffer[30]);
+    data = (byte)(kChPositionMin - (char)usbDevice.inBuffer[30]);
     logToFile("M 30 Channel 2 position: " + QString::number(data));
-    ui->ch2PositionSlider->setValue(mapRange((char)data, 0, ZERO_POS, ZERO_POS, -ZERO_POS) * -1);
-    ui->ch2PositionSlider->setSliderPosition(mapRange((char)data, 0, -ZERO_POS, ZERO_POS, -ZERO_POS) * -1);
+    setCh2Position(mapRange((char)data, 0, -ZERO_POS, ZERO_POS, -ZERO_POS) * -1);
     // The cursor positions above are read before the channel positions, so the
     // heads are placed once both are known.
     updateCursorVisibility();
     // M 31 Channel D position
-    data = (byte)(ui->chdPositionSlider->maximum() - (usbDevice.inBuffer[31] / 8));
+    data = (byte)(kChdPositionMax - (usbDevice.inBuffer[31] / 8));
     logToFile("M 31 Channel D position: " + QString::number(data));
-    if((char)data >= ui->chdPositionSlider->minimum() && (char)data <= ui->chdPositionSlider->maximum())
-        ui->chdPositionSlider->setValue((char)data);
+    if((char)data >= kChdPositionMin && (char)data <= kChdPositionMax)
+        setChdPosition((char)data);
     // M 32 Decode Protocol
     data = usbDevice.inBuffer[32]; // decode
     logToFile("M 32 Decode Protocol: " + QString::number(data));
@@ -2353,15 +2395,15 @@ void XprotolabInterface::readDeviceSettings() {
         ui->radioButton0_1->setChecked(true);
         ui->frequencySlider->setValue(qRound(freq * 1000));
     }
-    ch1ZeroPos = rangeMax / 2 + ui->ch1PositionSlider->value();
-    ch2ZeroPos = rangeMax / 2 + ui->ch2PositionSlider->value();
+    ch1ZeroPos = rangeMax / 2 + m_ch1Position;
+    ch2ZeroPos = rangeMax / 2 + m_ch2Position;
     int value = 0, hpos;
     triggerPost = 256 - triggerPost;
     hpos = triggerPost * 2 - (ui->horizontalScrollBar->value() * 2);
     if(ui->comboBoxTrigSource->currentIndex() == 0) {
-        value = ui->ch1PositionSlider->value();
+        value = m_ch1Position;
     } else if(ui->comboBoxTrigSource->currentIndex() == 1) {
-        value = ui->ch2PositionSlider->value();
+        value = m_ch2Position;
     } else
         bitTriggerSource = true;
     initPosScroll = ui->horizontalScrollBar->value();
@@ -2596,6 +2638,7 @@ void XprotolabInterface::sendCHDControls() {
 
 void XprotolabInterface::on_checkBoxCHDTrace_clicked() {
     sendCHDControls();
+    showHideCHDZeroIndicator();
 }
 
 void XprotolabInterface::on_checkBoxCHDInvert_clicked() {
@@ -2951,9 +2994,7 @@ void XprotolabInterface::sendMFFTControls() {
         field += (1 << 3);
     if(ui->checkBoxIQFFT->isChecked()) {
         field += (1 << 4);
-        ui->groupBoxPlot->setEnabled(false);
-    } else
-        ui->groupBoxPlot->setEnabled(true);
+    }
     if(ui->xyMode->isChecked())
         field += (1 << 6);       // XY Mode
     else
@@ -2975,9 +3016,7 @@ void XprotolabInterface::prepareMFFTControlsForMM() {
         field += (1 << 3);
     if(ui->checkBoxIQFFT->isChecked()) {
         field += (1 << 4);
-        ui->groupBoxPlot->setEnabled(false);
-    } else
-        ui->groupBoxPlot->setEnabled(true);
+    }
     usbDevice.controlWriteTransfer(8, field);
 }
 
@@ -3160,10 +3199,12 @@ void XprotolabInterface::sendMStatusControls() {
 
 void XprotolabInterface::sendMStatusControlsForMM() {
     byte field = 1; // Set the update bit
+    // MStatus.vp_p and MStatus.vdc were swapped here: the VPP tab asked for VDC
+    // and the VDC tab for VPP, so each showed the other quantity.
     if(ui->mmTabWidget->currentIndex() == 0)
-        field += (1 << 6);
+        field += (1 << 7);       // VPP
     else if(ui->mmTabWidget->currentIndex() == 1)
-        field += (1 << 7);
+        field += (1 << 6);       // VDC
     else if(ui->radioPulse->isChecked())
         field += (1 << 6) + (1 << 7);
     usbDevice.controlWriteTransfer(11, field);
@@ -3218,9 +3259,9 @@ void XprotolabInterface::on_horizontalScrollBar_valueChanged(int position) {
     int value = 0;
     if(ui->samplingSlider->value() < 11) {
         if(ui->comboBoxTrigSource->currentIndex() == 0)
-            value = - ui->ch1PositionSlider->value();
+            value = - m_ch1Position;
         else if(ui->comboBoxTrigSource->currentIndex() == 1)
-            value = - ui->ch2PositionSlider->value();
+            value = - m_ch2Position;
         moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost - position) * 2), ui->plotterWidget->yAxis->coordToPixel(512 - 2 * triggerLevel - value))) ;
         moveWinTrigger(ui->plotterWidget->xAxis->coordToPixel((triggerPost - position) * 2), ui->plotterWidget->yAxis->coordToPixel(triggerWin1Level - value), ui->plotterWidget->yAxis->coordToPixel(512 - 2 * triggerWin2Level - value)) ;
     }
@@ -3282,9 +3323,9 @@ void XprotolabInterface::setTriggerPost() {
 void XprotolabInterface::on_comboBoxTrigSource_currentIndexChanged(int index) {
     int offset = 0;
     if(ui->comboBoxTrigSource->currentIndex() == 0)
-        offset = ui->ch1PositionSlider->value();
+        offset = m_ch1Position;
     else if(ui->comboBoxTrigSource->currentIndex() == 1)
-        offset = ui->ch2PositionSlider->value();
+        offset = m_ch2Position;
     usbDevice.controlWriteTransfer(24, (byte)(index));
     if(index == 0 && bitTriggerSource) {
         bitTriggerSource = false;
@@ -3342,10 +3383,20 @@ void XprotolabInterface::on_doubleSpinBoxTrigAuto_valueChanged(double value) {
     usbDevice.controlWriteTransfer(28, data);
 }
 
-// M 29 Channel 1 position
-void XprotolabInterface::on_ch1PositionSlider_valueChanged(int value) {
+// M 29 Channel 1 position. The zero marker in the plot is the only control: it
+// calls this, and everything that hangs off the zero follows.
+void XprotolabInterface::setCh1Position(int value) {
+    if(value < kChPositionMin)
+        value = kChPositionMin;
+    else if(value > kChPositionMax)
+        value = kChPositionMax;
+    // A drag calls this on every mouse move; write to the device only when the
+    // position really changed (the slider's valueChanged worked the same way).
+    if(value == m_ch1Position)
+        return;
+    m_ch1Position = value;
     usbDevice.controlWriteTransfer(29, mapRange(value, 128, -128, 0, -128));
-    ch1ZeroPos = rangeMax / 2 + ui->ch1PositionSlider->value();
+    ch1ZeroPos = rangeMax / 2 + value;
     updateCursorVisibility();   // the cursors are placed relative to the new zero
     initPosScroll = ui->horizontalScrollBar->value();
     ch1ZeroHead->topLeft->setPixelPosition(QPointF(2, ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
@@ -3356,9 +3407,16 @@ void XprotolabInterface::on_ch1PositionSlider_valueChanged(int value) {
 }
 
 // M 30 Channel 2 position
-void XprotolabInterface::on_ch2PositionSlider_valueChanged(int value) {
+void XprotolabInterface::setCh2Position(int value) {
+    if(value < kChPositionMin)
+        value = kChPositionMin;
+    else if(value > kChPositionMax)
+        value = kChPositionMax;
+    if(value == m_ch2Position)
+        return;
+    m_ch2Position = value;
     usbDevice.controlWriteTransfer(30, mapRange(value, 128, -128, 0, -128));
-    ch2ZeroPos = rangeMax / 2 + ui->ch2PositionSlider->value();
+    ch2ZeroPos = rangeMax / 2 + value;
     updateCursorVisibility();   // the cursors are placed relative to the new zero
     initPosScroll = ui->horizontalScrollBar->value();
     ch2ZeroHead->topLeft->setPixelPosition(QPointF(2, ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
@@ -3368,8 +3426,16 @@ void XprotolabInterface::on_ch2PositionSlider_valueChanged(int value) {
     m_repaint = true;
 }
 
-// M 31 Channel position
-void XprotolabInterface::on_chdPositionSlider_valueChanged(int value) {
+// M 31 Channel position. The CHD zero marker in the plot calls this; 0..7 are the
+// eight vertical steps of the logic group.
+void XprotolabInterface::setChdPosition(int value) {
+    if(value < kChdPositionMin)
+        value = kChdPositionMin;
+    else if(value > kChdPositionMax)
+        value = kChdPositionMax;
+    if(value == m_chdPosition)
+        return;
+    m_chdPosition = value;
     byte count, temp, chPos;
     count = 0; // CHD Mask
     if(ui->checkBoxCHD0->isChecked())
@@ -3389,7 +3455,7 @@ void XprotolabInterface::on_chdPositionSlider_valueChanged(int value) {
     if(ui->checkBoxCHD7->isChecked())
         count++;
     // Count CHD enabled pins
-    chPos = (byte)((ui->chdPositionSlider->maximum() - value) * 8);
+    chPos = (byte)((kChdPositionMax - value) * 8);
     temp = (byte)((8 - count) * 8);    // Max position
     if(chPos > temp)
         chPos = temp;
@@ -3398,6 +3464,9 @@ void XprotolabInterface::on_chdPositionSlider_valueChanged(int value) {
     if((ui->comboBoxTrigSource->currentIndex() > 1 || ui->comboBoxTrigSource->currentIndex() < 10) && !initializing) {
         moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost - ui->horizontalScrollBar->value()) * 2), ui->plotterWidget->yAxis->coordToPixel(triggerLevel)));
     }
+    chdZeroPos = kChdPositionBase + m_chdPosition * kChdPositionStep;
+    chdZeroHead->topLeft->setPixelPosition(QPointF(2, ui->plotterWidget->yAxis->coordToPixel(chdZeroPos)));
+    m_repaint = true;
 }
 
 void XprotolabInterface::updateSweepCursors() {
@@ -4357,9 +4426,9 @@ void XprotolabInterface::on_doubleSpinBoxDesiredFreq_editingFinished() {
 void XprotolabInterface::updateTriggerPos() {
     int value = 0;
     if(ui->comboBoxTrigSource->currentIndex() == 0)
-        value = ui->ch1PositionSlider->value();
+        value = m_ch1Position;
     else if(ui->comboBoxTrigSource->currentIndex() == 1)
-        value = ui->ch2PositionSlider->value();
+        value = m_ch2Position;
     if(!initializing) {
         if(ui->comboBoxTrigSource->currentIndex() == 0) {
             if(!ui->checkBoxCH1Invert->isChecked()) {
@@ -4499,6 +4568,10 @@ void XprotolabInterface::showHideCH2ZeroVerticalIndicator() {
     }
 }
 
+void XprotolabInterface::showHideCHDZeroIndicator() {
+    chdZeroHead->setVisible(ui->checkBoxCHDTrace->isChecked());
+}
+
 void XprotolabInterface::on_sizeChanged() {
     int max_width = ui->plotterWidget->width();
     int max_height = ui->plotterWidget->height();
@@ -4513,31 +4586,72 @@ void XprotolabInterface::on_sizeChanged() {
 }
 
 void XprotolabInterface::on_mainTabWidget_currentChanged(int index) {
-    if(m_prevTabIndex != 1 && index == 1) {
-        plotData();
-        if(!usbDevice.isDeviceConnected)
-            return;
-        checkFCRadioButtons(ui->comboBoxTrigSource->currentIndex());
-        prepareMFFTControlsForMM();
-        sendMStatusControlsForMM();
-        if(ui->mmTabWidget->currentIndex() == 2) {
-            sendTSource();
-            m_mmTimer.start(1000);
-        } else if(ui->mmTabWidget->currentIndex() == 0) {
-            m_mmTimer.start(250);
-        }
-        clearMMLabels();
-    }
-    if(m_prevTabIndex == 1 && index != 1) {
-        if(!usbDevice.isDeviceConnected)
-            return;
-        sendMFFTControls();
-        m_mmTimer.stop();
-        restoreUiSettings();
-        dataTimer.setInterval(m_mainTimerDelay);
-        usbDevice.turnOnAutoMode();
-    }
+    const bool wasMeter = (m_prevTabIndex == 1);
     m_prevTabIndex = index;
+    if(!wasMeter && index == 1)
+        enterMeterMode();
+    else if(wasMeter && index != 1)
+        leaveMeterMode();
+}
+
+// Meter mode reads only the 'm' measurements: the scope stream is paused and the
+// plot, which would only show a stale frame, is grayed out and takes no input.
+void XprotolabInterface::enterMeterMode() {
+    setPlotGrayed(true);
+    if(!usbDevice.isDeviceConnected)
+        return;
+    usbDevice.pauseStream();
+    checkFCRadioButtons(ui->comboBoxTrigSource->currentIndex());
+    prepareMFFTControlsForMM();
+    sendMStatusControlsForMM();
+    if(ui->mmTabWidget->currentIndex() == 2)
+        sendTSource();
+    clearMMLabels();
+    m_meterContextClock.invalidate();
+    startMeterTimer();
+}
+
+void XprotolabInterface::leaveMeterMode() {
+    m_mmTimer.stop();
+    setPlotGrayed(false);
+    if(!usbDevice.isDeviceConnected)
+        return;
+    sendMFFTControls();
+    restoreUiSettings();
+    dataTimer.setInterval(m_mainTimerDelay);
+    usbDevice.resumeStream();
+    m_repaint = true;
+}
+
+// Each meter sub-tab polls 'm' at its own pace. The frequency tab's channel
+// frequencies come from the device's auto-setup bins, so over USB it polls faster
+// than the once-a-second external counter to see the settled pair (see
+// mm_request()). Over serial the reply has no channel data.
+void XprotolabInterface::startMeterTimer() {
+    m_mmFailures = 0;
+    if(ui->mmTabWidget->currentIndex() == 2) {
+        if(usbDevice.wayOfConnecting)
+            m_mmTimer.start(20);
+        else if(ui->radioPulse->isChecked())
+            m_mmTimer.start(100);
+        else
+            m_mmTimer.start(1000);
+    } else {
+        m_mmTimer.start(250);   // VPP and VDC
+    }
+}
+
+void XprotolabInterface::setPlotGrayed(bool grayed) {
+    // A gray tint turns the frozen traces and grid into a dim grayscale image
+    if(grayed) {
+        auto *effect = new QGraphicsColorizeEffect(ui->plotterWidget);
+        effect->setColor(QColor(96, 96, 96));
+        effect->setStrength(1.0);
+        ui->plotterWidget->setGraphicsEffect(effect);   // takes ownership
+    } else {
+        ui->plotterWidget->setGraphicsEffect(nullptr);  // deletes the effect
+    }
+    ui->plotterWidget->setEnabled(!grayed);
 }
 
 void XprotolabInterface::restoreUiSettings() {
@@ -4559,59 +4673,137 @@ void XprotolabInterface::clearMMLabels() {
     ui->vdcChannel2->setText("  0.000V");
     ui->vppChannel1->setText("  0.000V");
     ui->vppChannel2->setText("  0.000V");
+    ui->labelFreqCH1->setText("--");
+    ui->labelFreqCH2->setText("--");
+    m_meterLastF1 = m_meterLastF2 = m_meterLastSrate = -1;
+    m_meterStableSamples = 0;
+}
+
+// Sample rate per timebase step, in Hz (the clock table in Source/mso.c of both
+// firmwares). ACHANNEL.f is the FFT bin of the channel's 256 samples, so
+// f * rate / 256 is the frequency the device's meter shows for that channel.
+static const double meterSampleRate[22] = {
+    2000000.0, 1000000.0, 500000.0, 250000.0, 125000.0, 62500.0,
+    32000.0, 16000.0, 8000.0, 3200.0, 1600.0, 1600.0, 640.0, 320.0,
+    160.0, 64.0, 32.0, 16.0, 6.4, 3.2, 1.6, 0.64
+};
+
+// The meter value is a signed 16-bit little-endian word: the 12-bit VDC pair in
+// VDC mode, or vpp * 128 in VPP mode (Measurements() in Source/mso.c).
+static int meterWord(const unsigned char *p) {
+    return (int)(int16_t)((uint16_t)p[0] | ((uint16_t)p[1] << 8));
+}
+
+// 'u' returns the GPIO registers and the M struct: Srate first, then the two
+// channel gains inside M. Reading it next to 'm' keeps the frequency scaling with
+// the sample rate the device used for ACHANNEL.f and the VPP conversion with the
+// gain it measured at.
+bool XprotolabInterface::readMeterContext(int minIntervalMs) {
+    if(!usbDevice.isDeviceConnected || !usbDevice.wayOfConnecting)
+        return false;
+    if(m_meterContextClock.isValid() && m_meterContextClock.elapsed() < minIntervalMs)
+        return false;
+    m_meterContextClock.start();
+    if(!usbDevice.controlReadTransfer('u'))
+        return false;
+    m_meterSrate = usbDevice.inBuffer[0];
+    m_meterCh1Gain = usbDevice.inBuffer[12];
+    m_meterCh2Gain = usbDevice.inBuffer[13];
+    return true;
+}
+
+QString XprotolabInterface::channelFrequencyText(int bin, int srate) {
+    if(srate < 0 || srate > 21)
+        return "--";
+    double freq = bin * meterSampleRate[srate] / 256.0;
+    // The device shows kHz at the fast timebases and Hz at the slow ones.
+    if(srate <= 6)
+        return get4Digits(freq / 1000.0) + " kHz";
+    return get4Digits(freq) + " Hz";
 }
 
 void XprotolabInterface::mm_request() {
-    unsigned char tmp_buff[] = {0, 0, 0, 0};
-    if(ui->mmTabWidget->currentIndex() != 1) {
-        int size = usbDevice.requestMM(tmp_buff);
-        if(size != 4)
-            return;
+    if(!usbDevice.isDeviceConnected)
+        return;
+    const int tab = ui->mmTabWidget->currentIndex();
+    unsigned char tmp_buff[METER_REPLY_SIZE] = {0};
+    int size = usbDevice.requestMM(tmp_buff);
+    if(size < 0 && usbDevice.wayOfConnecting) {
+        // The paused bulk read cannot report a lost device, so the meter's own
+        // requests do: at once for "no device", or after a run of other errors.
+        if(size == LIBUSB_ERROR_NO_DEVICE || ++m_mmFailures >= 10) {
+            m_mmTimer.stop();
+            usbDevice.notifyDeviceRemoved();
+        }
+        return;
     }
-    if(ui->mmTabWidget->currentIndex() == 0) {
-        double ch1, ch2;
-        QString sign1 = " ", sign2 = " ";
-        if((int)tmp_buff[1] >= 100) {
-            ch1 = 256 - (int)tmp_buff[0];
-            ch1 += (255 - (int)tmp_buff[1]) * 256;
-            sign1 = "-";
-        } else {
-            ch1 = (int)tmp_buff[0];
-            ch1 += (int)tmp_buff[1] * 256;
+    m_mmFailures = 0;
+    if(size < METER_VALUE_SIZE)
+        return;
+    // Reply layouts, told apart by length (short replies are older firmware):
+    //   19  value(4), CH1gain, CH2gain, Srate, fsrate, CH1(5), CH2(5), adjusting
+    //   18  value(4), CH1(5), CH2(5), Srate, adjusting, CH1gain, CH2gain
+    //   14  value(4), CH1(5), CH2(5)
+    //    4  value(4)
+    // The gains and rates are stamped by the device where the value and f were
+    // computed, so a reply is self-consistent even mid-auto-setup.
+    const bool haveChannels = size >= METER_CHANNELS_SIZE;
+    const bool stamped = size >= METER_REPLY_SIZE;           // 19: current layout
+    const bool haveContext = size >= METER_REPLY_SIZE_OLD;   // 18: older layout
+    int ch1Bin = 0, ch2Bin = 0;
+    int gain1 = -1, gain2 = -1, fsrate = -1;
+    bool settled = false;
+    if(stamped) {
+        gain1 = tmp_buff[4];
+        gain2 = tmp_buff[5];
+        fsrate = tmp_buff[7];
+        ch1Bin = tmp_buff[12];
+        ch2Bin = tmp_buff[17];
+        settled = (tmp_buff[18] == 0);
+    } else if(haveChannels) {
+        ch1Bin = tmp_buff[8];
+        ch2Bin = tmp_buff[13];
+        if(haveContext) {
+            // The old layout has no fsrate: f and Srate are from the same reply,
+            // which is what the device's own frequency display uses.
+            fsrate = tmp_buff[14];
+            gain1 = tmp_buff[16];
+            gain2 = tmp_buff[17];
+            settled = (tmp_buff[15] == 0);
         }
-        ch1 *= 1.25;
-        ch1 = (int) ch1;
-        ch1 /= 1000.0;
-        if((int)tmp_buff[3] >= 100) {
-            ch2 = 256 - (int)tmp_buff[2];
-            ch2 += (255 - (int)tmp_buff[3]) * 256;
-            sign2 = "-";
-        } else {
-            ch2 = (int)tmp_buff[2];
-            ch2 += (int)tmp_buff[3] * 256;
+    }
+    if(tab == 0) {
+        // VPP: the meter value is T.SCOPE.CH1.vpp * 128. printV() in the firmware
+        // scales it with the channel gain; the same here (counts * V/div / 4096,
+        // because 128 meter units are one 8-bit count and 8 divisions span 256).
+        int g1 = gain1, g2 = gain2;
+        if(g1 < 0 || g2 < 0) {
+            if(usbDevice.wayOfConnecting) {
+                // 14 byte firmware: the gain changes with the device's auto-setup,
+                // so read it next to the meter value instead of trusting the sliders.
+                readMeterContext(20);
+                g1 = m_meterCh1Gain;
+                g2 = m_meterCh2Gain;
+            } else {
+                // Serial firmware: 'u' would cost a second, use what the app set.
+                g1 = ui->ch1GainSlider->value();
+                g2 = ui->ch2GainSlider->value();
+            }
         }
-        ch2 *= 1.25;
-        ch2 = (int) ch2;
-        ch2 /= 1000.0;
-        QString tmp_v1 = sign1;
-        tmp_v1 += get4Digits(ch1);
-        tmp_v1 += "V";
-        ui->vppChannel1->setText(tmp_v1);
-        QString tmp_v2 = sign2;
-        tmp_v2 += get4Digits(ch2);
-        tmp_v2 += "V";
-        ui->vppChannel2->setText(tmp_v2);
-    } else if(ui->mmTabWidget->currentIndex() == 1) {
-        double tmp_diff1 = (vppMaxCh1 - vppMinCh1) / 100.0;
-        QString sign1 = " ";
-        if(tmp_diff1 < 0)
-            sign1 = "";
-        ui->vdcChannel1->setText(sign1 + get4Digits(tmp_diff1) + "V");
-        double tmp_diff2 = (vppMaxCh2 - vppMinCh2) / 100.0;
-        QString sign2 = " ";
-        if(tmp_diff2 < 0)
-            sign2 = "";
-        ui->vdcChannel2->setText(sign2 + get4Digits(tmp_diff2) + "V");
+        if(g1 < 0 || g1 > 6)
+            g1 = ui->ch1GainSlider->value();
+        if(g2 < 0 || g2 > 6)
+            g2 = ui->ch2GainSlider->value();
+        double vpp1 = meterWord(tmp_buff) * gains[g1].value / 4096.0;
+        double vpp2 = meterWord(tmp_buff + 2) * gains[g2].value / 4096.0;
+        ui->vppChannel1->setText(get4Digits(vpp1) + "V");
+        ui->vppChannel2->setText(get4Digits(vpp2) + "V");
+    } else if(tab == 1) {
+        // VDC: the meter value is the 12-bit pair; 1 LSB is 1.25 mV (printV()).
+        double vdc1 = meterWord(tmp_buff) * 0.00125;
+        double vdc2 = meterWord(tmp_buff + 2) * 0.00125;
+        ui->vdcChannel1->setText(get4Digits(vdc1) + "V");
+        ui->vdcChannel2->setText(get4Digits(vdc2) + "V");
     } else {
         double fc;
         fc = tmp_buff[0];
@@ -4640,29 +4832,52 @@ void XprotolabInterface::mm_request() {
             ui->frequencyValue->setText(tmp_value + "k");
         else
             ui->frequencyValue->setText(tmp_value + "kHz");
+        if(!haveChannels) {
+            ui->labelFreqCH1->setText("--");
+            ui->labelFreqCH2->setText("--");
+            return;
+        }
+        if(fsrate < 0) {
+            // Older firmware: the meter restarts its auto-setup for every
+            // measurement, so an f read mid-sweep pairs with an Srate that has
+            // already moved on. Only take a pair that stayed the same over four
+            // context reads (about 60 ms) as a best effort.
+            if(readMeterContext(20)) {
+                if(ch1Bin == m_meterLastF1 && ch2Bin == m_meterLastF2 && m_meterSrate == m_meterLastSrate)
+                    m_meterStableSamples++;
+                else {
+                    m_meterLastF1 = ch1Bin;
+                    m_meterLastF2 = ch2Bin;
+                    m_meterLastSrate = m_meterSrate;
+                    m_meterStableSamples = 0;
+                }
+            }
+            fsrate = m_meterSrate;
+            settled = (m_meterStableSamples >= 4);
+        }
+        if(settled) {
+            // Frequency = f x rate(fsrate) / 256: fsrate is the rate f was
+            // computed at, so the labels do not depend on the auto-setup's
+            // current timebase (19-byte replies).
+            ui->labelFreqCH1->setText(channelFrequencyText(ch1Bin, fsrate));
+            ui->labelFreqCH2->setText(channelFrequencyText(ch2Bin, fsrate));
+        }
     }
 }
 
 void XprotolabInterface::on_mmTabWidget_currentChanged(int) {
     m_mmTimer.stop();
-    sendMStatusControlsForMM();
     clearMMLabels();
+    m_meterContextClock.invalidate();
     // Default to Frequency measurement
     ui->radioFreq->setChecked(true);
     ui->radioPulse->setChecked(false);
-    if(ui->mmTabWidget->currentIndex() == 2) {
+    if(ui->mainTabWidget->currentIndex() != 1 || !usbDevice.isDeviceConnected)
+        return;
+    sendMStatusControlsForMM();
+    if(ui->mmTabWidget->currentIndex() == 2)
         sendTSource();
-        if(ui->radioPulse->isChecked())
-            m_mmTimer.start(100);
-        else
-            m_mmTimer.start(1000);
-    } else if(ui->mmTabWidget->currentIndex() == 0) {
-        m_mmTimer.start(250);
-    } else {
-        usbDevice.turnOnAutoMode();
-        dataTimer.setInterval(0);
-        usbDevice.serial.m_stateOfConnection = 0;
-    }
+    startMeterTimer();
 }
 
 void XprotolabInterface::on_fcR10_clicked() {
@@ -4757,15 +4972,18 @@ void XprotolabInterface::setVerticalCursors() {
 
 void XprotolabInterface::on_radioFreq_clicked() {
     sendMStatusControlsForMM();
-    m_mmTimer.start(1000);
+    m_mmTimer.start(usbDevice.wayOfConnecting ? 20 : 1000);
 }
 
 void XprotolabInterface::on_radioPulse_clicked() {
     sendMStatusControlsForMM();
-    m_mmTimer.start(100);
+    m_mmTimer.start(usbDevice.wayOfConnecting ? 20 : 100);
 }
 
 void XprotolabInterface::on_upgradeFirmware_clicked() {
+    // Pick the device in the dialog before the connection goes away: deviceCode (0 over
+    // the serial port) is cleared by disconnectDevice().
+    DialogBootloader.selectDevice(usbDevice.deviceCode);
     // Hand the device over to its DFU bootloader first, so the user does not have to
     // power-cycle it into DFU mode by hand.
     if(usbDevice.isDeviceConnected && usbDevice.wayOfConnecting) {

@@ -10,8 +10,30 @@ Copyright (C) Gabotronics. Licensed under the GNU GPL v3 or later, see [gpl.txt]
 History
 -------
 
+1.1.0   - Qt 6 (6.8+), in-process firmware update, sniffer layouts, Windows installer
 1.0.0.2 - Fixes for QT5
 1.0.0.1 - QT4 version
+
+Building
+--------
+
+Qt 6.8 or newer, with the Qt Serial Port add-on. `XprotolabInterface.pro` is the build file
+(qmake); `CMakeLists.txt` is an older, Linux-oriented leftover.
+
+    qmake XprotolabInterface.pro CONFIG+=release && nmake release      # Windows, MSVC 2022 x64
+    qmake XprotolabInterface.pro CONFIG+=release && make -j$(nproc)    # Linux
+
+The executable needs `libusb-1.0.dll` next to it on Windows; `windeployqt` collects the Qt
+dependencies. The application version lives in one place, `VERSION` in
+[XprotolabInterface.pro](XprotolabInterface.pro).
+
+Installers
+----------
+
+Windows: `packaging\windows\build-installer.bat` builds the release binary, stages it with
+`windeployqt` and packs an NSIS installer (`/user` gives a per-user install with no admin
+rights). The rest — what it installs, what is still missing, and the macOS and Linux routes —
+is in [packaging/README.md](packaging/README.md).
 
 Third-party software
 --------------------

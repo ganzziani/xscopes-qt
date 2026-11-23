@@ -14,233 +14,266 @@
    <string>DFU Bootloader Interface</string>
   </property>
   <property name="windowIcon">
-   <iconset>
+   <iconset resource="xprotolabinterface.qrc">
     <normaloff>:/Bitmaps/Bitmaps/GT-icon24.png</normaloff>:/Bitmaps/Bitmaps/GT-icon24.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QGroupBox" name="groupDeviceSelect">
-     <property name="title">
-      <string>Device Select</string>
+    <layout class="QHBoxLayout" name="horizontalLayout_7">
+     <property name="spacing">
+      <number>4</number>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_4">
-      <item>
-       <widget class="QRadioButton" name="radioOW">
-        <property name="toolTip">
-         <string>Target: atxmega256a3u</string>
-        </property>
-        <property name="text">
-         <string>Oscilloscope Watch</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="radioXprotolab">
-        <property name="toolTip">
-         <string>Target: atxmega32a4u</string>
-        </property>
-        <property name="text">
-         <string>Xprotolab</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="radioXminilab">
-        <property name="toolTip">
-         <string>Target: atxmega32a4u</string>
-        </property>
-        <property name="text">
-         <string>Xminilab</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="radioXminilabB">
-        <property name="toolTip">
-         <string>Target: atxmega32a4u</string>
-        </property>
-        <property name="text">
-         <string>Xminilab-2.4</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="radioXprotolabPortable">
-        <property name="toolTip">
-         <string>Target: atxmega32a4u</string>
-        </property>
-        <property name="text">
-         <string>Xprotolab Portable</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="radioXminiulabPortable">
-        <property name="toolTip">
-         <string>Target: atxmega32a4u</string>
-        </property>
-        <property name="text">
-         <string>Xminilab Portable</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="radioXminiulabPortable1_11">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>Target: atxmega32a4u</string>
-        </property>
-        <property name="text">
-         <string>Xminilab Portable 1.11</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="radioXprotolabPlain">
-        <property name="toolTip">
-         <string>Target: atxmega32a4u</string>
-        </property>
-        <property name="text">
-         <string>Xprotolab Plain</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
-      <widget class="QPushButton" name="pushAutoLoad">
+      <widget class="QLabel" name="labelDevice">
        <property name="minimumSize">
         <size>
-         <width>200</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="toolTip">
-        <string>Download corresponding files from www.gabotronics.com</string>
-       </property>
-       <property name="text">
-        <string>Download Latest Firmware</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>:/Bitmaps/Bitmaps/download.png</normaloff>:/Bitmaps/Bitmaps/download.png</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_3">
-       <property name="minimumSize">
-        <size>
-         <width>80</width>
+         <width>86</width>
          <height>0</height>
         </size>
        </property>
        <property name="text">
-        <string>Target</string>
+        <string/>
        </property>
        <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        <set>Qt::AlignmentFlag::AlignCenter</set>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineTarget"/>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QPushButton" name="pushSelectFlashFile">
-       <property name="minimumSize">
-        <size>
-         <width>200</width>
-         <height>0</height>
-        </size>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <property name="spacing">
+        <number>4</number>
        </property>
-       <property name="toolTip">
-        <string>Manually select flash file</string>
+       <property name="bottomMargin">
+        <number>0</number>
        </property>
-       <property name="text">
-        <string>Select Flash File</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="minimumSize">
-        <size>
-         <width>80</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Flash File</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="lineFlash"/>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QPushButton" name="pushSelectEEPROMFile">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>200</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="toolTip">
-        <string>Manually select EEPROM file</string>
-       </property>
-       <property name="text">
-        <string>Select EEPROM File</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="minimumSize">
-        <size>
-         <width>80</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>EEPROM File</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="lineEEPROM">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-      </widget>
+       <item>
+        <widget class="QGroupBox" name="groupDeviceSelect">
+         <property name="title">
+          <string>Device Select</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QRadioButton" name="radioOW">
+            <property name="toolTip">
+             <string>Target: atxmega256a3u</string>
+            </property>
+            <property name="text">
+             <string>Oscilloscope Watch</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioXprotolab">
+            <property name="toolTip">
+             <string>Target: atxmega32a4u</string>
+            </property>
+            <property name="text">
+             <string>Xprotolab</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioXminilab">
+            <property name="toolTip">
+             <string>Target: atxmega32a4u</string>
+            </property>
+            <property name="text">
+             <string>Xminilab</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioXminilabB">
+            <property name="toolTip">
+             <string>Target: atxmega32a4u</string>
+            </property>
+            <property name="text">
+             <string>Xminilab-2.4</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioXprotolabPortable">
+            <property name="toolTip">
+             <string>Target: atxmega32a4u</string>
+            </property>
+            <property name="text">
+             <string>Xprotolab Portable</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioXminiulabPortable">
+            <property name="toolTip">
+             <string>Target: atxmega32a4u</string>
+            </property>
+            <property name="text">
+             <string>Xminilab Portable</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioXminiulabPortable1_11">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Target: atxmega32a4u</string>
+            </property>
+            <property name="text">
+             <string>Xminilab Portable 1.11</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioXprotolabPlain">
+            <property name="toolTip">
+             <string>Target: atxmega32a4u</string>
+            </property>
+            <property name="text">
+             <string>Xprotolab Plain</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,0">
+         <item>
+          <widget class="QPushButton" name="pushAutoLoad">
+           <property name="minimumSize">
+            <size>
+             <width>200</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Download corresponding files from www.gabotronics.com</string>
+           </property>
+           <property name="text">
+            <string>Download Latest Firmware</string>
+           </property>
+           <property name="icon">
+            <iconset resource="xprotolabinterface.qrc">
+             <normaloff>:/Bitmaps/Bitmaps/download.png</normaloff>:/Bitmaps/Bitmaps/download.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Target:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineTarget"/>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QPushButton" name="pushSelectFlashFile">
+           <property name="minimumSize">
+            <size>
+             <width>200</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Manually select flash file</string>
+           </property>
+           <property name="text">
+            <string>Select Flash File</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Flash File:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineFlash"/>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QPushButton" name="pushSelectEEPROMFile">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>200</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Manually select EEPROM file</string>
+           </property>
+           <property name="text">
+            <string>Select EEPROM File</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_2">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>EEPROM File:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEEPROM">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
@@ -252,7 +285,7 @@
         <string>Read Flash</string>
        </property>
        <property name="icon">
-        <iconset>
+        <iconset resource="xprotolabinterface.qrc">
          <normaloff>:/Bitmaps/Bitmaps/readtqfp.png</normaloff>:/Bitmaps/Bitmaps/readtqfp.png</iconset>
        </property>
       </widget>
@@ -263,7 +296,7 @@
         <string>Read EEPROM</string>
        </property>
        <property name="icon">
-        <iconset>
+        <iconset resource="xprotolabinterface.qrc">
          <normaloff>:/Bitmaps/Bitmaps/readtqfp.png</normaloff>:/Bitmaps/Bitmaps/readtqfp.png</iconset>
        </property>
       </widget>
@@ -274,7 +307,7 @@
         <string>Erase Chip</string>
        </property>
        <property name="icon">
-        <iconset>
+        <iconset resource="xprotolabinterface.qrc">
          <normaloff>:/Bitmaps/Bitmaps/blankcheck.png</normaloff>:/Bitmaps/Bitmaps/blankcheck.png</iconset>
        </property>
       </widget>
@@ -285,7 +318,7 @@
         <string>Program Flash</string>
        </property>
        <property name="icon">
-        <iconset>
+        <iconset resource="xprotolabinterface.qrc">
          <normaloff>:/Bitmaps/Bitmaps/writetqfp.png</normaloff>:/Bitmaps/Bitmaps/writetqfp.png</iconset>
        </property>
       </widget>
@@ -296,7 +329,7 @@
         <string>Program EEPROM</string>
        </property>
        <property name="icon">
-        <iconset>
+        <iconset resource="xprotolabinterface.qrc">
          <normaloff>:/Bitmaps/Bitmaps/writetqfp.png</normaloff>:/Bitmaps/Bitmaps/writetqfp.png</iconset>
        </property>
       </widget>
@@ -310,7 +343,7 @@
         <string>Start Application</string>
        </property>
        <property name="icon">
-        <iconset>
+        <iconset resource="xprotolabinterface.qrc">
          <normaloff>:/Bitmaps/Bitmaps/play.png</normaloff>:/Bitmaps/Bitmaps/play.png</iconset>
        </property>
       </widget>
@@ -361,16 +394,18 @@
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="xprotolabinterface.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

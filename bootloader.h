@@ -15,8 +15,14 @@ class Bootloader : public QDialog {
 public:
     explicit Bootloader(QWidget *parent = 0);
     ~Bootloader();
+    // Checks the Device Select button of the device named by deviceCode, the low byte
+    // of bcdDevice (DEVICE_CODE in the firmware's hardware.h). 0 - a serial port, or a
+    // device that was not read - keeps the current selection. Remembers the device for
+    // the next run of the dialog.
+    void selectDevice(int deviceCode);
     Ui::bootloader *ui;
 private slots:
+    void showDevicePhoto();         // labelDevice follows the Device Select group
     void on_radioOW_clicked();
     void on_pushSelectFlashFile_clicked();
     void on_pushSelectEEPROMFile_clicked();

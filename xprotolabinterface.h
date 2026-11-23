@@ -34,6 +34,7 @@
 #include <QInputDialog>
 #include <QSettings>
 #include <QElapsedTimer>
+#include <QGraphicsEffect>
 #include "customtheme.h"
 #include "bootloader.h"
 #include "qcustomplot.h"
@@ -95,6 +96,7 @@ enum Selected {
     isTriggerWin2Pixmap,
     isCH1Zero,
     isCH2Zero,
+    isCHDZero,
     isNone
 };
 
@@ -230,8 +232,6 @@ private slots:
     void on_radioButtonNoise_clicked();
     void on_radioButtonCustom_clicked();
     void on_samplingSlider_valueChanged(int value);
-    void on_ch1PositionSlider_valueChanged(int value);
-    void on_ch2PositionSlider_valueChanged(int value);
     void on_openCSVButton_clicked();
     void on_saveAWGButton_clicked();
     void on_checkBoxCH1Math_clicked();
@@ -305,7 +305,6 @@ private slots:
     void on_doubleSpinBoxTrigHold_valueChanged(double arg1);
     void on_comboBoxTrigSource_currentIndexChanged(int index);
     void on_doubleSpinBoxTrigAuto_valueChanged(double arg1);
-    void on_chdPositionSlider_valueChanged(int value);
     void on_sweepStartFreqSlider_valueChanged(int value);
     void on_sweepEndFreqSlider_valueChanged(int value);
     void on_sweepSpeedSlider_valueChanged(int value);
@@ -359,8 +358,14 @@ private slots:
     void displayBmpContextMenu(const QPoint &pos);
     void disconnectDevice(bool mode = true);
     QString get4Digits(qreal number);
+    bool readMeterContext(int minIntervalMs);
+    QString channelFrequencyText(int bin, int srate);
     void showHideCH1ZeroVerticalIndicator();
     void showHideCH2ZeroVerticalIndicator();
+    void showHideCHDZeroIndicator();
+    void setCh1Position(int value);
+    void setCh2Position(int value);
+    void setChdPosition(int value);
     bool checkIfCorrectPort(QString name);
     void on_sizeChanged();
     void on_mainTabWidget_currentChanged(int index);
@@ -380,6 +385,10 @@ private slots:
     void checkFCRadioButtons(int value);
     void setVerticalCursors();
     void restoreUiSettings();
+    void enterMeterMode();
+    void leaveMeterMode();
+    void startMeterTimer();
+    void setPlotGrayed(bool grayed);
     void on_radioFreq_clicked();
     void on_radioPulse_clicked();
     void on_upgradeFirmware_clicked();
@@ -409,6 +418,10 @@ private:
     int hCursorAPos, hCursorBPos, vCursorAPos, vCursorBPos;
     double fftWindow[256];
     int ch1ZeroPos, ch2ZeroPos, hCursorAPosCh1, hCursorBPosCh1, hCursorAPosCh2, hCursorBPosCh2;
+    // Waveform positions (M 29, M 30, M 31). They used to have sliders; the zero
+    // markers in the plot are now the only way to set them.
+    int m_ch1Position, m_ch2Position, m_chdPosition;
+    int chdZeroPos;     // plot y of the CHD position marker
     QStringList rateText;
     struct Gain {
         float value;
@@ -420,7 +433,7 @@ private:
     bool bitChecked[8], itemIsSelected, captureRef, saveWave, displayLoadedWave;
     QCPItemTracer *phaseTracerAA, *phaseTracerAB, *phaseTracerBA, *phaseTracerBB;
     QCPItemStraightLine *hCursorA, *hCursorB, *vCursorA, *vCursorB, *ch1Zero, *ch2Zero;
-    MarkerPixmap *hCursorAHead, *hCursorBHead, *ch1ZeroHead, *ch2ZeroHead;
+    MarkerPixmap *hCursorAHead, *hCursorBHead, *ch1ZeroHead, *ch2ZeroHead, *chdZeroHead;
     MarkerPixmap *triggerPixmap, *triggerWin1Pixmap, *triggerWin2Pixmap;
     QCPItemPixmap *vCursorAHead, *vCursorBHead;
     QCPItemText *textLabelBit[8], *textLabelDeltaTime, *textLabelDeltaVoltage;
@@ -478,11 +491,26 @@ private:
 
     int m_prevTabIndex;
     QTimer m_mmTimer;
+    // Consecutive failed 'm' requests. Meter mode pauses the bulk stream, which is
+    // what notices an unplugged device otherwise.
+    int m_mmFailures = 0;
 
     double vppMinCh1;
     double vppMaxCh1;
     double vppMinCh2;
     double vppMaxCh2;
+    // Meter read-back: the device's Srate and gains from the last 'u' read, and
+    // the f/Srate pair seen in the frequency tab. The device restarts its meter
+    // auto-setup for every measurement, so the labels only take a pair that held
+    // still over several reads (see mm_request()).
+    QElapsedTimer m_meterContextClock;
+    int m_meterSrate;
+    int m_meterCh1Gain;
+    int m_meterCh2Gain;
+    int m_meterLastF1;
+    int m_meterLastF2;
+    int m_meterLastSrate;
+    int m_meterStableSamples;
     BootInfo_t BootInfo;
 
     QByteArray displayBmp;      // display screenshot as sent by the device (BMP)

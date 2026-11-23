@@ -21,6 +21,8 @@ LibUsbDevice::LibUsbDevice(QObject *parent) :
     hasHotPlugSupport = false;
     deviceFound = nullptr;
     deviceCode = 0;
+    streamPaused = false;
+    readPending = false;
     clearData();    // chData is read before the device has filled it
     connect(&serial, SIGNAL(newData(int)), this, SLOT(newDataAvailable(int)));
     connect(&serial, SIGNAL(clear()), this, SLOT(clearData()));
@@ -37,6 +39,9 @@ void LibUsbDevice::reset() {
     hasHotPlugSupport = false;
     deviceFound = nullptr;
     deviceCode = 0;
+    QMutexLocker lock(&streamMutex);
+    streamPaused = false;
+    readPending = false;
 }
 
 void LibUsbDevice::clearData() {
@@ -87,9 +92,16 @@ extern "C" void LIBUSB_CALL asyncBulkReadTransferCallback(struct libusb_transfer
         cthis->notifyDeviceRemoved();
         return;
     }
+    QMutexLocker lock(&cthis->streamMutex);
+    if(cthis->streamPaused) {
+        // Meter mode: drop this frame and stop asking for more (resumeStream())
+        cthis->readPending = false;
+        return;
+    }
     cthis->dataLength = transfer->actual_length;
     cthis->dataAvailable = true;
     if(libusb_submit_transfer(transfer) != LIBUSB_SUCCESS) {
+        cthis->readPending = false;
         qDebug() << "Cannot resubmit bulk read transfer";
         cthis->notifyDeviceRemoved();
     }
@@ -363,13 +375,19 @@ void LibUsbDevice::asyncBulkReadTransfer() {
                 return;
             }
         }
-        libusb_fill_bulk_transfer(usbDeviceToPcTransfer, deviceHandle, USB_ENDPOINT_IN,
-                                  chData, LEN_BULK_IN_BUFFER, asyncBulkReadTransferCallback, this, 0);
-        int status = libusb_submit_transfer(usbDeviceToPcTransfer);
-        if(status != 0) {
-            cstatus = tr("Bulk read transfer failed!");
-            qDebug() << "Transfer Failed! " << status;
-            return;
+        {
+            QMutexLocker lock(&streamMutex);
+            if(readPending)
+                return;     // one read in flight at a time: the callback resubmits it
+            libusb_fill_bulk_transfer(usbDeviceToPcTransfer, deviceHandle, USB_ENDPOINT_IN,
+                                      chData, LEN_BULK_IN_BUFFER, asyncBulkReadTransferCallback, this, 0);
+            int status = libusb_submit_transfer(usbDeviceToPcTransfer);
+            if(status != 0) {
+                cstatus = tr("Bulk read transfer failed!");
+                qDebug() << "Transfer Failed! " << status;
+                return;
+            }
+            readPending = true;
         }
         if(!future.isRunning()) {
             enableEventThread = true;
@@ -609,6 +627,30 @@ void LibUsbDevice::newDataAvailable(int size) {
     dataLength = size;
 }
 
+void LibUsbDevice::pauseStream() {
+    if(wayOfConnecting) {
+        // The read in flight completes with one more frame, which the callback drops.
+        // The firmware does not wait for a host that stopped reading (EP1Hold()).
+        QMutexLocker lock(&streamMutex);
+        streamPaused = true;
+    } else {
+        turnOffAutoMode();
+    }
+}
+
+void LibUsbDevice::resumeStream() {
+    if(wayOfConnecting) {
+        {
+            QMutexLocker lock(&streamMutex);
+            streamPaused = false;
+        }
+        if(isDeviceConnected && usbDeviceToPcTransfer)
+            asyncBulkReadTransfer();    // no-op while the last read is still pending
+    } else {
+        turnOnAutoMode();
+    }
+}
+
 void LibUsbDevice::turnOnAutoMode() {
     if(!wayOfConnecting) {
         serial.write("q");
@@ -630,7 +672,10 @@ int LibUsbDevice::requestMM(unsigned char *buffer) {
     }
     int bytesRead = 0;
     if(wayOfConnecting) {
-        bytesRead = libusb_control_transfer(deviceHandle, 0xC0, 'm', 0, 0, buffer, 4, 1000);
+        // Up to 19 bytes: the value, the gains and rates stamped with it, the two
+        // ACHANNEL structs and the auto-setup state. Short replies are older
+        // firmware; the caller parses what arrived (by length).
+        bytesRead = libusb_control_transfer(deviceHandle, 0xC0, 'm', 0, 0, buffer, METER_REPLY_SIZE, 1000);
     } else {
         turnOffAutoMode();
         serial.serial->flush();
@@ -641,6 +686,20 @@ int LibUsbDevice::requestMM(unsigned char *buffer) {
         bytesRead = serial.serial->read(tmp, 4);
         for(int i = 0; i < bytesRead; i++) {
             buffer[i] = tmp[i];
+        }
+        // The device sends the whole 'm' reply on the serial port too (19 bytes on
+        // the current layout, 18 before); the value is the first 4. Drain the tail
+        // so it cannot be taken for the next command's reply.
+        int idle = 0;
+        for(int guard = 0; guard < 100 && idle < 2; guard++) {
+            if(serial.serial->bytesAvailable() > 0) {
+                serial.serial->readAll();
+                idle = 0;
+            } else if(serial.serial->waitForReadyRead(2)) {
+                idle = 0;
+            } else {
+                idle++;
+            }
         }
     }
     return bytesRead;

@@ -1,0 +1,3 @@
+# Windows batch files only parse reliably with CRLF line endings. This overrides whatever
+# core.autocrlf the machine uses, so a fresh checkout works everywhere.
+*.bat text eol=crlf

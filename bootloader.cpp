@@ -3,17 +3,40 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QPixmap>
 #include <QScrollBar>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QVector>
+
+namespace {
+// The Device Select group, one row per button: its device code (DEVICE_CODE in the
+// firmwares' hardware.h) and the product photo the About tab shows for the family. The
+// 2.4 and 1.11 boards are hardware revisions that keep the old case, so they share one.
+struct DeviceRow {
+    int code;
+    QRadioButton *button;
+    const char *photo;
+};
+QVector<DeviceRow> deviceRows(Ui::bootloader *ui) {
+    QVector<DeviceRow> rows;
+    rows << DeviceRow{0x10, ui->radioXprotolab, ":/Bitmaps/Bitmaps/xprotolab.png"}
+         << DeviceRow{0x11, ui->radioXprotolabPlain, ":/Bitmaps/Bitmaps/xprotolab-plain.png"}
+         << DeviceRow{0x12, ui->radioXprotolabPortable, ":/Bitmaps/Bitmaps/xprotolab-portable.png"}
+         << DeviceRow{0x13, ui->radioXminilab, ":/Bitmaps/Bitmaps/xminilab.png"}
+         << DeviceRow{0x14, ui->radioXminilabB, ":/Bitmaps/Bitmaps/xminilab.png"}
+         << DeviceRow{0x15, ui->radioXminiulabPortable, ":/Bitmaps/Bitmaps/xminilab-portable.png"}
+         << DeviceRow{0x16, ui->radioXminiulabPortable1_11, ":/Bitmaps/Bitmaps/xminilab-portable.png"}
+         << DeviceRow{0x20, ui->radioOW, ":/Bitmaps/Bitmaps/oscilloscope-watch.jpg"};
+    return rows;
+}
+}
 
 Bootloader::Bootloader(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::bootloader) {
     ui->setupUi(this);
     ui->textEdit->clear();
-    if(ui->radioOW->isChecked())
-        on_radioOW_clicked();
     doEverything = false;
     dfu = new DfuProgrammer(this);
     connect(dfu, SIGNAL(log(QString)), this, SLOT(Log(QString)));
@@ -25,6 +48,17 @@ Bootloader::Bootloader(QWidget *parent) :
     connect(EEPDownloader, SIGNAL(downloaded(QNetworkReply::NetworkError, QString)),
             this, SLOT(EEPDownloaded(QNetworkReply::NetworkError, QString)));
     QSettings settings;
+    // The photo next to the group follows the buttons, however they get picked
+    const QVector<DeviceRow> rows = deviceRows(ui);
+    for(int i = 0; i < rows.size(); i++)
+        connect(rows[i].button, SIGNAL(clicked()), this, SLOT(showDevicePhoto()));
+    // Open on the device used last time. The .ui checks the Watch, whose slot has to run
+    // once so the target and the download URLs match the checked button. That direct call
+    // emits no signal, so the photo is set once more below. Both this and selectDevice()
+    // clear the file fields, so they stay ahead of the restore.
+    on_radioOW_clicked();
+    selectDevice(settings.value("lastDeviceCode").toInt());
+    showDevicePhoto();
     workingDir = settings.value("workingDir").toString();
     // A read-back has to go somewhere the user can find it and that is writable even when the
     // application lives in Program Files, so fall back to Documents instead of the CWD.
@@ -215,6 +249,36 @@ void Bootloader::on_pushAutoLoad_clicked() {
     EEPDownloader->newUrl(EEPFileUrl);  // Download it!
 }
 
+// Device code to radio button: one per DEVICE_CODE in the firmwares' hardware.h.
+void Bootloader::selectDevice(int deviceCode) {
+    const QVector<DeviceRow> rows = deviceRows(ui);
+    for(int i = 0; i < rows.size(); i++) {
+        if(rows[i].code != deviceCode)
+            continue;
+        // click(), not setChecked(): the slots are wired to clicked(), and they are what
+        // set the target, the firmware URLs and the photo.
+        if(!rows[i].button->isChecked())
+            rows[i].button->click();
+        QSettings settings;
+        settings.setValue("lastDeviceCode", deviceCode);
+        return;
+    }
+    // Unknown code, or a serial port: leave the selection alone
+}
+
+// The product photo of whichever device is selected
+void Bootloader::showDevicePhoto() {
+    const QVector<DeviceRow> rows = deviceRows(ui);
+    for(int i = 0; i < rows.size(); i++) {
+        if(!rows[i].button->isChecked())
+            continue;
+        ui->labelDevice->setPixmap(QPixmap(rows[i].photo));
+        // The 2.4 and 1.11 revisions share a photo, the tooltip tells them apart
+        ui->labelDevice->setToolTip(rows[i].button->text());
+        return;
+    }
+}
+
 void Bootloader::on_radioOW_clicked() {
     ui->lineTarget->setText("atxmega256a3u");
     ui->lineEEPROM->clear();
@@ -260,7 +324,7 @@ void Bootloader::on_radioXminiulabPortable_clicked() {
     ui->lineEEPROM->clear();
     ui->lineFlash->clear();
     HEXFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xminilab-portable1_1.hex");
-    EEPFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xminilab-portable1_1.hex");
+    EEPFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xminilab-portable1_1.eep");
 }
 
 void Bootloader::on_radioXminiulabPortable1_11_clicked() {

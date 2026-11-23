@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QByteArray>
 #include <QFuture>
+#include <QMutex>
 #include <atomic>
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     #include <QtConcurrent/QtConcurrent>
@@ -47,6 +48,10 @@ public:
     void reset();
 
     int requestMM(unsigned char *buffer);
+    // Stop and restart the scope stream (Meter mode needs only 'm'). Over USB the
+    // bulk read is not resubmitted while paused; over serial it is auto mode.
+    void pauseStream();
+    void resumeStream();
 signals:
     // Emitted from the event thread when the device goes away, connected queued
     void deviceDisconnected();
@@ -81,6 +86,11 @@ public:
     byte inBuffer[LEN_CONTROL_BUFFER];
     byte awgBuffer[256];
     std::atomic<bool> enableEventThread;   // read from the event thread
+    // The bulk read and pauseStream()/resumeStream() decide under this lock whether
+    // a read is in flight, so a resume cannot race the callback that stops resubmitting.
+    QMutex streamMutex;
+    bool streamPaused;
+    bool readPending;
     bool hasHotPlugSupport;
     QFuture<void> future;
 

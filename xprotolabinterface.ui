@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1008</width>
-    <height>850</height>
+    <width>1020</width>
+    <height>909</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -279,6 +279,9 @@
             <string>Horizontal</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="bottomMargin">
+             <number>4</number>
+            </property>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_2">
               <item>
@@ -393,7 +396,1318 @@
           </widget>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_40">
+          <widget class="QGroupBox" name="groupBox">
+           <property name="title">
+            <string>Channels</string>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_34">
+            <item>
+             <widget class="QGroupBox" name="groupBox_21">
+              <property name="title">
+               <string>CH1</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_35">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_74">
+                 <item>
+                  <widget class="QLabel" name="label_10">
+                   <property name="text">
+                    <string>Gain</string>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignmentFlag::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSlider" name="ch1GainSlider">
+                   <property name="maximum">
+                    <number>6</number>
+                   </property>
+                   <property name="singleStep">
+                    <number>1</number>
+                   </property>
+                   <property name="pageStep">
+                    <number>1</number>
+                   </property>
+                   <property name="value">
+                    <number>3</number>
+                   </property>
+                   <property name="sliderPosition">
+                    <number>3</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Vertical</enum>
+                   </property>
+                   <property name="tickPosition">
+                    <enum>QSlider::TickPosition::TicksBelow</enum>
+                   </property>
+                   <property name="tickInterval">
+                    <number>1</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_8">
+                 <item>
+                  <widget class="QLabel" name="label_9">
+                   <property name="text">
+                    <string>Position</string>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignmentFlag::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSlider" name="ch1PositionSlider">
+                   <property name="minimum">
+                    <number>-128</number>
+                   </property>
+                   <property name="maximum">
+                    <number>127</number>
+                   </property>
+                   <property name="singleStep">
+                    <number>16</number>
+                   </property>
+                   <property name="pageStep">
+                    <number>16</number>
+                   </property>
+                   <property name="value">
+                    <number>0</number>
+                   </property>
+                   <property name="sliderPosition">
+                    <number>0</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Vertical</enum>
+                   </property>
+                   <property name="invertedAppearance">
+                    <bool>false</bool>
+                   </property>
+                   <property name="invertedControls">
+                    <bool>false</bool>
+                   </property>
+                   <property name="tickPosition">
+                    <enum>QSlider::TickPosition::TicksBelow</enum>
+                   </property>
+                   <property name="tickInterval">
+                    <number>16</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_7">
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH1Trace">
+                   <property name="toolTip">
+                    <string>Display CH1 trace</string>
+                   </property>
+                   <property name="text">
+                    <string>Trace</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH1Average">
+                   <property name="toolTip">
+                    <string>The channel samples will be averaged to reduce aliasing</string>
+                   </property>
+                   <property name="text">
+                    <string>Average</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH1Invert">
+                   <property name="toolTip">
+                    <string>The channel will be inverted. The displayed waveform and channel math will be affected.</string>
+                   </property>
+                   <property name="text">
+                    <string>Invert</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH1Math">
+                   <property name="toolTip">
+                    <string>The channel math will be enabled</string>
+                   </property>
+                   <property name="text">
+                    <string>Math</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH1Derivative">
+                   <property name="text">
+                    <string>Derivative</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH1AC">
+                   <property name="text">
+                    <string>AC</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QGroupBox" name="mathBoxCH1">
+                   <property name="title">
+                    <string>Math</string>
+                   </property>
+                   <property name="checkable">
+                    <bool>true</bool>
+                   </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_9">
+                    <property name="leftMargin">
+                     <number>2</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>6</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>2</number>
+                    </property>
+                    <item>
+                     <widget class="QRadioButton" name="radioButtonCH1Multiply">
+                      <property name="toolTip">
+                       <string>The channel trace will be replaced with CH1xCH2</string>
+                      </property>
+                      <property name="text">
+                       <string>Multiply</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QRadioButton" name="radioButtonCH1Sub">
+                      <property name="toolTip">
+                       <string>The channel trace will be replaced with CH1-CH2</string>
+                      </property>
+                      <property name="text">
+                       <string>Sub</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_22">
+              <property name="title">
+               <string>CH2</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_8">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_13">
+                 <item>
+                  <widget class="QLabel" name="label_12">
+                   <property name="text">
+                    <string>Gain</string>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignmentFlag::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSlider" name="ch2GainSlider">
+                   <property name="maximum">
+                    <number>6</number>
+                   </property>
+                   <property name="singleStep">
+                    <number>1</number>
+                   </property>
+                   <property name="pageStep">
+                    <number>1</number>
+                   </property>
+                   <property name="value">
+                    <number>3</number>
+                   </property>
+                   <property name="sliderPosition">
+                    <number>3</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Vertical</enum>
+                   </property>
+                   <property name="tickPosition">
+                    <enum>QSlider::TickPosition::TicksBelow</enum>
+                   </property>
+                   <property name="tickInterval">
+                    <number>1</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_12">
+                 <item>
+                  <widget class="QLabel" name="label_11">
+                   <property name="text">
+                    <string>Position</string>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignmentFlag::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSlider" name="ch2PositionSlider">
+                   <property name="minimum">
+                    <number>-128</number>
+                   </property>
+                   <property name="maximum">
+                    <number>127</number>
+                   </property>
+                   <property name="singleStep">
+                    <number>16</number>
+                   </property>
+                   <property name="pageStep">
+                    <number>16</number>
+                   </property>
+                   <property name="value">
+                    <number>0</number>
+                   </property>
+                   <property name="sliderPosition">
+                    <number>0</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Vertical</enum>
+                   </property>
+                   <property name="invertedAppearance">
+                    <bool>false</bool>
+                   </property>
+                   <property name="invertedControls">
+                    <bool>false</bool>
+                   </property>
+                   <property name="tickPosition">
+                    <enum>QSlider::TickPosition::TicksBelow</enum>
+                   </property>
+                   <property name="tickInterval">
+                    <number>16</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_14">
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2Trace">
+                   <property name="toolTip">
+                    <string>Display CH2 trace</string>
+                   </property>
+                   <property name="text">
+                    <string>Trace</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2Average">
+                   <property name="toolTip">
+                    <string>The channel samples will be averaged to reduce aliasing</string>
+                   </property>
+                   <property name="text">
+                    <string>Average</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2Invert">
+                   <property name="toolTip">
+                    <string>The channel will be inverted. The displayed waveform and channel math will be affected.</string>
+                   </property>
+                   <property name="text">
+                    <string>Invert</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2Math">
+                   <property name="toolTip">
+                    <string>The channel math will be enabled</string>
+                   </property>
+                   <property name="text">
+                    <string>Math</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2Derivative">
+                   <property name="text">
+                    <string>Derivative</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2AC">
+                   <property name="text">
+                    <string>AC</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QGroupBox" name="mathBoxCH2">
+                   <property name="title">
+                    <string>Math</string>
+                   </property>
+                   <property name="checkable">
+                    <bool>true</bool>
+                   </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_17">
+                    <property name="leftMargin">
+                     <number>2</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>2</number>
+                    </property>
+                    <item>
+                     <widget class="QRadioButton" name="radioButtonCH2Multiply">
+                      <property name="toolTip">
+                       <string>The channel trace will be replaced with CH1xCH2</string>
+                      </property>
+                      <property name="text">
+                       <string>Multiply</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QRadioButton" name="radioButtonCH2Sub">
+                      <property name="toolTip">
+                       <string>The channel trace will be replaced with CH1-CH2</string>
+                      </property>
+                      <property name="text">
+                       <string>Sub</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_25">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="title">
+               <string>CH3</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_10">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_15">
+                 <item>
+                  <widget class="QLabel" name="label_14">
+                   <property name="text">
+                    <string>Gain</string>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignmentFlag::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSlider" name="ch2GainSlider_2">
+                   <property name="maximum">
+                    <number>6</number>
+                   </property>
+                   <property name="singleStep">
+                    <number>1</number>
+                   </property>
+                   <property name="pageStep">
+                    <number>1</number>
+                   </property>
+                   <property name="value">
+                    <number>3</number>
+                   </property>
+                   <property name="sliderPosition">
+                    <number>3</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Vertical</enum>
+                   </property>
+                   <property name="tickPosition">
+                    <enum>QSlider::TickPosition::TicksBelow</enum>
+                   </property>
+                   <property name="tickInterval">
+                    <number>1</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_16"/>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_18">
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2Trace_2">
+                   <property name="toolTip">
+                    <string>Display CH2 trace</string>
+                   </property>
+                   <property name="text">
+                    <string>Trace</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2Average_2">
+                   <property name="toolTip">
+                    <string>The channel samples will be averaged to reduce aliasing</string>
+                   </property>
+                   <property name="text">
+                    <string>Average</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2Invert_2">
+                   <property name="toolTip">
+                    <string>The channel will be inverted. The displayed waveform and channel math will be affected.</string>
+                   </property>
+                   <property name="text">
+                    <string>Invert</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2Math_2">
+                   <property name="toolTip">
+                    <string>The channel math will be enabled</string>
+                   </property>
+                   <property name="text">
+                    <string>Math</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2Derivative_2">
+                   <property name="text">
+                    <string>Derivative</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2AC_2">
+                   <property name="text">
+                    <string>AC</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QGroupBox" name="mathBoxCH2_2">
+                   <property name="title">
+                    <string>Math</string>
+                   </property>
+                   <property name="checkable">
+                    <bool>true</bool>
+                   </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_19">
+                    <property name="leftMargin">
+                     <number>2</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>2</number>
+                    </property>
+                    <item>
+                     <widget class="QRadioButton" name="radioButtonCH2Multiply_2">
+                      <property name="toolTip">
+                       <string>The channel trace will be replaced with CH1xCH2</string>
+                      </property>
+                      <property name="text">
+                       <string>Multiply</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QRadioButton" name="radioButtonCH2Sub_2">
+                      <property name="toolTip">
+                       <string>The channel trace will be replaced with CH1-CH2</string>
+                      </property>
+                      <property name="text">
+                       <string>Sub</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_26">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="title">
+               <string>CH4</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_11">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_21">
+                 <item>
+                  <widget class="QLabel" name="label_16">
+                   <property name="text">
+                    <string>Gain</string>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignmentFlag::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSlider" name="ch2GainSlider_3">
+                   <property name="maximum">
+                    <number>6</number>
+                   </property>
+                   <property name="singleStep">
+                    <number>1</number>
+                   </property>
+                   <property name="pageStep">
+                    <number>1</number>
+                   </property>
+                   <property name="value">
+                    <number>3</number>
+                   </property>
+                   <property name="sliderPosition">
+                    <number>3</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Vertical</enum>
+                   </property>
+                   <property name="tickPosition">
+                    <enum>QSlider::TickPosition::TicksBelow</enum>
+                   </property>
+                   <property name="tickInterval">
+                    <number>1</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_24"/>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_25">
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2Trace_3">
+                   <property name="toolTip">
+                    <string>Display CH2 trace</string>
+                   </property>
+                   <property name="text">
+                    <string>Trace</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2Average_3">
+                   <property name="toolTip">
+                    <string>The channel samples will be averaged to reduce aliasing</string>
+                   </property>
+                   <property name="text">
+                    <string>Average</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2Invert_3">
+                   <property name="toolTip">
+                    <string>The channel will be inverted. The displayed waveform and channel math will be affected.</string>
+                   </property>
+                   <property name="text">
+                    <string>Invert</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2Math_3">
+                   <property name="toolTip">
+                    <string>The channel math will be enabled</string>
+                   </property>
+                   <property name="text">
+                    <string>Math</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2Derivative_3">
+                   <property name="text">
+                    <string>Derivative</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCH2AC_3">
+                   <property name="text">
+                    <string>AC</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QGroupBox" name="mathBoxCH2_3">
+                   <property name="title">
+                    <string>Math</string>
+                   </property>
+                   <property name="checkable">
+                    <bool>true</bool>
+                   </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_26">
+                    <property name="leftMargin">
+                     <number>2</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>2</number>
+                    </property>
+                    <item>
+                     <widget class="QRadioButton" name="radioButtonCH2Multiply_3">
+                      <property name="toolTip">
+                       <string>The channel trace will be replaced with CH1xCH2</string>
+                      </property>
+                      <property name="text">
+                       <string>Multiply</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QRadioButton" name="radioButtonCH2Sub_3">
+                      <property name="toolTip">
+                       <string>The channel trace will be replaced with CH1-CH2</string>
+                      </property>
+                      <property name="text">
+                       <string>Sub</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="verticalBox">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="title">
+            <string>Vertical</string>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <property name="topMargin">
+             <number>3</number>
+            </property>
+            <property name="bottomMargin">
+             <number>6</number>
+            </property>
+            <item>
+             <widget class="QGroupBox" name="groupBox_23">
+              <property name="title">
+               <string>Logic</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_9">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_22">
+                 <item>
+                  <widget class="QLabel" name="label_18">
+                   <property name="text">
+                    <string>Size</string>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignmentFlag::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_106">
+                   <item>
+                    <widget class="QSlider" name="chdSizeSlider">
+                     <property name="minimum">
+                      <number>0</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>10</number>
+                     </property>
+                     <property name="pageStep">
+                      <number>10</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Vertical</enum>
+                     </property>
+                     <property name="tickPosition">
+                      <enum>QSlider::TickPosition::TicksBelow</enum>
+                     </property>
+                     <property name="tickInterval">
+                      <number>10</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_20">
+                 <item>
+                  <widget class="QLabel" name="label_17">
+                   <property name="text">
+                    <string>Position</string>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignmentFlag::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_18">
+                   <item>
+                    <widget class="QSlider" name="chdPositionSlider">
+                     <property name="minimum">
+                      <number>0</number>
+                     </property>
+                     <property name="maximum">
+                      <number>7</number>
+                     </property>
+                     <property name="singleStep">
+                      <number>1</number>
+                     </property>
+                     <property name="pageStep">
+                      <number>1</number>
+                     </property>
+                     <property name="value">
+                      <number>3</number>
+                     </property>
+                     <property name="sliderPosition">
+                      <number>3</number>
+                     </property>
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Vertical</enum>
+                     </property>
+                     <property name="tickPosition">
+                      <enum>QSlider::TickPosition::TicksBelow</enum>
+                     </property>
+                     <property name="tickInterval">
+                      <number>1</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_78">
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCHD0">
+                   <property name="text">
+                    <string>0</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCHD1">
+                   <property name="text">
+                    <string>1</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCHD2">
+                   <property name="text">
+                    <string>2</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCHD3">
+                   <property name="text">
+                    <string>3</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCHD4">
+                   <property name="text">
+                    <string>4</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCHD5">
+                   <property name="text">
+                    <string>5</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCHD6">
+                   <property name="text">
+                    <string>6</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCHD7">
+                   <property name="text">
+                    <string>7</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_23">
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCHDTrace">
+                   <property name="toolTip">
+                    <string>Display logic traces</string>
+                   </property>
+                   <property name="text">
+                    <string>Trace</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCHDInvert">
+                   <property name="toolTip">
+                    <string>All digital channels are inverted</string>
+                   </property>
+                   <property name="text">
+                    <string>Invert</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxCHDThick0">
+                   <property name="toolTip">
+                    <string>A thick line is drawn when the signal is at logic '0'</string>
+                   </property>
+                   <property name="text">
+                    <string>Thick 0</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBox">
+                   <property name="toolTip">
+                    <string>Shows the hexadecimal value of the 8 bit digital input lines</string>
+                   </property>
+                   <property name="text">
+                    <string>Parallel</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBox_2">
+                   <property name="toolTip">
+                    <string>Shows the hexadecimal value of the stream of bits on each channel</string>
+                   </property>
+                   <property name="text">
+                    <string>Serial</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSlider" name="chdPullSlider">
+                   <property name="minimum">
+                    <number>0</number>
+                   </property>
+                   <property name="maximum">
+                    <number>2</number>
+                   </property>
+                   <property name="pageStep">
+                    <number>1</number>
+                   </property>
+                   <property name="value">
+                    <number>1</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Vertical</enum>
+                   </property>
+                   <property name="tickPosition">
+                    <enum>QSlider::TickPosition::TicksBelow</enum>
+                   </property>
+                   <property name="tickInterval">
+                    <number>1</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox1">
+              <property name="toolTip">
+               <string/>
+              </property>
+              <property name="title">
+               <string>Reference</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_105">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_46">
+                 <item>
+                  <widget class="QLabel" name="label_33">
+                   <property name="text">
+                    <string>Position</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignmentFlag::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_104">
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_27">
+                     <item>
+                      <widget class="QSlider" name="ch1CaptureSlider">
+                       <property name="minimum">
+                        <number>-128</number>
+                       </property>
+                       <property name="maximum">
+                        <number>127</number>
+                       </property>
+                       <property name="singleStep">
+                        <number>16</number>
+                       </property>
+                       <property name="pageStep">
+                        <number>16</number>
+                       </property>
+                       <property name="value">
+                        <number>0</number>
+                       </property>
+                       <property name="orientation">
+                        <enum>Qt::Orientation::Vertical</enum>
+                       </property>
+                       <property name="tickPosition">
+                        <enum>QSlider::TickPosition::TicksBelow</enum>
+                       </property>
+                       <property name="tickInterval">
+                        <number>16</number>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_29">
+                     <item>
+                      <widget class="QSlider" name="ch2CaptureSlider">
+                       <property name="minimum">
+                        <number>-128</number>
+                       </property>
+                       <property name="maximum">
+                        <number>127</number>
+                       </property>
+                       <property name="singleStep">
+                        <number>16</number>
+                       </property>
+                       <property name="pageStep">
+                        <number>16</number>
+                       </property>
+                       <property name="value">
+                        <number>0</number>
+                       </property>
+                       <property name="sliderPosition">
+                        <number>0</number>
+                       </property>
+                       <property name="orientation">
+                        <enum>Qt::Orientation::Vertical</enum>
+                       </property>
+                       <property name="tickPosition">
+                        <enum>QSlider::TickPosition::TicksBelow</enum>
+                       </property>
+                       <property name="tickInterval">
+                        <number>16</number>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_30">
+                     <item>
+                      <widget class="QSlider" name="chdCaptureSlider">
+                       <property name="minimum">
+                        <number>-128</number>
+                       </property>
+                       <property name="maximum">
+                        <number>127</number>
+                       </property>
+                       <property name="singleStep">
+                        <number>16</number>
+                       </property>
+                       <property name="pageStep">
+                        <number>16</number>
+                       </property>
+                       <property name="value">
+                        <number>0</number>
+                       </property>
+                       <property name="orientation">
+                        <enum>Qt::Orientation::Vertical</enum>
+                       </property>
+                       <property name="tickPosition">
+                        <enum>QSlider::TickPosition::TicksBelow</enum>
+                       </property>
+                       <property name="tickInterval">
+                        <number>16</number>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_31">
+                   <property name="leftMargin">
+                    <number>16</number>
+                   </property>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_43">
+                     <item>
+                      <widget class="QCheckBox" name="refCH1">
+                       <property name="text">
+                        <string>CH1</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_44">
+                     <item>
+                      <widget class="QCheckBox" name="refCH2">
+                       <property name="text">
+                        <string>CH2</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_45">
+                     <item>
+                      <widget class="QCheckBox" name="refLogic">
+                       <property name="text">
+                        <string>Logic</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_28">
+                   <item>
+                    <widget class="QPushButton" name="captureButton">
+                     <property name="text">
+                      <string>Capture</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_24">
+              <property name="title">
+               <string>FFT</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_5">
+               <item>
+                <widget class="QCheckBox" name="checkBoxFFTTrace">
+                 <property name="text">
+                  <string>Trace</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="checkBoxFFTCH1">
+                 <property name="text">
+                  <string>CH1</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="checkBoxFFTCH2">
+                 <property name="text">
+                  <string>CH2</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="checkBoxIQFFT">
+                 <property name="text">
+                  <string>IQ FFT</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="checkBoxLogY">
+                 <property name="text">
+                  <string>Log Y</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="groupBox_2">
+                 <property name="title">
+                  <string>FFT Window</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_38">
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonRect">
+                    <property name="text">
+                     <string>Rectangular</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonHamming">
+                    <property name="text">
+                     <string>Hamming</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonHann">
+                    <property name="text">
+                     <string>Hann</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonBlackman">
+                    <property name="text">
+                     <string>Blackman</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_59">
            <property name="spacing">
             <number>6</number>
            </property>
@@ -404,1621 +1718,7 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QGroupBox" name="verticalBox">
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="title">
-              <string>Vertical</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_55">
-              <property name="topMargin">
-               <number>3</number>
-              </property>
-              <property name="bottomMargin">
-               <number>6</number>
-              </property>
-              <item>
-               <widget class="QTabWidget" name="tabWidget1">
-                <property name="toolTip">
-                 <string/>
-                </property>
-                <property name="currentIndex">
-                 <number>0</number>
-                </property>
-                <widget class="QWidget" name="ch1Tab">
-                 <attribute name="title">
-                  <string>CH1</string>
-                 </attribute>
-                 <layout class="QVBoxLayout" name="verticalLayout_94">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_20">
-                    <item>
-                     <layout class="QVBoxLayout" name="verticalLayout_8">
-                      <item>
-                       <widget class="QLabel" name="label_9">
-                        <property name="text">
-                         <string>Position</string>
-                        </property>
-                        <property name="scaledContents">
-                         <bool>true</bool>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignmentFlag::AlignCenter</set>
-                        </property>
-                        <property name="wordWrap">
-                         <bool>true</bool>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <layout class="QHBoxLayout" name="horizontalLayout_9">
-                        <item>
-                         <spacer name="horizontalSpacer_17">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>28</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QSlider" name="ch1PositionSlider">
-                          <property name="minimum">
-                           <number>-128</number>
-                          </property>
-                          <property name="maximum">
-                           <number>127</number>
-                          </property>
-                          <property name="singleStep">
-                           <number>16</number>
-                          </property>
-                          <property name="pageStep">
-                           <number>16</number>
-                          </property>
-                          <property name="value">
-                           <number>0</number>
-                          </property>
-                          <property name="sliderPosition">
-                           <number>0</number>
-                          </property>
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Vertical</enum>
-                          </property>
-                          <property name="invertedAppearance">
-                           <bool>false</bool>
-                          </property>
-                          <property name="invertedControls">
-                           <bool>false</bool>
-                          </property>
-                          <property name="tickPosition">
-                           <enum>QSlider::TickPosition::TicksBelow</enum>
-                          </property>
-                          <property name="tickInterval">
-                           <number>16</number>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_16">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>18</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                       </layout>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <layout class="QVBoxLayout" name="verticalLayout_11">
-                      <item>
-                       <layout class="QHBoxLayout" name="horizontalLayout_8">
-                        <item>
-                         <layout class="QVBoxLayout" name="verticalLayout_9">
-                          <item>
-                           <widget class="QLabel" name="label_10">
-                            <property name="text">
-                             <string>Gain</string>
-                            </property>
-                            <property name="scaledContents">
-                             <bool>true</bool>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignCenter</set>
-                            </property>
-                            <property name="wordWrap">
-                             <bool>true</bool>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <layout class="QHBoxLayout" name="horizontalLayout_96">
-                            <item>
-                             <spacer name="horizontalSpacer_18">
-                              <property name="orientation">
-                               <enum>Qt::Orientation::Horizontal</enum>
-                              </property>
-                              <property name="sizeHint" stdset="0">
-                               <size>
-                                <width>28</width>
-                                <height>20</height>
-                               </size>
-                              </property>
-                             </spacer>
-                            </item>
-                            <item>
-                             <widget class="QSlider" name="ch1GainSlider">
-                              <property name="maximum">
-                               <number>6</number>
-                              </property>
-                              <property name="singleStep">
-                               <number>1</number>
-                              </property>
-                              <property name="pageStep">
-                               <number>1</number>
-                              </property>
-                              <property name="value">
-                               <number>3</number>
-                              </property>
-                              <property name="sliderPosition">
-                               <number>3</number>
-                              </property>
-                              <property name="orientation">
-                               <enum>Qt::Orientation::Vertical</enum>
-                              </property>
-                              <property name="tickPosition">
-                               <enum>QSlider::TickPosition::TicksBelow</enum>
-                              </property>
-                              <property name="tickInterval">
-                               <number>1</number>
-                              </property>
-                             </widget>
-                            </item>
-                            <item>
-                             <spacer name="horizontalSpacer_19">
-                              <property name="orientation">
-                               <enum>Qt::Orientation::Horizontal</enum>
-                              </property>
-                              <property name="sizeHint" stdset="0">
-                               <size>
-                                <width>18</width>
-                                <height>20</height>
-                               </size>
-                              </property>
-                             </spacer>
-                            </item>
-                           </layout>
-                          </item>
-                         </layout>
-                        </item>
-                        <item>
-                         <layout class="QVBoxLayout" name="verticalLayout_7">
-                          <item>
-                           <widget class="QCheckBox" name="checkBoxCH1Trace">
-                            <property name="toolTip">
-                             <string>Display CH1 trace</string>
-                            </property>
-                            <property name="text">
-                             <string>Trace</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QCheckBox" name="checkBoxCH1Average">
-                            <property name="toolTip">
-                             <string>The channel samples will be averaged to reduce aliasing</string>
-                            </property>
-                            <property name="text">
-                             <string>Average</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QCheckBox" name="checkBoxCH1Invert">
-                            <property name="toolTip">
-                             <string>The channel will be inverted. The displayed waveform and channel math will be affected.</string>
-                            </property>
-                            <property name="text">
-                             <string>Invert</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QCheckBox" name="checkBoxCH1Math">
-                            <property name="toolTip">
-                             <string>The channel math will be enabled</string>
-                            </property>
-                            <property name="text">
-                             <string>Math</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QCheckBox" name="checkBoxCH1Derivative">
-                            <property name="text">
-                             <string>Derivative</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QCheckBox" name="checkBoxCH1AC">
-                            <property name="text">
-                             <string>AC</string>
-                            </property>
-                           </widget>
-                          </item>
-                         </layout>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <layout class="QHBoxLayout" name="horizontalLayout">
-                        <item>
-                         <spacer name="horizontalSpacer_15">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <layout class="QVBoxLayout" name="verticalLayout_10">
-                          <item>
-                           <widget class="QGroupBox" name="mathBox">
-                            <property name="title">
-                             <string>Math</string>
-                            </property>
-                            <layout class="QHBoxLayout" name="horizontalLayout_24">
-                             <item>
-                              <widget class="QRadioButton" name="radioButtonCH1Sub">
-                               <property name="toolTip">
-                                <string>The channel trace will be replaced with CH1-CH2</string>
-                               </property>
-                               <property name="text">
-                                <string>Sub</string>
-                               </property>
-                              </widget>
-                             </item>
-                             <item>
-                              <widget class="QRadioButton" name="radioButtonCH1Multiply">
-                               <property name="toolTip">
-                                <string>The channel trace will be replaced with CH1xCH2</string>
-                               </property>
-                               <property name="text">
-                                <string>Multiply</string>
-                               </property>
-                              </widget>
-                             </item>
-                            </layout>
-                           </widget>
-                          </item>
-                          <item>
-                           <layout class="QHBoxLayout" name="horizontalLayout_6">
-                            <item>
-                             <layout class="QVBoxLayout" name="verticalLayout_5">
-                              <item>
-                               <widget class="QLabel" name="label_5">
-                                <property name="text">
-                                 <string>VDC</string>
-                                </property>
-                               </widget>
-                              </item>
-                              <item>
-                               <widget class="QLabel" name="label_6">
-                                <property name="text">
-                                 <string>VPP</string>
-                                </property>
-                               </widget>
-                              </item>
-                              <item>
-                               <widget class="QLabel" name="label_7">
-                                <property name="text">
-                                 <string>Freq</string>
-                                </property>
-                               </widget>
-                              </item>
-                             </layout>
-                            </item>
-                            <item>
-                             <layout class="QVBoxLayout" name="verticalLayout_6">
-                              <item>
-                               <widget class="QLineEdit" name="vdcTextBox"/>
-                              </item>
-                              <item>
-                               <widget class="QLineEdit" name="vppTextBox"/>
-                              </item>
-                              <item>
-                               <widget class="QLineEdit" name="freqTextBox"/>
-                              </item>
-                             </layout>
-                            </item>
-                           </layout>
-                          </item>
-                         </layout>
-                        </item>
-                       </layout>
-                      </item>
-                     </layout>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </widget>
-                <widget class="QWidget" name="ch2Tab">
-                 <attribute name="title">
-                  <string>CH2</string>
-                 </attribute>
-                 <layout class="QVBoxLayout" name="verticalLayout_96">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_17">
-                    <item>
-                     <layout class="QVBoxLayout" name="verticalLayout_12">
-                      <item>
-                       <widget class="QLabel" name="label_11">
-                        <property name="text">
-                         <string>Position</string>
-                        </property>
-                        <property name="scaledContents">
-                         <bool>true</bool>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignmentFlag::AlignCenter</set>
-                        </property>
-                        <property name="wordWrap">
-                         <bool>true</bool>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <layout class="QHBoxLayout" name="horizontalLayout_10">
-                        <item>
-                         <spacer name="horizontalSpacer_20">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>28</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QSlider" name="ch2PositionSlider">
-                          <property name="minimum">
-                           <number>-128</number>
-                          </property>
-                          <property name="maximum">
-                           <number>127</number>
-                          </property>
-                          <property name="singleStep">
-                           <number>16</number>
-                          </property>
-                          <property name="pageStep">
-                           <number>16</number>
-                          </property>
-                          <property name="value">
-                           <number>0</number>
-                          </property>
-                          <property name="sliderPosition">
-                           <number>0</number>
-                          </property>
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Vertical</enum>
-                          </property>
-                          <property name="invertedAppearance">
-                           <bool>false</bool>
-                          </property>
-                          <property name="invertedControls">
-                           <bool>false</bool>
-                          </property>
-                          <property name="tickPosition">
-                           <enum>QSlider::TickPosition::TicksBelow</enum>
-                          </property>
-                          <property name="tickInterval">
-                           <number>16</number>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_21">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>18</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                       </layout>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <layout class="QVBoxLayout" name="verticalLayout_15">
-                      <item>
-                       <layout class="QHBoxLayout" name="horizontalLayout_11">
-                        <item>
-                         <layout class="QVBoxLayout" name="verticalLayout_13">
-                          <item>
-                           <widget class="QLabel" name="label_12">
-                            <property name="text">
-                             <string>Gain</string>
-                            </property>
-                            <property name="scaledContents">
-                             <bool>true</bool>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignCenter</set>
-                            </property>
-                            <property name="wordWrap">
-                             <bool>true</bool>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <layout class="QHBoxLayout" name="horizontalLayout_100">
-                            <item>
-                             <spacer name="horizontalSpacer_22">
-                              <property name="orientation">
-                               <enum>Qt::Orientation::Horizontal</enum>
-                              </property>
-                              <property name="sizeHint" stdset="0">
-                               <size>
-                                <width>28</width>
-                                <height>20</height>
-                               </size>
-                              </property>
-                             </spacer>
-                            </item>
-                            <item>
-                             <widget class="QSlider" name="ch2GainSlider">
-                              <property name="maximum">
-                               <number>6</number>
-                              </property>
-                              <property name="singleStep">
-                               <number>1</number>
-                              </property>
-                              <property name="pageStep">
-                               <number>1</number>
-                              </property>
-                              <property name="value">
-                               <number>3</number>
-                              </property>
-                              <property name="sliderPosition">
-                               <number>3</number>
-                              </property>
-                              <property name="orientation">
-                               <enum>Qt::Orientation::Vertical</enum>
-                              </property>
-                              <property name="tickPosition">
-                               <enum>QSlider::TickPosition::TicksBelow</enum>
-                              </property>
-                              <property name="tickInterval">
-                               <number>1</number>
-                              </property>
-                             </widget>
-                            </item>
-                            <item>
-                             <spacer name="horizontalSpacer_23">
-                              <property name="orientation">
-                               <enum>Qt::Orientation::Horizontal</enum>
-                              </property>
-                              <property name="sizeHint" stdset="0">
-                               <size>
-                                <width>18</width>
-                                <height>20</height>
-                               </size>
-                              </property>
-                             </spacer>
-                            </item>
-                           </layout>
-                          </item>
-                         </layout>
-                        </item>
-                        <item>
-                         <layout class="QVBoxLayout" name="verticalLayout_14">
-                          <item>
-                           <widget class="QCheckBox" name="checkBoxCH2Trace">
-                            <property name="toolTip">
-                             <string>Display CH2 trace</string>
-                            </property>
-                            <property name="text">
-                             <string>Trace</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QCheckBox" name="checkBoxCH2Average">
-                            <property name="toolTip">
-                             <string>The channel samples will be averaged to reduce aliasing</string>
-                            </property>
-                            <property name="text">
-                             <string>Average</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QCheckBox" name="checkBoxCH2Invert">
-                            <property name="toolTip">
-                             <string>The channel will be inverted. The displayed waveform and channel math will be affected.</string>
-                            </property>
-                            <property name="text">
-                             <string>Invert</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QCheckBox" name="checkBoxCH2Math">
-                            <property name="toolTip">
-                             <string>The channel math will be enabled</string>
-                            </property>
-                            <property name="text">
-                             <string>Math</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QCheckBox" name="checkBoxCH2Derivative">
-                            <property name="text">
-                             <string>Derivative</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QCheckBox" name="checkBoxCH2AC">
-                            <property name="text">
-                             <string>AC</string>
-                            </property>
-                           </widget>
-                          </item>
-                         </layout>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <layout class="QHBoxLayout" name="horizontalLayout_13">
-                        <item>
-                         <spacer name="horizontalSpacer_24">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <layout class="QVBoxLayout" name="verticalLayout_16">
-                          <item>
-                           <widget class="QGroupBox" name="mathBox_2">
-                            <property name="title">
-                             <string>Math</string>
-                            </property>
-                            <layout class="QVBoxLayout" name="verticalLayout_17">
-                             <item>
-                              <layout class="QHBoxLayout" name="horizontalLayout_14">
-                               <item>
-                                <widget class="QRadioButton" name="radioButtonCH2Sub">
-                                 <property name="toolTip">
-                                  <string>The channel trace will be replaced with CH1-CH2</string>
-                                 </property>
-                                 <property name="text">
-                                  <string>Sub</string>
-                                 </property>
-                                </widget>
-                               </item>
-                               <item>
-                                <widget class="QRadioButton" name="radioButtonCH2Multiply">
-                                 <property name="toolTip">
-                                  <string>The channel trace will be replaced with CH1xCH2</string>
-                                 </property>
-                                 <property name="text">
-                                  <string>Multiply</string>
-                                 </property>
-                                </widget>
-                               </item>
-                              </layout>
-                             </item>
-                            </layout>
-                           </widget>
-                          </item>
-                          <item>
-                           <layout class="QHBoxLayout" name="horizontalLayout_101">
-                            <item>
-                             <layout class="QVBoxLayout" name="verticalLayout_18">
-                              <item>
-                               <widget class="QLabel" name="label_14">
-                                <property name="text">
-                                 <string>VDC</string>
-                                </property>
-                               </widget>
-                              </item>
-                              <item>
-                               <widget class="QLabel" name="label_15">
-                                <property name="text">
-                                 <string>VPP</string>
-                                </property>
-                               </widget>
-                              </item>
-                              <item>
-                               <widget class="QLabel" name="label_16">
-                                <property name="text">
-                                 <string>Freq</string>
-                                </property>
-                               </widget>
-                              </item>
-                             </layout>
-                            </item>
-                            <item>
-                             <layout class="QVBoxLayout" name="verticalLayout_19">
-                              <item>
-                               <widget class="QLineEdit" name="vdcTextBox_2"/>
-                              </item>
-                              <item>
-                               <widget class="QLineEdit" name="vppTextBox_2"/>
-                              </item>
-                              <item>
-                               <widget class="QLineEdit" name="freqTextBox_2"/>
-                              </item>
-                             </layout>
-                            </item>
-                           </layout>
-                          </item>
-                         </layout>
-                        </item>
-                       </layout>
-                      </item>
-                     </layout>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </widget>
-                <widget class="QWidget" name="logicTab">
-                 <attribute name="title">
-                  <string>LOGIC</string>
-                 </attribute>
-                 <layout class="QVBoxLayout" name="verticalLayout_34">
-                  <item>
-                   <layout class="QVBoxLayout" name="verticalLayout_33">
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_107">
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_20">
-                        <item>
-                         <widget class="QLabel" name="label_17">
-                          <property name="text">
-                           <string>Position</string>
-                          </property>
-                          <property name="scaledContents">
-                           <bool>true</bool>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignmentFlag::AlignCenter</set>
-                          </property>
-                          <property name="wordWrap">
-                           <bool>true</bool>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <layout class="QHBoxLayout" name="horizontalLayout_18">
-                          <item>
-                           <spacer name="horizontalSpacer_27">
-                            <property name="orientation">
-                             <enum>Qt::Orientation::Horizontal</enum>
-                            </property>
-                            <property name="sizeHint" stdset="0">
-                             <size>
-                              <width>40</width>
-                              <height>20</height>
-                             </size>
-                            </property>
-                           </spacer>
-                          </item>
-                          <item>
-                           <widget class="QSlider" name="chdPositionSlider">
-                            <property name="minimum">
-                             <number>0</number>
-                            </property>
-                            <property name="maximum">
-                             <number>7</number>
-                            </property>
-                            <property name="singleStep">
-                             <number>1</number>
-                            </property>
-                            <property name="pageStep">
-                             <number>1</number>
-                            </property>
-                            <property name="value">
-                             <number>3</number>
-                            </property>
-                            <property name="sliderPosition">
-                             <number>3</number>
-                            </property>
-                            <property name="orientation">
-                             <enum>Qt::Orientation::Vertical</enum>
-                            </property>
-                            <property name="tickPosition">
-                             <enum>QSlider::TickPosition::TicksBelow</enum>
-                            </property>
-                            <property name="tickInterval">
-                             <number>1</number>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <spacer name="horizontalSpacer_28">
-                            <property name="orientation">
-                             <enum>Qt::Orientation::Horizontal</enum>
-                            </property>
-                            <property name="sizeHint" stdset="0">
-                             <size>
-                              <width>40</width>
-                              <height>20</height>
-                             </size>
-                            </property>
-                           </spacer>
-                          </item>
-                         </layout>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_22">
-                        <item>
-                         <widget class="QLabel" name="label_18">
-                          <property name="text">
-                           <string>Size</string>
-                          </property>
-                          <property name="scaledContents">
-                           <bool>true</bool>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignmentFlag::AlignCenter</set>
-                          </property>
-                          <property name="wordWrap">
-                           <bool>true</bool>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <layout class="QHBoxLayout" name="horizontalLayout_106">
-                          <item>
-                           <spacer name="horizontalSpacer_29">
-                            <property name="orientation">
-                             <enum>Qt::Orientation::Horizontal</enum>
-                            </property>
-                            <property name="sizeHint" stdset="0">
-                             <size>
-                              <width>40</width>
-                              <height>20</height>
-                             </size>
-                            </property>
-                           </spacer>
-                          </item>
-                          <item>
-                           <widget class="QSlider" name="chdSizeSlider">
-                            <property name="minimum">
-                             <number>0</number>
-                            </property>
-                            <property name="singleStep">
-                             <number>10</number>
-                            </property>
-                            <property name="pageStep">
-                             <number>10</number>
-                            </property>
-                            <property name="orientation">
-                             <enum>Qt::Orientation::Vertical</enum>
-                            </property>
-                            <property name="tickPosition">
-                             <enum>QSlider::TickPosition::TicksBelow</enum>
-                            </property>
-                            <property name="tickInterval">
-                             <number>10</number>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <spacer name="horizontalSpacer_30">
-                            <property name="orientation">
-                             <enum>Qt::Orientation::Horizontal</enum>
-                            </property>
-                            <property name="sizeHint" stdset="0">
-                             <size>
-                              <width>40</width>
-                              <height>20</height>
-                             </size>
-                            </property>
-                           </spacer>
-                          </item>
-                         </layout>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <spacer name="horizontalSpacer_31">
-                        <property name="orientation">
-                         <enum>Qt::Orientation::Horizontal</enum>
-                        </property>
-                        <property name="sizeHint" stdset="0">
-                         <size>
-                          <width>40</width>
-                          <height>20</height>
-                         </size>
-                        </property>
-                       </spacer>
-                      </item>
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_23">
-                        <item>
-                         <widget class="QCheckBox" name="checkBoxCHDTrace">
-                          <property name="toolTip">
-                           <string>Display logic traces</string>
-                          </property>
-                          <property name="text">
-                           <string>Trace</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="checkBoxCHDInvert">
-                          <property name="toolTip">
-                           <string>All digital channels are inverted</string>
-                          </property>
-                          <property name="text">
-                           <string>Invert</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="checkBoxCHDThick0">
-                          <property name="toolTip">
-                           <string>A thick line is drawn when the signal is at logic '0'</string>
-                          </property>
-                          <property name="text">
-                           <string>Thick 0</string>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_19">
-                      <item>
-                       <layout class="QHBoxLayout" name="horizontalLayout_15">
-                        <item>
-                         <layout class="QVBoxLayout" name="verticalLayout_21">
-                          <item>
-                           <widget class="QLabel" name="label_20">
-                            <property name="text">
-                             <string>Pull Up</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QLabel" name="label_21">
-                            <property name="text">
-                             <string>No Pull</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QLabel" name="label_22">
-                            <property name="text">
-                             <string>Pull Down</string>
-                            </property>
-                           </widget>
-                          </item>
-                         </layout>
-                        </item>
-                        <item>
-                         <widget class="QSlider" name="chdPullSlider">
-                          <property name="minimum">
-                           <number>0</number>
-                          </property>
-                          <property name="maximum">
-                           <number>2</number>
-                          </property>
-                          <property name="pageStep">
-                           <number>1</number>
-                          </property>
-                          <property name="value">
-                           <number>1</number>
-                          </property>
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Vertical</enum>
-                          </property>
-                          <property name="tickPosition">
-                           <enum>QSlider::TickPosition::TicksBelow</enum>
-                          </property>
-                          <property name="tickInterval">
-                           <number>1</number>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_32">
-                        <item>
-                         <widget class="QCheckBox" name="checkBox">
-                          <property name="toolTip">
-                           <string>Shows the hexadecimal value of the 8 bit digital input lines</string>
-                          </property>
-                          <property name="text">
-                           <string>Parallel</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="checkBox_2">
-                          <property name="toolTip">
-                           <string>Shows the hexadecimal value of the stream of bits on each channel</string>
-                          </property>
-                          <property name="text">
-                           <string>Serial</string>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_16">
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_24">
-                        <item>
-                         <widget class="QLabel" name="label_23">
-                          <property name="text">
-                           <string>7</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignmentFlag::AlignCenter</set>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="checkBoxCHD7">
-                          <property name="text">
-                           <string/>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_25">
-                        <item>
-                         <widget class="QLabel" name="label_24">
-                          <property name="text">
-                           <string>6</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignmentFlag::AlignCenter</set>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="checkBoxCHD6">
-                          <property name="text">
-                           <string/>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_26">
-                        <item>
-                         <widget class="QLabel" name="label_25">
-                          <property name="text">
-                           <string>5</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignmentFlag::AlignCenter</set>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="checkBoxCHD5">
-                          <property name="text">
-                           <string/>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_27">
-                        <item>
-                         <widget class="QLabel" name="label_26">
-                          <property name="text">
-                           <string>4</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignmentFlag::AlignCenter</set>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="checkBoxCHD4">
-                          <property name="text">
-                           <string/>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_28">
-                        <item>
-                         <widget class="QLabel" name="label_27">
-                          <property name="text">
-                           <string>3</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignmentFlag::AlignCenter</set>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="checkBoxCHD3">
-                          <property name="text">
-                           <string/>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_29">
-                        <item>
-                         <widget class="QLabel" name="label_28">
-                          <property name="text">
-                           <string>2</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignmentFlag::AlignCenter</set>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="checkBoxCHD2">
-                          <property name="text">
-                           <string/>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_30">
-                        <item>
-                         <widget class="QLabel" name="label_29">
-                          <property name="text">
-                           <string>1</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignmentFlag::AlignCenter</set>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="checkBoxCHD1">
-                          <property name="text">
-                           <string/>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_31">
-                        <item>
-                         <widget class="QLabel" name="label_30">
-                          <property name="text">
-                           <string>0</string>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignmentFlag::AlignCenter</set>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="checkBoxCHD0">
-                          <property name="text">
-                           <string/>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                     </layout>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </widget>
-                <widget class="QWidget" name="fftTab">
-                 <attribute name="title">
-                  <string>FFT</string>
-                 </attribute>
-                 <layout class="QVBoxLayout" name="verticalLayout_42">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_21">
-                    <item>
-                     <layout class="QVBoxLayout" name="verticalLayout_40">
-                      <item>
-                       <widget class="QLabel" name="label_32">
-                        <property name="text">
-                         <string>Position</string>
-                        </property>
-                        <property name="scaledContents">
-                         <bool>true</bool>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignmentFlag::AlignCenter</set>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <layout class="QHBoxLayout" name="horizontalLayout_23">
-                        <item>
-                         <spacer name="horizontalSpacer_26">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QSlider" name="verticalSlider_8">
-                          <property name="singleStep">
-                           <number>10</number>
-                          </property>
-                          <property name="sliderPosition">
-                           <number>50</number>
-                          </property>
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Vertical</enum>
-                          </property>
-                          <property name="tickPosition">
-                           <enum>QSlider::TickPosition::TicksBelow</enum>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_25">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                       </layout>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <layout class="QVBoxLayout" name="verticalLayout_41">
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_35">
-                        <item>
-                         <widget class="QCheckBox" name="checkBoxFFTTrace">
-                          <property name="text">
-                           <string>Trace</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="checkBoxIQFFT">
-                          <property name="text">
-                           <string>IQ FFT</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="checkBoxLogY">
-                          <property name="text">
-                           <string>Log Y</string>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <widget class="QGroupBox" name="groupBoxPlot">
-                        <property name="title">
-                         <string>Plot</string>
-                        </property>
-                        <layout class="QVBoxLayout" name="verticalLayout_36">
-                         <item>
-                          <widget class="QCheckBox" name="checkBoxFFTCH1">
-                           <property name="text">
-                            <string>CH1</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QCheckBox" name="checkBoxFFTCH2">
-                           <property name="text">
-                            <string>CH2</string>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QGroupBox" name="groupBox_2">
-                        <property name="title">
-                         <string>FFT Window</string>
-                        </property>
-                        <layout class="QVBoxLayout" name="verticalLayout_38">
-                         <item>
-                          <widget class="QRadioButton" name="radioButtonRect">
-                           <property name="text">
-                            <string>Rectangular</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QRadioButton" name="radioButtonHamming">
-                           <property name="text">
-                            <string>Hamming</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QRadioButton" name="radioButtonHann">
-                           <property name="text">
-                            <string>Hann</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QRadioButton" name="radioButtonBlackman">
-                           <property name="text">
-                            <string>Blackman</string>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
-                       </widget>
-                      </item>
-                     </layout>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </widget>
-                <widget class="QWidget" name="refTab">
-                 <attribute name="title">
-                  <string>REF</string>
-                 </attribute>
-                 <layout class="QHBoxLayout" name="horizontalLayout_105">
-                  <item>
-                   <layout class="QVBoxLayout" name="verticalLayout_46">
-                    <item>
-                     <widget class="QLabel" name="label_33">
-                      <property name="text">
-                       <string>Position</string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignmentFlag::AlignCenter</set>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_104">
-                      <item>
-                       <layout class="QHBoxLayout" name="horizontalLayout_27">
-                        <item>
-                         <spacer name="horizontalSpacer_3">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QSlider" name="ch1CaptureSlider">
-                          <property name="minimum">
-                           <number>-128</number>
-                          </property>
-                          <property name="maximum">
-                           <number>127</number>
-                          </property>
-                          <property name="singleStep">
-                           <number>16</number>
-                          </property>
-                          <property name="pageStep">
-                           <number>16</number>
-                          </property>
-                          <property name="value">
-                           <number>0</number>
-                          </property>
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Vertical</enum>
-                          </property>
-                          <property name="tickPosition">
-                           <enum>QSlider::TickPosition::TicksBelow</enum>
-                          </property>
-                          <property name="tickInterval">
-                           <number>16</number>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_4">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <layout class="QHBoxLayout" name="horizontalLayout_29">
-                        <item>
-                         <spacer name="horizontalSpacer_5">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QSlider" name="ch2CaptureSlider">
-                          <property name="minimum">
-                           <number>-128</number>
-                          </property>
-                          <property name="maximum">
-                           <number>127</number>
-                          </property>
-                          <property name="singleStep">
-                           <number>16</number>
-                          </property>
-                          <property name="pageStep">
-                           <number>16</number>
-                          </property>
-                          <property name="value">
-                           <number>0</number>
-                          </property>
-                          <property name="sliderPosition">
-                           <number>0</number>
-                          </property>
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Vertical</enum>
-                          </property>
-                          <property name="tickPosition">
-                           <enum>QSlider::TickPosition::TicksBelow</enum>
-                          </property>
-                          <property name="tickInterval">
-                           <number>16</number>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_6">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <layout class="QHBoxLayout" name="horizontalLayout_30">
-                        <item>
-                         <spacer name="horizontalSpacer_7">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QSlider" name="chdCaptureSlider">
-                          <property name="minimum">
-                           <number>-128</number>
-                          </property>
-                          <property name="maximum">
-                           <number>127</number>
-                          </property>
-                          <property name="singleStep">
-                           <number>16</number>
-                          </property>
-                          <property name="pageStep">
-                           <number>16</number>
-                          </property>
-                          <property name="value">
-                           <number>0</number>
-                          </property>
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Vertical</enum>
-                          </property>
-                          <property name="tickPosition">
-                           <enum>QSlider::TickPosition::TicksBelow</enum>
-                          </property>
-                          <property name="tickInterval">
-                           <number>16</number>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_8">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                       </layout>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_31">
-                      <property name="leftMargin">
-                       <number>16</number>
-                      </property>
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_43">
-                        <item>
-                         <widget class="QCheckBox" name="refCH1">
-                          <property name="text">
-                           <string>CH1</string>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_44">
-                        <item>
-                         <widget class="QCheckBox" name="refCH2">
-                          <property name="text">
-                           <string>CH2</string>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <layout class="QVBoxLayout" name="verticalLayout_45">
-                        <item>
-                         <widget class="QCheckBox" name="refLogic">
-                          <property name="text">
-                           <string>Logic</string>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_28">
-                      <item>
-                       <spacer name="horizontalSpacer">
-                        <property name="orientation">
-                         <enum>Qt::Orientation::Horizontal</enum>
-                        </property>
-                        <property name="sizeHint" stdset="0">
-                         <size>
-                          <width>40</width>
-                          <height>20</height>
-                         </size>
-                        </property>
-                       </spacer>
-                      </item>
-                      <item>
-                       <widget class="QPushButton" name="captureButton">
-                        <property name="text">
-                         <string>Capture</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <spacer name="horizontalSpacer_2">
-                        <property name="orientation">
-                         <enum>Qt::Orientation::Horizontal</enum>
-                        </property>
-                        <property name="sizeHint" stdset="0">
-                         <size>
-                          <width>40</width>
-                          <height>20</height>
-                         </size>
-                        </property>
-                       </spacer>
-                      </item>
-                     </layout>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </widget>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="triggerBox">
+            <widget class="QFrame" name="triggerBox">
              <property name="maximumSize">
               <size>
                <width>16777215</width>
@@ -2028,15 +1728,18 @@
              <property name="styleSheet">
               <string notr="true"/>
              </property>
-             <property name="title">
-              <string>Trigger</string>
-             </property>
              <layout class="QVBoxLayout" name="verticalLayout_54">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
               <property name="topMargin">
                <number>3</number>
               </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
               <item>
-               <layout class="QVBoxLayout" name="verticalLayout_53">
+               <layout class="QHBoxLayout" name="horizontalLayout_40">
                 <item>
                  <widget class="QGroupBox" name="groupBox_3">
                   <property name="title">
@@ -2119,159 +1822,6 @@
                       </property>
                      </item>
                     </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QGroupBox" name="groupBox_4">
-                  <property name="title">
-                   <string>Trigger Mode</string>
-                  </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_49">
-                   <item>
-                    <widget class="QRadioButton" name="radioButtonRising">
-                     <property name="toolTip">
-                      <string>The trigger occurs when the signal crosses the trigger level from below to above</string>
-                     </property>
-                     <property name="text">
-                      <string>Rising Edge</string>
-                     </property>
-                     <property name="icon">
-                      <iconset resource="xprotolabinterface.qrc">
-                       <normaloff>:/Bitmaps/Bitmaps/rising.png</normaloff>:/Bitmaps/Bitmaps/rising.png</iconset>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="radioButtonFalling">
-                     <property name="toolTip">
-                      <string>The trigger occurs when the signal crosses the trigger level from above to below</string>
-                     </property>
-                     <property name="text">
-                      <string>Falling Edge</string>
-                     </property>
-                     <property name="icon">
-                      <iconset resource="xprotolabinterface.qrc">
-                       <normaloff>:/Bitmaps/Bitmaps/falling.png</normaloff>:/Bitmaps/Bitmaps/falling.png</iconset>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="radioButtonDual">
-                     <property name="toolTip">
-                      <string>The trigger occurs when the signal crosses the trigger level in any direction</string>
-                     </property>
-                     <property name="text">
-                      <string>Dual Edge</string>
-                     </property>
-                     <property name="icon">
-                      <iconset resource="xprotolabinterface.qrc">
-                       <normaloff>:/Bitmaps/Bitmaps/dual.png</normaloff>:/Bitmaps/Bitmaps/dual.png</iconset>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="radioButtonPositive">
-                     <property name="toolTip">
-                      <string>The trigger occurs when the difference between two consecutive samples is greater than the trigger value, positive slope</string>
-                     </property>
-                     <property name="text">
-                      <string>Positive Slope</string>
-                     </property>
-                     <property name="icon">
-                      <iconset resource="xprotolabinterface.qrc">
-                       <normaloff>:/Bitmaps/Bitmaps/positive.png</normaloff>:/Bitmaps/Bitmaps/positive.png</iconset>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="radioButtonNegative">
-                     <property name="toolTip">
-                      <string>The trigger occurs when the difference between two consecutive samples is greater than the trigger value, negative slope</string>
-                     </property>
-                     <property name="text">
-                      <string>Negative Slope</string>
-                     </property>
-                     <property name="icon">
-                      <iconset resource="xprotolabinterface.qrc">
-                       <normaloff>:/Bitmaps/Bitmaps/negative.png</normaloff>:/Bitmaps/Bitmaps/negative.png</iconset>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="radioButtonWindow">
-                     <property name="toolTip">
-                      <string>The trigger occurs when the signal leaves a voltage range</string>
-                     </property>
-                     <property name="text">
-                      <string>Window</string>
-                     </property>
-                     <property name="icon">
-                      <iconset resource="xprotolabinterface.qrc">
-                       <normaloff>:/Bitmaps/Bitmaps/window.png</normaloff>:/Bitmaps/Bitmaps/window.png</iconset>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QGroupBox" name="groupBox_5">
-                  <property name="title">
-                   <string>Trigger Type</string>
-                  </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_48">
-                   <item>
-                    <layout class="QHBoxLayout" name="horizontalLayout_34">
-                     <item>
-                      <widget class="QRadioButton" name="radioButtonFree">
-                       <property name="toolTip">
-                        <string>Trace continuously ignoring the trigger</string>
-                       </property>
-                       <property name="text">
-                        <string>Free</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QRadioButton" name="radioButtonNormal">
-                       <property name="toolTip">
-                        <string>Trace only when the trigger event occurs</string>
-                       </property>
-                       <property name="text">
-                        <string>Normal</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </item>
-                   <item>
-                    <layout class="QHBoxLayout" name="horizontalLayout_35">
-                     <item>
-                      <widget class="QRadioButton" name="radioButtonAuto">
-                       <property name="toolTip">
-                        <string>Trace when the trigger event occurs, or after the Auto trigger timeout</string>
-                       </property>
-                       <property name="text">
-                        <string>Auto</string>
-                       </property>
-                       <property name="checked">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QRadioButton" name="radioButtonSingle">
-                       <property name="toolTip">
-                        <string>Only one trace is displayed when the trigger event occurs</string>
-                       </property>
-                       <property name="text">
-                        <string>Single</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
                    </item>
                   </layout>
                  </widget>
@@ -2375,6 +1925,58 @@
                      </item>
                     </layout>
                    </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBox_5">
+                  <property name="title">
+                   <string>Trigger Type</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_48">
+                   <item>
+                    <widget class="QRadioButton" name="radioButtonFree">
+                     <property name="toolTip">
+                      <string>Trace continuously ignoring the trigger</string>
+                     </property>
+                     <property name="text">
+                      <string>Free</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QRadioButton" name="radioButtonNormal">
+                     <property name="toolTip">
+                      <string>Trace only when the trigger event occurs</string>
+                     </property>
+                     <property name="text">
+                      <string>Normal</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QRadioButton" name="radioButtonAuto">
+                     <property name="toolTip">
+                      <string>Trace when the trigger event occurs, or after the Auto trigger timeout</string>
+                     </property>
+                     <property name="text">
+                      <string>Auto</string>
+                     </property>
+                     <property name="checked">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QRadioButton" name="radioButtonSingle">
+                     <property name="toolTip">
+                      <string>Only one trace is displayed when the trigger event occurs</string>
+                     </property>
+                     <property name="text">
+                      <string>Single</string>
+                     </property>
+                    </widget>
+                   </item>
                    <item>
                     <widget class="QPushButton" name="forceButton">
                      <property name="minimumSize">
@@ -2394,7 +1996,103 @@
                   </layout>
                  </widget>
                 </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBox_4">
+                  <property name="title">
+                   <string>Trigger Mode</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_49">
+                   <item>
+                    <widget class="QRadioButton" name="radioButtonRising">
+                     <property name="toolTip">
+                      <string>The trigger occurs when the signal crosses the trigger level from below to above</string>
+                     </property>
+                     <property name="text">
+                      <string>Rising Edge</string>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="xprotolabinterface.qrc">
+                       <normaloff>:/Bitmaps/Bitmaps/rising.png</normaloff>:/Bitmaps/Bitmaps/rising.png</iconset>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QRadioButton" name="radioButtonFalling">
+                     <property name="toolTip">
+                      <string>The trigger occurs when the signal crosses the trigger level from above to below</string>
+                     </property>
+                     <property name="text">
+                      <string>Falling Edge</string>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="xprotolabinterface.qrc">
+                       <normaloff>:/Bitmaps/Bitmaps/falling.png</normaloff>:/Bitmaps/Bitmaps/falling.png</iconset>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QRadioButton" name="radioButtonDual">
+                     <property name="toolTip">
+                      <string>The trigger occurs when the signal crosses the trigger level in any direction</string>
+                     </property>
+                     <property name="text">
+                      <string>Dual Edge</string>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="xprotolabinterface.qrc">
+                       <normaloff>:/Bitmaps/Bitmaps/dual.png</normaloff>:/Bitmaps/Bitmaps/dual.png</iconset>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QRadioButton" name="radioButtonPositive">
+                     <property name="toolTip">
+                      <string>The trigger occurs when the difference between two consecutive samples is greater than the trigger value, positive slope</string>
+                     </property>
+                     <property name="text">
+                      <string>Positive Slope</string>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="xprotolabinterface.qrc">
+                       <normaloff>:/Bitmaps/Bitmaps/positive.png</normaloff>:/Bitmaps/Bitmaps/positive.png</iconset>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QRadioButton" name="radioButtonNegative">
+                     <property name="toolTip">
+                      <string>The trigger occurs when the difference between two consecutive samples is greater than the trigger value, negative slope</string>
+                     </property>
+                     <property name="text">
+                      <string>Negative Slope</string>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="xprotolabinterface.qrc">
+                       <normaloff>:/Bitmaps/Bitmaps/negative.png</normaloff>:/Bitmaps/Bitmaps/negative.png</iconset>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QRadioButton" name="radioButtonWindow">
+                     <property name="toolTip">
+                      <string>The trigger occurs when the signal leaves a voltage range</string>
+                     </property>
+                     <property name="text">
+                      <string>Window</string>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="xprotolabinterface.qrc">
+                       <normaloff>:/Bitmaps/Bitmaps/window.png</normaloff>:/Bitmaps/Bitmaps/window.png</iconset>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
                </layout>
+              </item>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_53"/>
               </item>
              </layout>
             </widget>
@@ -2619,342 +2317,402 @@
             <attribute name="title">
              <string>Frequency Counter</string>
             </attribute>
-            <widget class="QWidget" name="verticalLayoutWidget">
-             <property name="geometry">
-              <rect>
-               <x>20</x>
-               <y>30</y>
-               <width>402</width>
-               <height>274</height>
-              </rect>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_97">
-              <property name="spacing">
-               <number>50</number>
-              </property>
-              <item>
-               <widget class="QGroupBox" name="groupBox_9">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="title">
-                 <string>Source</string>
-                </property>
-                <layout class="QHBoxLayout" name="horizontalLayout_3">
-                 <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_109">
-                   <item>
-                    <widget class="QLabel" name="label_34">
-                     <property name="text">
-                      <string>EXT</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="fcR10">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                     <property name="checked">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_110">
-                   <item>
-                    <widget class="QLabel" name="label_35">
-                     <property name="text">
-                      <string>7</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="fcR7">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_111">
-                   <item>
-                    <widget class="QLabel" name="label_36">
-                     <property name="text">
-                      <string>6</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="fcR6">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_112">
-                   <item>
-                    <widget class="QLabel" name="label_39">
-                     <property name="text">
-                      <string>5</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="fcR5">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_113">
-                   <item>
-                    <widget class="QLabel" name="label_48">
-                     <property name="text">
-                      <string>4</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="fcR4">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_114">
-                   <item>
-                    <widget class="QLabel" name="label_49">
-                     <property name="text">
-                      <string>3</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="fcR3">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_115">
-                   <item>
-                    <widget class="QLabel" name="label_69">
-                     <property name="text">
-                      <string>2</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="fcR2">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_116">
-                   <item>
-                    <widget class="QLabel" name="label_71">
-                     <property name="text">
-                      <string>1</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="fcR1">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_117">
-                   <item>
-                    <widget class="QLabel" name="label_73">
-                     <property name="text">
-                      <string>0</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignmentFlag::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="fcR0">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item>
-               <widget class="QGroupBox" name="groupBox_20">
-                <property name="title">
-                 <string>Type</string>
-                </property>
-                <widget class="QRadioButton" name="radioFreq">
-                 <property name="geometry">
-                  <rect>
-                   <x>70</x>
-                   <y>40</y>
-                   <width>121</width>
-                   <height>21</height>
-                  </rect>
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_74">
+               <item>
+                <widget class="QGroupBox" name="verticalGroupBox_4">
+                 <property name="title">
+                  <string>CH1</string>
                  </property>
-                 <property name="text">
-                  <string>Measure Frequency</string>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
                  </property>
-                 <property name="checked">
-                  <bool>true</bool>
-                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_50" stretch="1">
+                  <item>
+                   <widget class="FittedLabel" name="labelFreqCH1">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="font">
+                     <font>
+                      <pointsize>45</pointsize>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>--</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </widget>
-                <widget class="QRadioButton" name="radioPulse">
-                 <property name="geometry">
-                  <rect>
-                   <x>260</x>
-                   <y>40</y>
-                   <width>91</width>
-                   <height>21</height>
-                  </rect>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="verticalGroupBox">
+                 <property name="title">
+                  <string>CH2</string>
                  </property>
-                 <property name="text">
-                  <string>Count Pulses</string>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
                  </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_39" stretch="1">
+                  <item>
+                   <widget class="FittedLabel" name="labelFreqCH2">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="font">
+                     <font>
+                      <pointsize>45</pointsize>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>--</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </widget>
-               </widget>
-              </item>
-              <item>
-               <widget class="QGroupBox" name="groupBox_19">
-                <property name="title">
-                 <string/>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_108">
-                 <item>
-                  <widget class="QLabel" name="frequencyValue">
-                   <property name="font">
-                    <font>
-                     <pointsize>45</pointsize>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>00000.000kHz</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignmentFlag::AlignCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-             </layout>
-            </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="groupBox_19">
+               <property name="title">
+                <string/>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_108">
+                <item>
+                 <widget class="QGroupBox" name="groupBox_9">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                  <property name="title">
+                   <string>Source</string>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_3">
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_109">
+                     <item>
+                      <widget class="QLabel" name="label_34">
+                       <property name="text">
+                        <string>EXT</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR10">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                       <property name="checked">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_110">
+                     <item>
+                      <widget class="QLabel" name="label_35">
+                       <property name="text">
+                        <string>7</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR7">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_111">
+                     <item>
+                      <widget class="QLabel" name="label_36">
+                       <property name="text">
+                        <string>6</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR6">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_112">
+                     <item>
+                      <widget class="QLabel" name="label_39">
+                       <property name="text">
+                        <string>5</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR5">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_113">
+                     <item>
+                      <widget class="QLabel" name="label_48">
+                       <property name="text">
+                        <string>4</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR4">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_114">
+                     <item>
+                      <widget class="QLabel" name="label_49">
+                       <property name="text">
+                        <string>3</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR3">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_115">
+                     <item>
+                      <widget class="QLabel" name="label_69">
+                       <property name="text">
+                        <string>2</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR2">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_116">
+                     <item>
+                      <widget class="QLabel" name="label_71">
+                       <property name="text">
+                        <string>1</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR1">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="verticalLayout_117">
+                     <item>
+                      <widget class="QLabel" name="label_73">
+                       <property name="text">
+                        <string>0</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignmentFlag::AlignCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QRadioButton" name="fcR0">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="frequencyValue">
+                  <property name="font">
+                   <font>
+                    <pointsize>45</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>00000.000kHz</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="groupBox_20">
+               <property name="title">
+                <string>Type</string>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <item>
+                 <widget class="QRadioButton" name="radioFreq">
+                  <property name="text">
+                   <string>Measure Frequency</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="radioPulse">
+                  <property name="text">
+                   <string>Count Pulses</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <spacer name="verticalSpacer_4">
+               <property name="orientation">
+                <enum>Qt::Orientation::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
            </widget>
           </widget>
          </item>
@@ -2987,7 +2745,7 @@
              <property name="title">
               <string>Waveform Selection</string>
              </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_44">
+             <layout class="QVBoxLayout" name="verticalLayout_51" stretch="1,0">
               <item>
                <layout class="QVBoxLayout" name="verticalLayout_58">
                 <item>
@@ -3103,43 +2861,7 @@
                </layout>
               </item>
               <item>
-               <layout class="QVBoxLayout" name="verticalLayout_59">
-                <item>
-                 <spacer name="verticalSpacer">
-                  <property name="orientation">
-                   <enum>Qt::Orientation::Vertical</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>20</width>
-                    <height>18</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="openCSVButton">
-                  <property name="toolTip">
-                   <string>Data must be integer, in the range of [-127,127]. The buffer size is 256.</string>
-                  </property>
-                  <property name="text">
-                   <string>Open CSV</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="verticalSpacer_2">
-                  <property name="orientation">
-                   <enum>Qt::Orientation::Vertical</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>20</width>
-                    <height>18</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
+               <layout class="QHBoxLayout" name="horizontalLayout_36">
                 <item>
                  <widget class="QPushButton" name="saveAWGButton">
                   <property name="sizePolicy">
@@ -3157,17 +2879,14 @@
                  </widget>
                 </item>
                 <item>
-                 <spacer name="verticalSpacer_3">
-                  <property name="orientation">
-                   <enum>Qt::Orientation::Vertical</enum>
+                 <widget class="QPushButton" name="openCSVButton">
+                  <property name="toolTip">
+                   <string>Data must be integer, in the range of [-127,127]. The buffer size is 256.</string>
                   </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>20</width>
-                    <height>18</height>
-                   </size>
+                  <property name="text">
+                   <string>Open CSV</string>
                   </property>
-                 </spacer>
+                 </widget>
                 </item>
                </layout>
               </item>
@@ -5401,7 +5120,7 @@ Frequency</string>
               </font>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://gabotronics.com/products/oscilloscopes/oscilloscope-watch.htm&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Oscilloscope Watch&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://www.gabotronics.com/categories/products/oscilloscope-watch.html&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Oscilloscope Watch&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="textFormat">
               <enum>Qt::TextFormat::RichText</enum>
@@ -5448,7 +5167,7 @@ Frequency</string>
               </font>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://www.gabotronics.com/development-boards/xmega-xprotolab.htm&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Xprotolab&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://www.gabotronics.com/categories/products/xprotolab.html&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Xprotolab&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="textFormat">
               <enum>Qt::TextFormat::RichText</enum>
@@ -5495,7 +5214,7 @@ Frequency</string>
               </font>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://gabotronics.com/products/oscilloscopes/xprotolab-portable.htm&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Xprotolab Portable&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://www.gabotronics.com/categories/products/xprotolab-portable.html&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Xprotolab Portable&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="textFormat">
               <enum>Qt::TextFormat::RichText</enum>
@@ -5542,7 +5261,7 @@ Frequency</string>
               </font>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://www.gabotronics.com/development-boards/xmega-xminilab.htm&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Xminilab&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://www.gabotronics.com/categories/products/xminilab.html&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Xminilab&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="textFormat">
               <enum>Qt::TextFormat::RichText</enum>
@@ -5589,7 +5308,7 @@ Frequency</string>
               </font>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://gabotronics.com/products/oscilloscopes/xminilab-portable-oscilloscope.htm&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Xminilab Portable&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://www.gabotronics.com/categories/products/xminilab-portable.html&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Xminilab Portable&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="textFormat">
               <enum>Qt::TextFormat::RichText</enum>
@@ -5636,7 +5355,7 @@ Frequency</string>
               </font>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://gabotronics.com/products/oscilloscopes/xprotolab-plain.htm&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Xprotolab Plain&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://www.gabotronics.com/categories/products/xprotolab-plain.html&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Xprotolab Plain&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="textFormat">
               <enum>Qt::TextFormat::RichText</enum>
@@ -5662,7 +5381,7 @@ Frequency</string>
             </font>
            </property>
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://gabotronics.com&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;www.gabotronics.com&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://www.gabotronics.com/&quot;&gt;&lt;span style=&quot; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;www.gabotronics.com&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="textFormat">
             <enum>Qt::TextFormat::RichText</enum>
@@ -5681,7 +5400,7 @@ Frequency</string>
          <item>
           <widget class="QLabel" name="label_4">
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copyright © 2013-2018 Gabotronics.com&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copyright © 2013-2026 Gabotronics.com&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -5739,6 +5458,11 @@ Frequency</string>
    <extends>QWidget</extends>
    <header>qcustomplot.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FittedLabel</class>
+   <extends>QLabel</extends>
+   <header>fittedlabel.h</header>
   </customwidget>
  </customwidgets>
  <resources>

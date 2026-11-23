@@ -31,6 +31,9 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setOrganizationName("Gabotronics");
     QCoreApplication::setOrganizationDomain("gabotronics.com");
     QCoreApplication::setApplicationName("XScopes Interface");
+#ifdef APP_VERSION_STRING   // from VERSION in the .pro (the CMake build does not set it)
+    QCoreApplication::setApplicationVersion(APP_VERSION_STRING);
+#endif
     migrateOldSettings();
     XprotolabInterface w;
     QObject::connect(&a, SIGNAL(aboutToQuit()), &w, SLOT(writeAppSettings()));

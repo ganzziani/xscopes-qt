@@ -4,6 +4,21 @@ QT += network
 TARGET = xscope
 TEMPLATE = app
 
+# The application version, written down only here. qmake puts it in the Windows version
+# resource it generates (with the QMAKE_TARGET_* strings and RC_ICONS below) and in the macOS
+# Info.plist; main.cpp gets it as APP_VERSION_STRING; build-installer.bat reads this line.
+# 1.0.0.x was the Qt 4/5 series. The Qt 6 port is 1.1.x.
+VERSION = 1.1.0
+DEFINES += APP_VERSION_STRING=\\\"$$VERSION\\\"
+
+QMAKE_TARGET_COMPANY = Gabotronics
+QMAKE_TARGET_PRODUCT = XScopes Interface
+QMAKE_TARGET_DESCRIPTION = XScopes Interface
+QMAKE_TARGET_COPYRIGHT = Copyright (C) 2013-2026 Gabotronics. GPL-3.0-or-later.
+QMAKE_TARGET_INTERNALNAME = xscope
+QMAKE_TARGET_ORIGINAL_FILENAME = xscope.exe
+RC_ICONS = Bitmaps/GT-icon.ico
+
 SOURCES += main.cpp\
     xprotolabinterface.cpp \
     qcustomplot.cpp \
@@ -40,6 +55,7 @@ HEADERS  += xprotolabinterface.h \
     bootloader.h \
     dfuprogrammerqt.h \
     markerpixmap.h \
+    fittedlabel.h \
     persistenceitem.h \
     third_party/dfu-programmer/arguments.h \
     third_party/dfu-programmer/atmel.h \
@@ -83,8 +99,6 @@ macx: LIBS += $$PWD/libs/mac/libusb-1.0.dylib
 
 unix:!macx: LIBS += -lusb-1.0
 
-RC_FILE = xprotolabinterface.rc
-
 macx {
     ICON = "Bitmaps/gt.icns"
 }
@@ -107,5 +121,16 @@ DISTFILES += \
     third_party/dfu-programmer/COPYING \
     third_party/dfu-programmer/AUTHORS \
     third_party/dfu-programmer/PATCHES.md
+
+# Release packaging: the Windows installer script, its artwork and what it ships
+OTHER_FILES += \
+    packaging/README.md \
+    packaging/windows/installer.nsi \
+    packaging/windows/build-installer.bat \
+    packaging/windows/qt-third-party.py \
+    packaging/windows/make-art.ps1 \
+    packaging/windows/ReadMe.txt \
+    packaging/windows/header.bmp \
+    packaging/windows/welcome.bmp
 
 include(extserialport/qextserialport.pri)
