@@ -87,7 +87,7 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     persistenceItem = nullptr;
     bitTriggerSource = false;
     m_cursorChannel = CursorOff;
-    m_cursorVertical = m_cursorAuto = m_cursorTrack = false;
+    m_cursorVertical = m_cursorAuto = m_cursorTrack = m_deviceReference = false;
     mode = OSCILLOSCOPE;
     lastTriggerSource = 0;
     m_meterSrate = 0;
@@ -101,6 +101,10 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     connect(ui->plotterWidget, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(selectItem(QMouseEvent *)));
     connect(ui->plotterWidget, SIGNAL(mouseRelease(QMouseEvent *)), this, SLOT(deselectItem(QMouseEvent *)));
     connect(ui->plotterWidget, SIGNAL(itemDoubleClick(QCPAbstractItem *, QMouseEvent *)), this, SLOT(itemDoubleClick(QCPAbstractItem *, QMouseEvent *)));
+    // Switching a reference trace on or off redraws the plot, also while the scope is stopped.
+    for(QAbstractButton *button : {ui->refCH1, ui->refCH2, ui->refLogic})
+        connect(button, &QAbstractButton::toggled, this, [this] { m_repaint = true; });
+    connect(ui->groupBox1, &QGroupBox::toggled, this, [this] { m_repaint = true; });
     ui->plotterWidget->installEventFilter(this);  // Calls on_sizeChanged() after a resize
     // The cursors are switched from the plot itself (right click, see
     // plotContextMenu()): m_cursorChannel, m_cursorVertical, m_cursorAuto and
@@ -876,14 +880,7 @@ ENDSCAN:
     }
     if(captureRef) {
         captureRef = false;
-        ch1RefBuffer.clear();
-        ch1RefBuffer = ch1Buffer;
-        ch2RefBuffer.clear();
-        ch2RefBuffer = ch2Buffer;
-        for(int k = 0; k < 8; k++) {
-            bitRef[k].clear();
-            bitRef[k] = bit[k];
-        }
+        captureReference();
     }
     if(displayLoadedWave) {
         ch1Buffer.clear();
@@ -945,19 +942,29 @@ ENDSCAN:
         dataToSave += QString::number(ui->samplingSlider->value()) + "<*>\n";
         dataToSave += tmp_wave;
     }
-    // The reference traces are drawn where they were captured; the capture
-    // sliders that used to offset them are gone, so there is nothing to add.
-    if(ui->refCH1->isChecked() && !ch1RefBuffer.isEmpty())
-        ch1RefBuff = ch1RefBuffer;
-    if(ui->refCH2->isChecked() && !ch2RefBuffer.isEmpty())
-        ch2RefBuff = ch2RefBuffer;
-    if(ui->refLogic->isChecked()) {
+    // The reference traces are drawn at the height they were captured at. A fast time base
+    // shows 128 of the 256 samples, from the scroll bar's position, like the live traces.
+    // Unchecking the Reference group hides them all.
+    const bool showRef = ui->groupBox1->isChecked();
+    const bool showCh1Ref = showRef && ui->refCH1->isChecked() && !ch1RefBuffer.isEmpty();
+    const bool showCh2Ref = showRef && ui->refCH2->isChecked() && !ch2RefBuffer.isEmpty();
+    const bool showChdRef = showRef && ui->refLogic->isChecked() && !bitRef[0].isEmpty();
+    const int refFirst = ui->samplingSlider->value() < 11 ? ui->horizontalScrollBar->value() : 0;
+    if(showCh1Ref)
+        ch1RefBuff = ch1RefBuffer.mid(refFirst, key.size());
+    if(showCh2Ref)
+        ch2RefBuff = ch2RefBuffer.mid(refFirst, key.size());
+    if(showChdRef) {
         for(int k = 0; k < 8; k++)
-            bitRefBuff[k] = bitRef[k];
+            bitRefBuff[k] = bitRef[k].mid(refFirst, key.size());
     }
     if(ui->xyMode->isChecked()) {
         ch1Graph->data()->clear();
         ch2Graph->data()->clear();
+        ch1RefGraph->data()->clear();
+        ch2RefGraph->data()->clear();
+        for(int k = 0; k < 8; k++)
+            chdRefGraph[k]->data()->clear();
         ch1Graph->setData(key, ch2Buffer);
         ch1Graph->rescaleValueAxis(true);
     } else {
@@ -965,7 +972,7 @@ ENDSCAN:
         if(ui->checkBoxCH1Trace->isChecked()) {
             ch1Graph->setData(key, ch1Buffer);
         }
-        if(ui->refCH1->isChecked())
+        if(showCh1Ref)
             ch1RefGraph->setData(key, ch1RefBuff);
         else {
             ch1RefGraph->data()->clear();
@@ -974,7 +981,7 @@ ENDSCAN:
         if(ui->checkBoxCH2Trace->isChecked() && ui->samplingSlider->value() > 0) {
             ch2Graph->setData(key, ch2Buffer);
         }
-        if(ui->refCH2->isChecked())
+        if(showCh2Ref)
             ch2RefGraph->setData(key, ch2RefBuff);
         else {
             ch2RefGraph->data()->clear();
@@ -986,14 +993,11 @@ ENDSCAN:
                 chdGraph[k]->setData(key, bit[k]);
                 textLabelBit[k]->setVisible(true);
             }
-            if(ui->refLogic->isChecked() && bitChecked[k]) {
+            if(showChdRef && bitChecked[k]) {
                 chdRefGraph[k]->setData(key, bitRefBuff[k]);
                 textLabelBit[k]->setVisible(true);
             } else
                 chdRefGraph[k]->data()->clear();
-            if(!ui->refLogic->isChecked()) {
-                chdRefGraph[k]->data()->clear();
-            }
         }
         ch1BarGraph->data()->clear();
         ch2BarGraph->data()->clear();
@@ -2132,6 +2136,7 @@ void XprotolabInterface::readDeviceSettings() {
     ui->rollMode->setChecked((data & (byte)(1 << 0)) != 0);  // Roll scope on slow sampling rates
     m_cursorAuto = (data & (byte)(1 << 1)) != 0;             // Auto placement
     m_cursorTrack = (data & (byte)(1 << 2)) != 0;            // Follow the trace
+    m_deviceReference = (data & (byte)(1 << 6)) != 0;        // Kept as is, see sendCursorControls()
     if((data & (byte)(1 << 3)) != 0)
         m_cursorChannel = CursorCh1;                         // CH1 horizontal pair
     else if((data & (byte)(1 << 4)) != 0)
@@ -2927,6 +2932,11 @@ void XprotolabInterface::sendCursorControls() {
         field += (1 << 4);     // CH2 horizontal cursor pair
     if(m_cursorVertical)
         field += (1 << 5);     // The vertical pair
+    // The device's reference waveform is captured from its own menu into its EEPROM, and
+    // no command captures it. The app's references are separate, so leave the device's
+    // display of its own as the device has it.
+    if(m_deviceReference)
+        field += (1 << 6);
     if(ui->radioButtonSniffSingle->isChecked())
         field += (1 << 7);     // Single Sniffer
     updateCursorVisibility();
@@ -3872,6 +3882,30 @@ void XprotolabInterface::on_comboBoxTheme_activated(int theme) {
 
 void XprotolabInterface::on_captureButton_clicked() {
     captureRef = true;
+    m_repaint = true;       // take the frame on screen now, also while the scope is stopped
+}
+
+// Copies the device's current frame into the reference traces. All 256 samples are kept, in
+// the order a slow sweep draws them (in roll mode that starts at the write index), so that a
+// reference taken at a fast time base pans with the trace. The levels are the ones plotData()
+// gives the live traces, with the positions and logic size of the moment.
+void XprotolabInterface::captureReference() {
+    const bool roll = ui->samplingSlider->value() >= 11 && ui->rollMode->isChecked();
+    const int first = roll ? usbDevice.chData[769] : 0;
+    ch1RefBuffer.resize(256);
+    ch2RefBuffer.resize(256);
+    for(int m = 0; m < 8; m++)
+        bitRef[m].resize(256);
+    for(int j = 0; j < 256; j++) {
+        const int i = (first + j) & 0xFF;
+        ch1RefBuffer[j] = m_ch1Position + (255 - (int)usbDevice.chData[i]) * 2;
+        ch2RefBuffer[j] = m_ch2Position + (255 - (int)usbDevice.chData[i + 256]) * 2;
+        const byte data = usbDevice.chData[i + 512];
+        for(int m = 0; m < 8; m++) {
+            const int chdOffset = 20 + (m * 20) + m_chdPosition * kChdPositionStep;
+            bitRef[m][j] = (data & (byte)(1 << m)) ? chdOffset + ui->chdSizeSlider->value() : chdOffset - 10;
+        }
+    }
 }
 
 void XprotolabInterface::on_screenShotButton_clicked() {

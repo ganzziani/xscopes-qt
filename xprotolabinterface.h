@@ -215,6 +215,7 @@ private:
     Selected dragTargetAt(const QPointF &pos) const;
     bool canPanHorizontally() const;
     void updatePlotCursor(const QPointF &pos);
+    void captureReference();
     void placeZeroMarkers();
 private slots:
     void on_playButton_clicked();
@@ -414,6 +415,7 @@ private:
     // (plotContextMenu()) sets these, and GPIO6 is built from them.
     CursorChannel m_cursorChannel;
     bool m_cursorVertical, m_cursorAuto, m_cursorTrack;
+    bool m_deviceReference;     // Mcursors bit 6: the device's own reference, on its screen
     bool isCursorOnCh1() const {
         return m_cursorChannel == CursorCh1;
     }
@@ -451,6 +453,8 @@ private:
     int currentSelected;
     QPointF m_dragStart;        // where a 0 V line or pan drag began, in pixels
     int m_dragStartValue;       // the channel position or scroll bar value at that point
+    // Reference traces: all 256 samples of the captured frame, in plot units and in the
+    // order a slow sweep draws them (see captureReference()). They belong to the app only.
     QVector<double> ch1RefBuffer, ch2RefBuffer, ch1SaveBuffer, ch2SaveBuffer;
     int persistenceIndex;  // newest frame in the fading-copy ring
     QVector<double> bitRef[8], bitSaveBuffer[8];
