@@ -97,6 +97,9 @@ enum Selected {
     isCH1Zero,
     isCH2Zero,
     isCHDZero,
+    isCH1Level,     // the CH1 0 V line, grabbed anywhere along the plot
+    isCH2Level,
+    isPan,          // empty plot area: drag to move the waveforms horizontally
     isNone
 };
 
@@ -208,6 +211,11 @@ private:
     void invertTriggerIcon();
     int checkValue(int value);
     int checkValue(int value, int min, int max);
+    Selected markerAt(const QPointF &pos) const;
+    Selected dragTargetAt(const QPointF &pos) const;
+    bool canPanHorizontally() const;
+    void updatePlotCursor(const QPointF &pos);
+    void placeZeroMarkers();
 private slots:
     void on_playButton_clicked();
     void plotData();
@@ -441,6 +449,8 @@ private:
     QString sniffBuffer;
     int triggerPost, triggerLevel, triggerWin1Level, triggerWin2Level;
     int currentSelected;
+    QPointF m_dragStart;        // where a 0 V line or pan drag began, in pixels
+    int m_dragStartValue;       // the channel position or scroll bar value at that point
     QVector<double> ch1RefBuffer, ch2RefBuffer, ch1SaveBuffer, ch2SaveBuffer;
     int persistenceIndex;  // newest frame in the fading-copy ring
     QVector<double> bitRef[8], bitSaveBuffer[8];

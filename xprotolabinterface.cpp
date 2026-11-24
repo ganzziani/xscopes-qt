@@ -69,6 +69,8 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     hCursorBPos = 100;
     // readDeviceSettings() replots before it reads these from the device
     ch1ZeroPos = ch2ZeroPos = rangeMax / 2;
+    currentSelected = isNone;
+    m_dragStartValue = 0;
     m_ch1Position = m_ch2Position = 0;
     m_chdPosition = 3;      // the old sliders' default
     chdZeroPos = kChdPositionBase + m_chdPosition * kChdPositionStep;
@@ -1183,10 +1185,7 @@ ENDSCAN:
             }
         }
     }
-    ch1ZeroHead->topLeft->setPixelPosition(QPointF(2, ui->plotterWidget->yAxis->coordToPixel(ch1ZeroPos)));
-    ch2ZeroHead->topLeft->setPixelPosition(QPointF(2, ui->plotterWidget->yAxis->coordToPixel(ch2ZeroPos)));
-    chdZeroPos = kChdPositionBase + m_chdPosition * kChdPositionStep;
-    chdZeroHead->topLeft->setPixelPosition(QPointF(2, ui->plotterWidget->yAxis->coordToPixel(chdZeroPos)));
+    placeZeroMarkers();
     //ui->plotterWidget->m_infinity = ui->checkBoxPersistence->isChecked();
     ui->plotterWidget->replot(QCustomPlot::rpRefreshHint);
     usbDevice.dataAvailable = false;
@@ -1311,6 +1310,21 @@ void XprotolabInterface::moveCursor(QMouseEvent *event) {
                 // The CHD position is 8 discrete steps, so snap to the nearest one
                 const int chdValue = ui->plotterWidget->yAxis->pixelToCoord(event->position().toPoint().y());
                 setChdPosition(qRound((chdValue - kChdPositionBase) / (double)kChdPositionStep));
+            } else if(currentSelected == isCH1Level || currentSelected == isCH2Level) {
+                // The 0 V line sits at rangeMax / 2 + position, so the position moves
+                // by as many plot units as the pointer did.
+                QCPAxis *yAxis = ui->plotterWidget->yAxis;
+                const int dy = qRound(yAxis->pixelToCoord(event->position().y()) - yAxis->pixelToCoord(m_dragStart.y()));
+                if(currentSelected == isCH1Level)
+                    setCh1Position(m_dragStartValue + dy);
+                else
+                    setCh2Position(m_dragStartValue + dy);
+            } else if(currentSelected == isPan) {
+                // A sample is 2 plot units wide. Dragging right brings earlier samples
+                // into view, so the scroll bar (first sample shown) goes down.
+                QCPAxis *xAxis = ui->plotterWidget->xAxis;
+                const double dx = xAxis->pixelToCoord(event->position().x()) - xAxis->pixelToCoord(m_dragStart.x());
+                ui->horizontalScrollBar->setValue(m_dragStartValue - qRound(dx / 2));
             } else if(currentSelected == isTriggerPixmap) {
                 triggerLevel = 511 - ui->plotterWidget->yAxis->pixelToCoord(event->position().toPoint().y());
                 triggerLevel += offset;
@@ -1378,6 +1392,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event) {
                 text += get4Digits(ch2Volts) + gains[ui->ch2GainSlider->value()].unit;
             }
             textLabelMousePos->setText(text);
+            updatePlotCursor(event->position());
             m_repaint = true;
         }
     }
@@ -1422,64 +1437,163 @@ void XprotolabInterface::moveWinTrigger(double curPosX, double curPosY1, double 
     triggerWin2Pixmap->topLeft->setPixelPosition(QPointF(curPosX, curPosY2));
 }
 
-void XprotolabInterface::selectItem(QMouseEvent *event) {
-    if(!(event->buttons() & Qt::LeftButton))
-        return;
+// The draggable marker under pos, or isNone. Hidden markers don't count.
+Selected XprotolabInterface::markerAt(const QPointF &pos) const {
+    auto hit = [&](const QCPAbstractItem *item) {
+        if(!item->visible())
+            return false;
+        const double distance = item->selectTest(pos, false);
+        return distance >= 0 && distance < 8.0;
+    };
     // The three zero markers form a column on the left edge and can overlap, so take
     // the nearest one within the hit radius instead of the first one in a list.
-    MarkerPixmap *zeroHead = nullptr;
     Selected zeroId = isNone;
     double nearestZero = 8.0;
-    MarkerPixmap *zeroHeads[] = { ch1ZeroHead, ch2ZeroHead, chdZeroHead };
+    const MarkerPixmap *zeroHeads[] = { ch1ZeroHead, ch2ZeroHead, chdZeroHead };
     const Selected zeroIds[] = { isCH1Zero, isCH2Zero, isCHDZero };
     for(int k = 0; k < 3; k++) {
         if(!zeroHeads[k]->visible())
             continue;
-        const double distance = zeroHeads[k]->selectTest(event->pos(), false);
+        const double distance = zeroHeads[k]->selectTest(pos, false);
         if(distance >= 0 && distance < nearestZero) {
             nearestZero = distance;
-            zeroHead = zeroHeads[k];
             zeroId = zeroIds[k];
         }
     }
-    if(hCursorAHead->selectTest(event->pos(), false) >= 0 && hCursorAHead->selectTest(event->pos(), false) < 8.0) {
-        currentSelected = isHCursorAHead;
-        hCursorAHead->setPen(QPen(QColor("#1692e5")));
-    } else if(hCursorBHead->selectTest(event->pos(), false) >= 0 && hCursorBHead->selectTest(event->pos(), false) < 8.0) {
-        currentSelected = isHCursorBHead;
-        hCursorBHead->setPen(QPen(QColor("#1692e5")));
-    } else if(vCursorAHead->selectTest(event->pos(), false) >= 0 && vCursorAHead->selectTest(event->pos(), false) < 8.0) {
-        currentSelected = isVCursorAHead;
-        vCursorAHead->setPen(QPen(QColor("#e04e4e")));
-    } else if(vCursorBHead->selectTest(event->pos(), false) >= 0 && vCursorBHead->selectTest(event->pos(), false) < 8.0) {
-        currentSelected = isVCursorBHead;
-        vCursorBHead->setPen(QPen(QColor("#e04e4e")));
-    } else if(zeroHead) {
-        currentSelected = zeroId;
-        zeroHead->setPen(QPen(QColor("#f9a94c")));
-    } else if(triggerPixmap->selectTest(event->pos(), false) >= 0 && triggerPixmap->selectTest(event->pos(), false) < 8.0) {
-        currentSelected = isTriggerPixmap;
-        if(ui->comboBoxTrigSource->currentIndex() == 0)
-            triggerPixmap->setPen(QPen(QColor(75, 229, 28)));
-        else
-            triggerPixmap->setPen(QPen(QColor("#ff0000")));
-    } else if(triggerWin1Pixmap->selectTest(event->pos(), false) >= 0 && triggerWin1Pixmap->selectTest(event->pos(), false) < 8.0) {
-        currentSelected = isTriggerWin1Pixmap;
-        if(ui->comboBoxTrigSource->currentIndex() == 0)
-            triggerWin1Pixmap->setPen(QPen(QColor(75, 229, 28)));
-        else
-            triggerWin1Pixmap->setPen(QPen(QColor("#ff0000")));
-    } else if(triggerWin2Pixmap->selectTest(event->pos(), false) >= 0 && triggerWin2Pixmap->selectTest(event->pos(), false) < 8.0) {
-        currentSelected = isTriggerWin2Pixmap;
-        if(ui->comboBoxTrigSource->currentIndex() == 0)
-            triggerWin2Pixmap->setPen(QPen(QColor(75, 229, 28)));
-        else
-            triggerWin2Pixmap->setPen(QPen(QColor("#ff0000")));
-    } else
-        currentSelected = isNone;
+    if(hit(hCursorAHead))
+        return isHCursorAHead;
+    if(hit(hCursorBHead))
+        return isHCursorBHead;
+    if(hit(vCursorAHead))
+        return isVCursorAHead;
+    if(hit(vCursorBHead))
+        return isVCursorBHead;
+    if(zeroId != isNone)
+        return zeroId;
+    if(hit(triggerPixmap))
+        return isTriggerPixmap;
+    if(hit(triggerWin1Pixmap))
+        return isTriggerWin1Pixmap;
+    if(hit(triggerWin2Pixmap))
+        return isTriggerWin2Pixmap;
+    return isNone;
 }
 
-void XprotolabInterface::deselectItem(QMouseEvent *) {
+// The waveforms can move sideways only when the 256-sample buffer is wider than the
+// screen (the fast time bases). XY mode plots one channel against the other.
+bool XprotolabInterface::canPanHorizontally() const {
+    return ui->samplingSlider->value() < 11 && !ui->xyMode->isChecked();
+}
+
+// What a left-button press at pos grabs: a marker first, then a channel's 0 V line
+// (the nearest one, CH1 on a tie), then the plot area itself for panning.
+Selected XprotolabInterface::dragTargetAt(const QPointF &pos) const {
+    const Selected marker = markerAt(pos);
+    if(marker != isNone)
+        return marker;
+    if(!ui->plotterWidget->axisRect()->rect().contains(pos.toPoint()))
+        return isNone;
+    if(!ui->xyMode->isChecked()) {
+        const double kLevelHitPixels = 4.0;
+        Selected level = isNone;
+        double nearest = kLevelHitPixels + 0.5;
+        // The line hangs off its zero marker, so test against where the marker is drawn
+        auto check = [&](const MarkerPixmap *zeroHead, Selected id) {
+            if(!zeroHead->visible())
+                return;
+            const double distance = qAbs(zeroHead->topLeft->pixelPosition().y() - pos.y());
+            if(distance < nearest) {
+                nearest = distance;
+                level = id;
+            }
+        };
+        check(ch1ZeroHead, isCH1Level);
+        check(ch2ZeroHead, isCH2Level);
+        if(level != isNone)
+            return level;
+    }
+    return canPanHorizontally() ? isPan : isNone;
+}
+
+// Mouse pointer over the plot: shows what a drag from here would move.
+void XprotolabInterface::updatePlotCursor(const QPointF &pos) {
+    Qt::CursorShape shape = Qt::CrossCursor;
+    switch(currentSelected != isNone ? (Selected)currentSelected : dragTargetAt(pos)) {
+    case isHCursorAHead: case isHCursorBHead:
+    case isCH1Zero: case isCH2Zero: case isCHDZero:
+    case isCH1Level: case isCH2Level:
+        shape = Qt::SizeVerCursor;
+        break;
+    case isVCursorAHead: case isVCursorBHead:
+        shape = Qt::SizeHorCursor;
+        break;
+    case isTriggerPixmap: case isTriggerWin1Pixmap: case isTriggerWin2Pixmap:
+        shape = Qt::SizeAllCursor;
+        break;
+    case isPan:
+        shape = currentSelected == isPan ? Qt::ClosedHandCursor : Qt::OpenHandCursor;
+        break;
+    case isNone:
+        break;
+    }
+    if(ui->plotterWidget->cursor().shape() != shape)
+        ui->plotterWidget->setCursor(shape);
+}
+
+void XprotolabInterface::selectItem(QMouseEvent *event) {
+    if(!(event->buttons() & Qt::LeftButton))
+        return;
+    currentSelected = dragTargetAt(event->position());
+    switch(currentSelected) {
+    case isHCursorAHead:
+        hCursorAHead->setPen(QPen(QColor("#1692e5")));
+        break;
+    case isHCursorBHead:
+        hCursorBHead->setPen(QPen(QColor("#1692e5")));
+        break;
+    case isVCursorAHead:
+        vCursorAHead->setPen(QPen(QColor("#e04e4e")));
+        break;
+    case isVCursorBHead:
+        vCursorBHead->setPen(QPen(QColor("#e04e4e")));
+        break;
+    case isCH1Zero:
+        ch1ZeroHead->setPen(QPen(QColor("#f9a94c")));
+        break;
+    case isCH2Zero:
+        ch2ZeroHead->setPen(QPen(QColor("#f9a94c")));
+        break;
+    case isCHDZero:
+        chdZeroHead->setPen(QPen(QColor("#f9a94c")));
+        break;
+    case isTriggerPixmap:
+    case isTriggerWin1Pixmap:
+    case isTriggerWin2Pixmap: {
+        MarkerPixmap *trigger = currentSelected == isTriggerPixmap ? triggerPixmap :
+                                currentSelected == isTriggerWin1Pixmap ? triggerWin1Pixmap : triggerWin2Pixmap;
+        if(ui->comboBoxTrigSource->currentIndex() == 0)
+            trigger->setPen(QPen(QColor(75, 229, 28)));
+        else
+            trigger->setPen(QPen(QColor("#ff0000")));
+        break;
+    }
+    case isCH1Level:
+        m_dragStartValue = m_ch1Position;
+        break;
+    case isCH2Level:
+        m_dragStartValue = m_ch2Position;
+        break;
+    case isPan:
+        m_dragStartValue = ui->horizontalScrollBar->value();
+        break;
+    case isNone:
+        break;
+    }
+    m_dragStart = event->position();
+    updatePlotCursor(event->position());
+}
+
+void XprotolabInterface::deselectItem(QMouseEvent *event) {
     currentSelected = isNone;
     hCursorAHead->setPen(QPen(Qt::NoPen));
     hCursorBHead->setPen(QPen(Qt::NoPen));
@@ -1491,6 +1605,7 @@ void XprotolabInterface::deselectItem(QMouseEvent *) {
     ch1ZeroHead->setPen(QPen(Qt::NoPen));
     ch2ZeroHead->setPen(QPen(Qt::NoPen));
     chdZeroHead->setPen(QPen(Qt::NoPen));
+    updatePlotCursor(event->position());
 }
 
 void XprotolabInterface::setTriggerLevelPosition(QPointF pos, int type) {
@@ -4583,6 +4698,17 @@ void XprotolabInterface::on_sizeChanged() {
     textLabelMousePos->position->setPixelPosition(QPointF(40, max_height - 55));
     clearPersistenceImage();
     setVerticalCursors();
+    placeZeroMarkers();     // pixel positioned, and right before the first frame arrives
+    ui->plotterWidget->replot(QCustomPlot::rpQueuedReplot);    // no frames come in while disconnected
+}
+
+// The zero markers (and the 0 V lines hanging off CH1's and CH2's) at the channel positions
+void XprotolabInterface::placeZeroMarkers() {
+    QCPAxis *yAxis = ui->plotterWidget->yAxis;
+    ch1ZeroHead->topLeft->setPixelPosition(QPointF(2, yAxis->coordToPixel(ch1ZeroPos)));
+    ch2ZeroHead->topLeft->setPixelPosition(QPointF(2, yAxis->coordToPixel(ch2ZeroPos)));
+    chdZeroPos = kChdPositionBase + m_chdPosition * kChdPositionStep;
+    chdZeroHead->topLeft->setPixelPosition(QPointF(2, yAxis->coordToPixel(chdZeroPos)));
 }
 
 void XprotolabInterface::on_mainTabWidget_currentChanged(int index) {
