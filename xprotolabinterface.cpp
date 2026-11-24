@@ -3371,14 +3371,12 @@ void XprotolabInterface::on_horizontalScrollBar_valueChanged(int position) {
         return;
     usbDevice.controlWriteTransfer(14, (byte)(position));
     m_repaint = true;
-    int value = 0;
     if(ui->samplingSlider->value() < 11) {
-        if(ui->comboBoxTrigSource->currentIndex() == 0)
-            value = - m_ch1Position;
-        else if(ui->comboBoxTrigSource->currentIndex() == 1)
-            value = - m_ch2Position;
-        moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost - position) * 2), ui->plotterWidget->yAxis->coordToPixel(512 - 2 * triggerLevel - value))) ;
-        moveWinTrigger(ui->plotterWidget->xAxis->coordToPixel((triggerPost - position) * 2), ui->plotterWidget->yAxis->coordToPixel(triggerWin1Level - value), ui->plotterWidget->yAxis->coordToPixel(512 - 2 * triggerWin2Level - value)) ;
+        // The trigger icons follow the waveform sideways and keep their height (the
+        // level formulas used here put the icon at the bottom of the plot)
+        const double x = ui->plotterWidget->xAxis->coordToPixel((triggerPost - position) * 2);
+        moveTrigger(QPointF(x, triggerPixmap->topLeft->pixelPosition().y()));
+        moveWinTrigger(x, triggerWin1Pixmap->topLeft->pixelPosition().y(), triggerWin2Pixmap->topLeft->pixelPosition().y());
     }
     plotData();
 }
