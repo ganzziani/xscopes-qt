@@ -62,6 +62,9 @@ public slots:
     void clearData();
 public:
     bool isDeviceConnected, isInitialiazed;
+    // While set, controlWriteTransfer() sends nothing: the app is loading the device's
+    // own settings into its controls (XprotolabInterface::readDeviceSettings()).
+    bool holdWrites = false;
     // bcdDevice low byte: DEVICE_CODE in the firmware's hardware.h, 0 when the
     // serial port is in use or the descriptor was not read. The sniffer stream's
     // geometry differs between the families (sniffer.h).

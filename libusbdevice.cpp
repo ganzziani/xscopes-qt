@@ -406,6 +406,8 @@ void LibUsbDevice::controlWriteTransfer(uint16_t index, uint8_t value) {
         qDebug() << "Device not connected";
         return;
     }
+    if(holdWrites)
+        return;
     if(wayOfConnecting)
         libusb_control_transfer(deviceHandle, 0xC0, 'b', value, index, NULL, 0, 1000);
     else {

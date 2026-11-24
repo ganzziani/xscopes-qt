@@ -1,6 +1,7 @@
 #include "xprotolabinterface.h"
 #include "ui_xprotolabinterface.h"
 #include <QActionGroup>
+#include <QScopeGuard>
 #include <stdio.h>
 #include <string.h>
 
@@ -101,10 +102,18 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     connect(ui->plotterWidget, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(selectItem(QMouseEvent *)));
     connect(ui->plotterWidget, SIGNAL(mouseRelease(QMouseEvent *)), this, SLOT(deselectItem(QMouseEvent *)));
     connect(ui->plotterWidget, SIGNAL(itemDoubleClick(QCPAbstractItem *, QMouseEvent *)), this, SLOT(itemDoubleClick(QCPAbstractItem *, QMouseEvent *)));
-    // Switching a reference trace on or off redraws the plot, also while the scope is stopped.
-    for(QAbstractButton *button : {ui->refCH1, ui->refCH2, ui->refLogic})
-        connect(button, &QAbstractButton::toggled, this, [this] { m_repaint = true; });
-    connect(ui->groupBox1, &QGroupBox::toggled, this, [this] { m_repaint = true; });
+    // Any change on the Oscilloscope tab redraws the plot. While the scope runs the next frame
+    // would do it, but a stopped scope sends no new frames, so a trace, reference, FFT or logic
+    // option changed then would only show after something else redrew.
+    const auto requestRepaint = [this] { m_repaint = true; };
+    for(QAbstractButton *button : ui->osciloscopeTab->findChildren<QAbstractButton *>())
+        connect(button, &QAbstractButton::toggled, this, requestRepaint);
+    for(QGroupBox *group : ui->osciloscopeTab->findChildren<QGroupBox *>())
+        connect(group, &QGroupBox::toggled, this, requestRepaint);
+    for(QAbstractSlider *slider : ui->osciloscopeTab->findChildren<QAbstractSlider *>())
+        connect(slider, &QAbstractSlider::valueChanged, this, requestRepaint);
+    for(QComboBox *combo : ui->osciloscopeTab->findChildren<QComboBox *>())
+        connect(combo, &QComboBox::currentIndexChanged, this, requestRepaint);
     ui->plotterWidget->installEventFilter(this);  // Calls on_sizeChanged() after a resize
     // The cursors are switched from the plot itself (right click, see
     // plotContextMenu()): m_cursorChannel, m_cursorVertical, m_cursorAuto and
@@ -612,6 +621,17 @@ void XprotolabInterface::setupItemLabels(QCustomPlot *customPlot) {
         textLabelBit[i]->setSelectable(false);
         textLabelBit[i]->setClipToAxisRect(false);
         textLabelBit[i]->setVisible(false);
+        // The logic Parallel and Serial hex readouts (updateLogicHex())
+        textLabelParallel[i] = new QCPItemText(customPlot);
+        textLabelParallel[i]->setPositionAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        textLabelSerial[i] = new QCPItemText(customPlot);
+        textLabelSerial[i]->setPositionAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        for(QCPItemText *label : {textLabelParallel[i], textLabelSerial[i]}) {
+            label->setColor(Qt::red);
+            label->setFont(m_monospaceFont);
+            label->setSelectable(false);
+            label->setVisible(false);
+        }
     }
     textLabelDeltaTime = new QCPItemText(customPlot);
     textLabelDeltaTime->position->setCoords(225, rangeMax - 10);
@@ -735,6 +755,7 @@ void XprotolabInterface::plotData() {
     byte minX1 = 0, minX2 = 255, samples = 255, a, mid, *p;
     QVector<double> ch1Buffer, ch2Buffer, fft1, fft2, ch1RefBuff, ch2RefBuff;
     QVector<double> bit[8], bitRefBuff[8];
+    QVector<byte> chdRaw;       // the logic byte under each key, for the hex readouts
     complex pSignal1[256], pSignal2[256];
     phaseTracerAA->setVisible(false);
     phaseTracerAB->setVisible(false);
@@ -801,6 +822,7 @@ void XprotolabInterface::plotData() {
             vppMaxCh2 = ch2;
         }
         int pos;
+        chdRaw.push_back(usbDevice.chData[i + 512]);
         for(int m = 0; m < 8; m++) {
             byte data = usbDevice.chData[i + 512];
             const int chdOffset = 20 + (m * 20) + m_chdPosition * kChdPositionStep;
@@ -808,14 +830,14 @@ void XprotolabInterface::plotData() {
                 pos = chdOffset + ui->chdSizeSlider->value();
                 bit[m].push_back(pos);
                 textLabelBit[m]->position->setCoords(246, pos - 5);
-                if(m + 2 == ui->comboBoxTrigSource->currentIndex() && ui->checkBoxCHDTrace->isChecked())
+                if(m + 2 == ui->comboBoxTrigSource->currentIndex() && ui->groupCHD->isChecked())
                     moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost - ui->horizontalScrollBar->value()) * 2), ui->plotterWidget->yAxis->coordToPixel(pos)));
             } else {
                 pos = chdOffset - 10 - ui->chdSizeSlider->value();
                 bit[m].push_back(chdOffset - 10);
                 pos = chdOffset + ui->chdSizeSlider->value();
                 textLabelBit[m]->position->setCoords(246, pos - 5);
-                if(m + 2 == ui->comboBoxTrigSource->currentIndex() && ui->checkBoxCHDTrace->isChecked())
+                if(m + 2 == ui->comboBoxTrigSource->currentIndex() && ui->groupCHD->isChecked())
                     moveTrigger(QPointF(ui->plotterWidget->xAxis->coordToPixel((triggerPost - ui->horizontalScrollBar->value()) * 2), ui->plotterWidget->yAxis->coordToPixel(pos)));
             }
         }
@@ -965,11 +987,12 @@ ENDSCAN:
         ch2RefGraph->data()->clear();
         for(int k = 0; k < 8; k++)
             chdRefGraph[k]->data()->clear();
+        updateLogicHex({}, {});     // no time axis, no readouts
         ch1Graph->setData(key, ch2Buffer);
         ch1Graph->rescaleValueAxis(true);
     } else {
         ch1Graph->data()->clear();
-        if(ui->checkBoxCH1Trace->isChecked()) {
+        if(ui->groupCH1->isChecked()) {
             ch1Graph->setData(key, ch1Buffer);
         }
         if(showCh1Ref)
@@ -978,7 +1001,7 @@ ENDSCAN:
             ch1RefGraph->data()->clear();
         }
         ch2Graph->data()->clear();
-        if(ui->checkBoxCH2Trace->isChecked() && ui->samplingSlider->value() > 0) {
+        if(ui->groupCH2->isChecked() && ui->samplingSlider->value() > 0) {
             ch2Graph->setData(key, ch2Buffer);
         }
         if(showCh2Ref)
@@ -989,7 +1012,7 @@ ENDSCAN:
         for(int k = 0; k < 8; k++) {
             chdGraph[k]->data()->clear();
             textLabelBit[k]->setVisible(false);
-            if(ui->checkBoxCHDTrace->isChecked() && bitChecked[k]) {
+            if(ui->groupCHD->isChecked() && bitChecked[k]) {
                 chdGraph[k]->setData(key, bit[k]);
                 textLabelBit[k]->setVisible(true);
             }
@@ -999,9 +1022,10 @@ ENDSCAN:
             } else
                 chdRefGraph[k]->data()->clear();
         }
+        updateLogicHex(key, chdRaw);
         ch1BarGraph->data()->clear();
         ch2BarGraph->data()->clear();
-        if(ui->checkBoxFFTTrace->isChecked()) {
+        if(ui->groupFFT->isChecked()) {
             double magnitude = 0.0, magnitude2 = 0.0;
             double real1, real2, imag;
             for(int j = 0; j < 256; j++) {
@@ -1386,11 +1410,11 @@ void XprotolabInterface::moveCursor(QMouseEvent *event) {
                 return relativePos * voltsPerPixel;
             };
             QString text = "";
-            if(ui->checkBoxCH1Trace->isChecked()) {
+            if(ui->groupCH1->isChecked()) {
                 ch1Volts = getVolts(event->position().toPoint().y(), ch1ZeroPos, gains[ui->ch1GainSlider->value()].value);
                 text += get4Digits(ch1Volts) + gains[ui->ch1GainSlider->value()].unit;
             }
-            if(ui->checkBoxCH2Trace->isChecked()) {
+            if(ui->groupCH2->isChecked()) {
                 if (text != "") text += " ";
                 ch2Volts = getVolts(event->position().toPoint().y(), ch2ZeroPos, gains[ui->ch2GainSlider->value()].value);
                 text += get4Digits(ch2Volts) + gains[ui->ch2GainSlider->value()].unit;
@@ -2016,6 +2040,12 @@ void XprotolabInterface::disconnectDevice(bool mode) {
 void XprotolabInterface::readDeviceSettings() {
     if(!usbDevice.controlReadTransfer('u', 0, 14))
         return;
+    // Loading the settings into the controls runs their handlers, which would write every value
+    // back to the device, some through conversions that land on a neighbouring value (each
+    // connect moved the AWG offset 16 -> 15, duty 2 -> 1, trigger timeout 30 -> 29). The device
+    // already has these values, so nothing is sent until they are all loaded.
+    usbDevice.holdWrites = true;
+    const auto releaseWrites = qScopeGuard([this] { usbDevice.holdWrites = false; });
     double freq;
     byte data;
     logToFile("Device code: " + QString::number(usbDevice.deviceCode));
@@ -2031,7 +2061,7 @@ void XprotolabInterface::readDeviceSettings() {
     // GPIO1 CH1 Option
     data = usbDevice.inBuffer[1];
     logToFile("GPIO1 CH1 Option: " + QString::number(data));
-    ui->checkBoxCH1Trace->setChecked(((data & (byte)(1 << 0)) != 0));
+    ui->groupCH1->setChecked(((data & (byte)(1 << 0)) != 0));
     ui->checkBoxCH1Derivative->setChecked(((data & (byte)(1 << 2)) != 0));
     ui->checkBoxCH1AC->setChecked(((data & (byte)(1 << 3)) != 0));
     ui->checkBoxCH1Invert->setChecked(((data & (byte)(1 << 4)) != 0));
@@ -2044,7 +2074,7 @@ void XprotolabInterface::readDeviceSettings() {
     // GPIO2 CH2 Option
     data = usbDevice.inBuffer[2];
     logToFile("GPIO2 CH2 Option: " + QString::number(data));
-    ui->checkBoxCH2Trace->setChecked((data & (byte)(1 << 0)) != 0);
+    ui->groupCH2->setChecked((data & (byte)(1 << 0)) != 0);
     ui->checkBoxCH2Derivative->setChecked((data & (byte)(1 << 2)) != 0);
     ui->checkBoxCH2AC->setChecked((data & (byte)(1 << 3)) != 0);
     ui->checkBoxCH2Invert->setChecked((data & (byte)(1 << 4)) != 0);
@@ -2059,7 +2089,7 @@ void XprotolabInterface::readDeviceSettings() {
     // GPIO3 CHD Option
     data = usbDevice.inBuffer[3]; // option
     logToFile("GPIO3 CHD Option: " + QString::number(data));
-    ui->checkBoxCHDTrace->setChecked((data & (byte)(1 << 0)) != 0);
+    ui->groupCHD->setChecked((data & (byte)(1 << 0)) != 0);
     showHideCHDZeroIndicator();
     if((data & (byte)(1 << 1)) != 0) {
         if((data & (byte)(1 << 2)) != 0) {
@@ -2075,6 +2105,8 @@ void XprotolabInterface::readDeviceSettings() {
     }
     ui->checkBoxCHDThick0->setChecked((data & (byte)(1 << 3)) != 0);
     ui->checkBoxCHDInvert->setChecked((data & (byte)(1 << 4)) != 0);
+    ui->checkBoxCHDSerial->setChecked((data & (byte)(1 << 5)) != 0);      // hexs
+    ui->checkBoxCHDParallel->setChecked((data & (byte)(1 << 6)) != 0);    // hexp
     ui->checkBoxASCII->setChecked((data & (byte)(1 << 7)) != 0);
     // GPIO4 Mask
     data = usbDevice.inBuffer[4]; // mask
@@ -2230,7 +2262,7 @@ void XprotolabInterface::readDeviceSettings() {
     ui->checkBoxLogY->setChecked((data & (byte)(1 << 3)) != 0);
     ui->checkBoxIQFFT->setChecked((data & (byte)(1 << 4)) != 0);
     ui->xyMode->setChecked((data & (byte)(1 << 6)) != 0);
-    ui->checkBoxFFTTrace->setChecked((data & (byte)(1 << 7)) != 0);
+    ui->groupFFT->setChecked((data & (byte)(1 << 7)) != 0);
     if(((data & (byte)(1 << 5)) == 0) && ((data & (byte)(1 << 6)) == 0) && ((data & (byte)(1 << 7)) == 0)) {
         ui->mainTabWidget->setCurrentIndex(1);
     }
@@ -2475,9 +2507,9 @@ void XprotolabInterface::readDeviceSettings() {
     // M 39 Offset
     data = usbDevice.inBuffer[39];
     logToFile("M 39 Offset: " + QString::number(data));
-    ui->offsetSlider->setValue(-(char)data);
-    ui->offsetSlider->setSliderPosition(data);
-    ui->doubleSpinBoxOffset->setValue((double)(-(char)data) * (0.50016 / 32));
+    // The slider and spin box show the negated byte (see on_doubleSpinBoxOffset_valueChanged()).
+    ui->offsetSlider->setValue(-(int8_t)data);
+    ui->doubleSpinBoxOffset->setValue((double)(-(int8_t)data) * (0.50016 / 32));
     // 40 Desired frequency
     freq = double((16777216 * ((qint64)usbDevice.inBuffer[43])) +
                   (65536 * ((qint64)usbDevice.inBuffer[42])) +
@@ -2620,7 +2652,7 @@ void XprotolabInterface::sendCH1Controls() {
     // GPIO1, the CH1 option byte (main.h): bit 0 channel on, 1 x10 probe, 2
     // derivative, 3 AC coupling, 4 invert, 5 average, 6 math, 7 multiply.
     byte field = 0;
-    if(ui->checkBoxCH1Trace->isChecked())
+    if(ui->groupCH1->isChecked())
         field += (1 << 0);
     if(ui->checkBoxCH1Derivative->isChecked())
         field += (1 << 2);
@@ -2646,7 +2678,7 @@ void XprotolabInterface::on_checkBoxCH1Invert_clicked() {
         invertTriggerIcon();
 }
 
-void XprotolabInterface::on_checkBoxCH1Trace_clicked() {
+void XprotolabInterface::on_groupCH1_clicked() {
     sendCH1Controls();
     showHideCH1ZeroVerticalIndicator();
 }
@@ -2681,7 +2713,7 @@ void XprotolabInterface::on_radioButtonCH1Multiply_clicked() {
 void XprotolabInterface::sendCH2Controls() {
     // GPIO2, the CH2 option byte, bit for bit like CH1's.
     byte field = 0;
-    if(ui->checkBoxCH2Trace->isChecked())
+    if(ui->groupCH2->isChecked())
         field += (1 << 0);
     if(ui->checkBoxCH2Derivative->isChecked())
         field += (1 << 2);
@@ -2707,7 +2739,7 @@ void XprotolabInterface::on_checkBoxCH2Invert_clicked() {
         invertTriggerIcon();
 }
 
-void XprotolabInterface::on_checkBoxCH2Trace_clicked() {
+void XprotolabInterface::on_groupCH2_clicked() {
     sendCH2Controls();
     showHideCH2ZeroVerticalIndicator();
 }
@@ -2741,7 +2773,7 @@ void XprotolabInterface::on_radioButtonCH2Multiply_clicked() {
 
 void XprotolabInterface::sendCHDControls() {
     byte field = 0;
-    if(ui->checkBoxCHDTrace->isChecked())
+    if(ui->groupCHD->isChecked())
         field += (1 << 0);
     if(ui->chdPullSlider->value() != 1)
         field += (1 << 1);
@@ -2751,12 +2783,16 @@ void XprotolabInterface::sendCHDControls() {
         field += (1 << 3);
     if(ui->checkBoxCHDInvert->isChecked())
         field += (1 << 4);
+    if(ui->checkBoxCHDSerial->isChecked())
+        field += (1 << 5);     // Serial hex readout, on the device's screen too
+    if(ui->checkBoxCHDParallel->isChecked())
+        field += (1 << 6);     // Parallel hex readout
     if(ui->checkBoxASCII->isChecked())
         field += (1 << 7);
     usbDevice.controlWriteTransfer(3, field);
 }
 
-void XprotolabInterface::on_checkBoxCHDTrace_clicked() {
+void XprotolabInterface::on_groupCHD_clicked() {
     sendCHDControls();
     showHideCHDZeroIndicator();
 }
@@ -2766,6 +2802,14 @@ void XprotolabInterface::on_checkBoxCHDInvert_clicked() {
 }
 
 void XprotolabInterface::on_checkBoxCHDThick0_clicked() {
+    sendCHDControls();
+}
+
+void XprotolabInterface::on_checkBoxCHDParallel_clicked() {
+    sendCHDControls();
+}
+
+void XprotolabInterface::on_checkBoxCHDSerial_clicked() {
     sendCHDControls();
 }
 
@@ -3124,7 +3168,7 @@ void XprotolabInterface::sendMFFTControls() {
         field += (1 << 6);       // XY Mode
     else
         field += (1 << 5);       // Scope Mode
-    if(ui->checkBoxFFTTrace->isChecked())
+    if(ui->groupFFT->isChecked())
         field += (1 << 7);       // FFT Mode
     usbDevice.controlWriteTransfer(8, field);
 }
@@ -3149,7 +3193,7 @@ void XprotolabInterface::on_checkBoxLogY_clicked() {
     sendMFFTControls();
 }
 
-void XprotolabInterface::on_checkBoxFFTTrace_clicked() {
+void XprotolabInterface::on_groupFFT_clicked() {
     sendMFFTControls();
 }
 
@@ -3434,7 +3478,7 @@ void XprotolabInterface::sendHorizontalCursorCH2B() {
 
 // M 21 Trigger Hold
 void XprotolabInterface::on_doubleSpinBoxTrigHold_valueChanged(double value) {
-    usbDevice.controlWriteTransfer(21, (byte)(value));
+    usbDevice.controlWriteTransfer(21, (byte)qBound(0, qRound(value), 255));
 }
 
 // M 22 23 Post Trigger
@@ -3501,9 +3545,9 @@ void XprotolabInterface::setTriggerWin2Level(int value) {
 
 // M 28 Trigger Timeout
 void XprotolabInterface::on_doubleSpinBoxTrigAuto_valueChanged(double value) {
-    byte data;
-    data = (byte)((value / 0.04096) - 1);
-    usbDevice.controlWriteTransfer(28, data);
+    // Ttimeout: (n + 1) * 40.96 ms. Rounded, as truncating gave n - 1 for many n.
+    const int data = qBound(0, qRound(value / 0.04096) - 1, 255);
+    usbDevice.controlWriteTransfer(28, (byte)data);
 }
 
 // M 29 Channel 1 position. The zero marker in the plot is the only control: it
@@ -3676,10 +3720,10 @@ void XprotolabInterface::on_sweepSpeedSlider_valueChanged(int value) {
 
 // M 36 Amplitude range: [-128,0]
 void XprotolabInterface::on_doubleSpinBoxAmp_valueChanged(double value) {
-    byte data;
-    data = (byte)(value * 32);       // Amplitude
-    data = (byte)(-data);
-    usbDevice.controlWriteTransfer(36, data);
+    // Amplitude: 1/32 V per count, sent negated (range [-128, 0]). Rounded: the spin box keeps
+    // 3 decimals, so 1/32 V shows as 0.031 and truncating sent 0.
+    const int data = qBound(0, qRound(value * 32), 128);
+    usbDevice.controlWriteTransfer(36, (byte)(-data));
 }
 
 void XprotolabInterface::on_amplitudeSlider_valueChanged(int value) {
@@ -3717,11 +3761,10 @@ void XprotolabInterface::on_radioButtonNoise_clicked() {
 
 // M 38 Duty cycle range: [1,255]
 void XprotolabInterface::on_doubleSpinBoxDuty_valueChanged(double value) {
-    byte data;
-    data = (byte)(value * 100000 * 128 / 5000064);       // Duty
-    if(data == 0)
-        data = 1;
-    usbDevice.controlWriteTransfer(38, data);
+    // Duty: 50.00064 % / 128 per count, [1, 255]. Rounded, as truncating the 3-decimal spin box
+    // value sent one count less for half of them.
+    const int data = qBound(1, qRound(value * 128 / 50.00064), 255);
+    usbDevice.controlWriteTransfer(38, (byte)data);
 }
 
 void XprotolabInterface::on_dutyCycleSlider_valueChanged(int value) {
@@ -3730,9 +3773,10 @@ void XprotolabInterface::on_dutyCycleSlider_valueChanged(int value) {
 
 // M 39 Offset
 void XprotolabInterface::on_doubleSpinBoxOffset_valueChanged(double value) {
-    char data;
-    data = (char)(-value * 100000 * 32 / 50016);       // Offset
-    usbDevice.controlWriteTransfer(39, (byte)data);
+    // Offset: 0.50016 V / 32 per count, negated. Rounded: the spin box keeps 3 decimals, so
+    // truncating the quotient landed one count off for most values.
+    const int data = qBound(-128, qRound(-value * 32 / 0.50016), 127);
+    usbDevice.controlWriteTransfer(39, (byte)(int8_t)data);
 }
 
 void XprotolabInterface::on_offsetSlider_valueChanged(int value) {
@@ -3774,6 +3818,8 @@ void XprotolabInterface::sendDesiredFrequency(double value) {
         ui->labelHertz->setText("kHz");
     }
     ui->actualFreqText->setText(QString::number(actualFreq));//.ToString("##.000");
+    if(usbDevice.holdWrites)
+        return;     // loading the device's settings: it already plays this frequency
     usbDevice.controlReadTransfer('c', (uint16_t)(desiredFreq >> 16), (uint16_t)(desiredFreq & 0x0000FFFF));
 }
 
@@ -3905,6 +3951,63 @@ void XprotolabInterface::captureReference() {
             const int chdOffset = 20 + (m * 20) + m_chdPosition * kChdPositionStep;
             bitRef[m][j] = (data & (byte)(1 << m)) ? chdOffset + ui->chdSizeSlider->value() : chdOffset - 10;
         }
+    }
+}
+
+// The logic hex readouts, as the device draws them on its screen (firmware mso.c, and
+// HEXSerial() in logic.c):
+// - Parallel: the 8-bit logic byte every 16 LCD pixels (32 plot units), in a row below the
+//   traces when it fits (the device also drops it when the traces reach its bottom row).
+// - Serial: each shown bit read as one 8-bit number, MSB first, across the screen, or between
+//   the vertical cursors when they are on. The span is cut into 32 steps, 4 per bit; a bit is 1
+//   when any of the 3 samples before its 4th step is high. Drawn left of the bit's label.
+// key and chd run in parallel: the plot position and the logic byte of each sample shown.
+void XprotolabInterface::updateLogicHex(const QVector<double> &key, const QVector<byte> &chd) {
+    const bool logicOn = ui->groupCHD->isChecked() && !chd.isEmpty() && chd.size() == key.size();
+    const bool parallel = logicOn && ui->checkBoxCHDParallel->isChecked();
+    const bool serial = logicOn && ui->checkBoxCHDSerial->isChecked();
+    const int keyStep = logicOn ? 256 / chd.size() : 1;    // 2 at the fast time bases (128 samples)
+    const auto sampleAt = [&](double x) {
+        return chd[qBound(0, int(x) / keyStep, int(chd.size()) - 1)];
+    };
+    const auto hex = [](byte b) { return QString("%1").arg(b, 2, 16, QChar('0')).toUpper(); };
+    const int size = ui->chdSizeSlider->value();
+    const int base = 20 + m_chdPosition * kChdPositionStep;     // bit 0's level, as in plotData()
+    const int parallelY = base - 10 - 15;                       // below bit 0's low level
+    for(int n = 0; n < 8; n++) {
+        QCPItemText *label = textLabelParallel[n];
+        label->setVisible(parallel && parallelY > 8);
+        if(!label->visible())
+            continue;
+        const double x = n * 32;
+        label->position->setCoords(x, parallelY);
+        label->setText(hex(sampleAt(x)));
+    }
+    double start = 0, end = 255;
+    if(m_cursorVertical) {
+        start = qMin(vCursorAPos, vCursorBPos);
+        end = qMax(vCursorAPos, vCursorBPos);
+    }
+    const double increment = (end - start) / 32;
+    for(int m = 0; m < 8; m++) {
+        QCPItemText *label = textLabelSerial[m];
+        label->setVisible(serial && bitChecked[m]);
+        if(!label->visible())
+            continue;
+        byte result = 0;
+        int high = 0;
+        double x = start;
+        for(int i = 1; i <= 32; i++) {
+            x += increment;
+            if(i % 4 == 0) {
+                result = (byte)((result << 1) | (high ? 1 : 0));
+                high = 0;
+            } else if(sampleAt(x) & (1 << m)) {
+                high++;
+            }
+        }
+        label->position->setCoords(238, base + m * 20 + size - 5);    // textLabelBit's height
+        label->setText(hex(result));
     }
 }
 
@@ -4066,6 +4169,7 @@ bool XprotolabInterface::saveDisplayBmp(const QString &fileName) {
 
 void XprotolabInterface::on_saveWave_clicked() {
     saveWave = true;
+    m_repaint = true;       // plotData() saves the frame on screen, also while the scope is stopped
 }
 
 void XprotolabInterface::saveWavetoFile() {
@@ -4273,8 +4377,8 @@ void XprotolabInterface::updatePersistencePens() {
 void XprotolabInterface::applyPersistenceStyle() {
     const int copies = qBound(0, ui->intensitySlider->value(), TG - 1);
     const bool trailEnabled = !ui->checkBoxPersistence->isChecked() && !ui->xyMode->isChecked();
-    const bool showCH1 = trailEnabled && ui->checkBoxCH1Trace->isChecked();
-    const bool showCH2 = trailEnabled && ui->checkBoxCH2Trace->isChecked() &&
+    const bool showCH1 = trailEnabled && ui->groupCH1->isChecked();
+    const bool showCH2 = trailEnabled && ui->groupCH2->isChecked() &&
                          ui->samplingSlider->value() > 0;
     for(int i = 0; i < TG; i++) {
         // Age 0 is the frame just written; the main graph already draws it.
@@ -4337,7 +4441,7 @@ void XprotolabInterface::drawPersistenceFrame(const QVector<double> &key,
     QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing, true);
     const int count = qMin(key.size(), ch1Buffer.size());
-    if(ui->checkBoxCH1Trace->isChecked() && count > 1) {
+    if(ui->groupCH1->isChecked() && count > 1) {
         QPolygonF poly;
         poly.reserve(count);
         for(int i = 0; i < count; i++)
@@ -4349,7 +4453,7 @@ void XprotolabInterface::drawPersistenceFrame(const QVector<double> &key,
         painter.drawPolyline(poly);
     }
     const int count2 = qMin(key.size(), ch2Buffer.size());
-    if(ui->checkBoxCH2Trace->isChecked() && ui->samplingSlider->value() > 0 && count2 > 1) {
+    if(ui->groupCH2->isChecked() && ui->samplingSlider->value() > 0 && count2 > 1) {
         QPolygonF poly;
         poly.reserve(count2);
         for(int i = 0; i < count2; i++)
@@ -4360,7 +4464,7 @@ void XprotolabInterface::drawPersistenceFrame(const QVector<double> &key,
         painter.setPen(pen);
         painter.drawPolyline(poly);
     }
-    if(ui->checkBoxCHDTrace->isChecked()) {
+    if(ui->groupCHD->isChecked()) {
         for(int k = 0; k < 8; k++) {
             const int n = qMin(key.size(), bit[k].size());
             if(!bitChecked[k] || n < 2)
@@ -4697,7 +4801,7 @@ QString XprotolabInterface::get4Digits(qreal number) {
 }
 
 void XprotolabInterface::showHideCH1ZeroVerticalIndicator() {
-    if(ui->checkBoxCH1Trace->isChecked()) {
+    if(ui->groupCH1->isChecked()) {
         ch1ZeroHead->setVisible(true);
         ch1Zero->setVisible(true);
     } else {
@@ -4706,7 +4810,7 @@ void XprotolabInterface::showHideCH1ZeroVerticalIndicator() {
     }
 }
 void XprotolabInterface::showHideCH2ZeroVerticalIndicator() {
-    if(ui->checkBoxCH2Trace->isChecked()) {
+    if(ui->groupCH2->isChecked()) {
         ch2ZeroHead->setVisible(true);
         ch2Zero->setVisible(true);
     } else {
@@ -4716,7 +4820,7 @@ void XprotolabInterface::showHideCH2ZeroVerticalIndicator() {
 }
 
 void XprotolabInterface::showHideCHDZeroIndicator() {
-    chdZeroHead->setVisible(ui->checkBoxCHDTrace->isChecked());
+    chdZeroHead->setVisible(ui->groupCHD->isChecked());
 }
 
 void XprotolabInterface::on_sizeChanged() {

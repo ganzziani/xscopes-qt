@@ -216,6 +216,7 @@ private:
     bool canPanHorizontally() const;
     void updatePlotCursor(const QPointF &pos);
     void captureReference();
+    void updateLogicHex(const QVector<double> &key, const QVector<byte> &chd);
     void placeZeroMarkers();
 private slots:
     void on_playButton_clicked();
@@ -245,21 +246,23 @@ private slots:
     void on_saveAWGButton_clicked();
     void on_checkBoxCH1Math_clicked();
     void on_checkBoxCH1Invert_clicked();
-    void on_checkBoxCH1Trace_clicked();
+    void on_groupCH1_clicked();
     void on_checkBoxCH1Average_clicked();
     void on_checkBoxCH1Derivative_clicked();
     void on_checkBoxCH1AC_clicked();
     void on_checkBoxCH2Math_clicked();
     void on_checkBoxCH2Invert_clicked();
-    void on_checkBoxCH2Trace_clicked();
+    void on_groupCH2_clicked();
     void on_checkBoxCH2Average_clicked();
     void on_checkBoxCH2Derivative_clicked();
     void on_checkBoxCH2AC_clicked();
     void on_radioButtonCH2Sub_clicked();
     void on_radioButtonCH1Sub_clicked();
-    void on_checkBoxCHDTrace_clicked();
+    void on_groupCHD_clicked();
     void on_checkBoxCHDInvert_clicked();
     void on_checkBoxCHDThick0_clicked();
+    void on_checkBoxCHDParallel_clicked();
+    void on_checkBoxCHDSerial_clicked();
     void on_chdPullSlider_valueChanged(int value);
     void on_checkBoxASCII_clicked();
     void on_checkBoxCHD0_clicked();
@@ -283,7 +286,7 @@ private slots:
     void on_checkBoxCircular_clicked();
     void on_rollMode_clicked();
     void on_checkBoxLogY_clicked();
-    void on_checkBoxFFTTrace_clicked();
+    void on_groupFFT_clicked();
     void on_checkBoxIQFFT_clicked();
     void on_radioButtonRect_clicked();
     void on_radioButtonHamming_clicked();
@@ -447,6 +450,7 @@ private:
     MarkerPixmap *triggerPixmap, *triggerWin1Pixmap, *triggerWin2Pixmap;
     QCPItemPixmap *vCursorAHead, *vCursorBHead;
     QCPItemText *textLabelBit[8], *textLabelDeltaTime, *textLabelDeltaVoltage;
+    QCPItemText *textLabelParallel[8], *textLabelSerial[8];   // logic hex readouts, updateLogicHex()
     QCPItemText *textLabelVoltageA, *textLabelVoltageB, *textLabelFrequency, *textLabelMousePos;
     QString sniffBuffer;
     int triggerPost, triggerLevel, triggerWin1Level, triggerWin2Level;

@@ -402,7 +402,7 @@
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_34">
             <item>
-             <widget class="QGroupBox" name="groupBox_21">
+             <widget class="QGroupBox" name="groupCH1">
               <property name="title">
                <string>CH1</string>
               </property>
@@ -460,16 +460,6 @@
                </item>
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_7">
-                 <item>
-                  <widget class="QCheckBox" name="checkBoxCH1Trace">
-                   <property name="toolTip">
-                    <string>Display CH1 trace</string>
-                   </property>
-                   <property name="text">
-                    <string>Trace</string>
-                   </property>
-                  </widget>
-                 </item>
                  <item>
                   <widget class="QCheckBox" name="checkBoxCH1Average">
                    <property name="toolTip">
@@ -561,7 +551,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QGroupBox" name="groupBox_22">
+             <widget class="QGroupBox" name="groupCH2">
               <property name="title">
                <string>CH2</string>
               </property>
@@ -619,16 +609,6 @@
                </item>
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_14">
-                 <item>
-                  <widget class="QCheckBox" name="checkBoxCH2Trace">
-                   <property name="toolTip">
-                    <string>Display CH2 trace</string>
-                   </property>
-                   <property name="text">
-                    <string>Trace</string>
-                   </property>
-                  </widget>
-                 </item>
                  <item>
                   <widget class="QCheckBox" name="checkBoxCH2Average">
                    <property name="toolTip">
@@ -782,16 +762,6 @@
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_18">
                  <item>
-                  <widget class="QCheckBox" name="checkBoxCH2Trace_2">
-                   <property name="toolTip">
-                    <string>Display CH2 trace</string>
-                   </property>
-                   <property name="text">
-                    <string>Trace</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
                   <widget class="QCheckBox" name="checkBoxCH2Average_2">
                    <property name="toolTip">
                     <string>The channel samples will be averaged to reduce aliasing</string>
@@ -944,16 +914,6 @@
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_25">
                  <item>
-                  <widget class="QCheckBox" name="checkBoxCH2Trace_3">
-                   <property name="toolTip">
-                    <string>Display CH2 trace</string>
-                   </property>
-                   <property name="text">
-                    <string>Trace</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
                   <widget class="QCheckBox" name="checkBoxCH2Average_3">
                    <property name="toolTip">
                     <string>The channel samples will be averaged to reduce aliasing</string>
@@ -1062,7 +1022,7 @@
              <number>6</number>
             </property>
             <item>
-             <widget class="QGroupBox" name="groupBox_23">
+             <widget class="QGroupBox" name="groupCHD">
               <property name="title">
                <string>Logic</string>
               </property>
@@ -1179,16 +1139,6 @@
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_23">
                  <item>
-                  <widget class="QCheckBox" name="checkBoxCHDTrace">
-                   <property name="toolTip">
-                    <string>Display logic traces</string>
-                   </property>
-                   <property name="text">
-                    <string>Trace</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
                   <widget class="QCheckBox" name="checkBoxCHDInvert">
                    <property name="toolTip">
                     <string>All digital channels are inverted</string>
@@ -1209,7 +1159,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBox">
+                  <widget class="QCheckBox" name="checkBoxCHDParallel">
                    <property name="toolTip">
                     <string>Shows the hexadecimal value of the 8 bit digital input lines</string>
                    </property>
@@ -1219,7 +1169,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBox_2">
+                  <widget class="QCheckBox" name="checkBoxCHDSerial">
                    <property name="toolTip">
                     <string>Shows the hexadecimal value of the stream of bits on each channel</string>
                    </property>
@@ -1329,7 +1279,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QGroupBox" name="groupBox_24">
+             <widget class="QGroupBox" name="groupFFT">
               <property name="title">
                <string>FFT</string>
               </property>
@@ -1337,13 +1287,6 @@
                <bool>true</bool>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_5">
-               <item>
-                <widget class="QCheckBox" name="checkBoxFFTTrace">
-                 <property name="text">
-                  <string>Trace</string>
-                 </property>
-                </widget>
-               </item>
                <item>
                 <widget class="QCheckBox" name="checkBoxFFTCH1">
                  <property name="text">
