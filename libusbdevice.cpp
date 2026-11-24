@@ -2,6 +2,8 @@
 #include "libusbdeviceinfo.h"
 
 #include <QtEndian>
+#include <QElapsedTimer>
+#include <QThread>
 #include "qextserialport.h"
 
 LibUsbDevice::LibUsbDevice(QObject *parent) :
@@ -681,26 +683,31 @@ int LibUsbDevice::requestMM(unsigned char *buffer) {
         serial.serial->flush();
         serial.serial->readAll();
         serial.write("m");
-        while(serial.serial->bytesAvailable() < 4);
-        char tmp[4];
-        bytesRead = serial.serial->read(tmp, 4);
-        for(int i = 0; i < bytesRead; i++) {
-            buffer[i] = tmp[i];
-        }
-        // The device sends the whole 'm' reply on the serial port too (19 bytes on
-        // the current layout, 18 before); the value is the first 4. Drain the tail
-        // so it cannot be taken for the next command's reply.
-        int idle = 0;
-        for(int guard = 0; guard < 100 && idle < 2; guard++) {
-            if(serial.serial->bytesAvailable() > 0) {
-                serial.serial->readAll();
-                idle = 0;
-            } else if(serial.serial->waitForReadyRead(2)) {
-                idle = 0;
+        // The UART gets the same reply as USB (the firmware sends all of it), so take
+        // all of it: 19 bytes now, 18/14/4 from older firmware. QextSerialPort has no
+        // waitForReadyRead(), so poll against deadlines. A reply ends at 19 bytes, or
+        // once the value is in and the line has gone quiet for longer than a USB
+        // serial adapter holds bytes back (FTDI's latency timer is 16 ms).
+        const int kReplyTimeoutMs = 250, kIdleMs = 30;
+        QElapsedTimer total, idle;
+        total.start();
+        idle.start();
+        while(bytesRead < METER_REPLY_SIZE && total.elapsed() < kReplyTimeoutMs) {
+            const qint64 available = serial.serial->bytesAvailable();
+            if(available > 0) {
+                const qint64 n = serial.serial->read(reinterpret_cast<char *>(buffer) + bytesRead,
+                                                     qMin<qint64>(available, METER_REPLY_SIZE - bytesRead));
+                if(n < 0)
+                    break;
+                bytesRead += n;
+                idle.restart();
+            } else if(bytesRead >= METER_VALUE_SIZE && idle.elapsed() >= kIdleMs) {
+                break;
             } else {
-                idle++;
+                QThread::msleep(1);
             }
         }
+        serial.serial->readAll();   // Nothing past the reply may pass for the next one
     }
     return bytesRead;
 }

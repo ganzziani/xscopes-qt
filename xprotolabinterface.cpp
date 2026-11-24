@@ -4748,18 +4748,15 @@ void XprotolabInterface::leaveMeterMode() {
 }
 
 // Each meter sub-tab polls 'm' at its own pace. The frequency tab's channel
-// frequencies come from the device's auto-setup bins, so over USB it polls faster
-// than the once-a-second external counter to see the settled pair (see
-// mm_request()). Over serial the reply has no channel data.
+// frequencies come from the device's auto-setup bins, which are settled
+// (adjusting == 0) only for about one acquisition, so it polls much faster than
+// the once-a-second external counter to catch them (see mm_request()). Over
+// serial a request blocks until its reply is in (a USB serial adapter can hold
+// bytes back for 16 ms), so it polls a little slower there.
 void XprotolabInterface::startMeterTimer() {
     m_mmFailures = 0;
     if(ui->mmTabWidget->currentIndex() == 2) {
-        if(usbDevice.wayOfConnecting)
-            m_mmTimer.start(20);
-        else if(ui->radioPulse->isChecked())
-            m_mmTimer.start(100);
-        else
-            m_mmTimer.start(1000);
+        m_mmTimer.start(usbDevice.wayOfConnecting ? 20 : 50);
     } else {
         m_mmTimer.start(250);   // VPP and VDC
     }
@@ -4909,7 +4906,7 @@ void XprotolabInterface::mm_request() {
                 g1 = m_meterCh1Gain;
                 g2 = m_meterCh2Gain;
             } else {
-                // Serial firmware: 'u' would cost a second, use what the app set.
+                // Older firmware over serial: 'u' would cost a second, use what the app set.
                 g1 = ui->ch1GainSlider->value();
                 g2 = ui->ch2GainSlider->value();
             }
@@ -5096,12 +5093,12 @@ void XprotolabInterface::setVerticalCursors() {
 
 void XprotolabInterface::on_radioFreq_clicked() {
     sendMStatusControlsForMM();
-    m_mmTimer.start(usbDevice.wayOfConnecting ? 20 : 1000);
+    startMeterTimer();
 }
 
 void XprotolabInterface::on_radioPulse_clicked() {
     sendMStatusControlsForMM();
-    m_mmTimer.start(usbDevice.wayOfConnecting ? 20 : 100);
+    startMeterTimer();
 }
 
 void XprotolabInterface::on_upgradeFirmware_clicked() {
