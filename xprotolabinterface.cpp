@@ -3537,12 +3537,13 @@ void XprotolabInterface::on_doubleSpinBoxAWGFrequency_valueChanged(double value)
     sendDesiredFrequency(value);
 }
 
-// The frequency, in Hz, the firmware plays for a request c in 0.01 Hz: BuildWave() in
-// the firmware's awg.c, step by step. The buffer holds 256 samples with 'cycles' periods
-// of the wave, and TCD1 (32 MHz / prescaler) moves one sample per PER + 1 counts. PER
-// is truncated, so the output is at or above the request (+3 % at the top).
-static double awgPlayedFrequency(quint32 c) {
-    // Limits, byte by byte: byte 3 = 0, byte 2 at most 0xBE (125.17375 kHz), 0 -> 0.01 Hz
+// The AWG's Actual frequency as the device shows it (case MAWGFREQ in the firmware's
+// mso.c), in 0.01 Hz, truncated, for a request c in 0.01 Hz. BuildWave() (awg.c) limits
+// c in place - byte 3 = 0, byte 2 at most 0xBE (125.17375 kHz), 0 becomes 1 - and picks
+// the cycles per 256-sample buffer, the prescaler and the truncated period PER of TCD1,
+// which moves one sample per PER + 1 counts of 32 MHz / prescaler. PER is truncated, so
+// the output is at or above the request (+3 % at the top).
+static quint32 awgActualFrequency(quint32 &c) {
     c &= 0x00FFFFFF;
     if((c >> 16) > 0xBE)
         c = 0x00BE0000 | (c & 0xFFFF);
@@ -3556,8 +3557,9 @@ static double awgPlayedFrequency(quint32 c) {
         fLevel >>= 1;
     // Below 2.56 Hz the timer runs at 32 MHz / 256
     const quint32 prescaler = (c >> 8) < 1 ? 256 : 1;
-    const quint16 per = (quint16)(12500000u * cycles / (c * prescaler) - 1);
-    return cycles * 32000000.0 / (256.0 * prescaler * (per + 1.0));
+    const quint32 numerator = 12500000u * cycles;      // cycles * (F_CPU / 256) * 100
+    const quint16 per = (quint16)(numerator / (c * prescaler) - 1);
+    return numerator / ((per + 1u) * prescaler);
 }
 
 // Requested in 0.01 Hz steps; the firmware plays down to 0.01 Hz (c = 1).
@@ -3566,15 +3568,16 @@ void XprotolabInterface::sendDesiredFrequency(double value) {
     desiredFreq = qRound64(value * 100);
     if(desiredFreq < 1)
         desiredFreq = 1;
-    // Actual: what the device plays, not the request
-    double actualFreq = awgPlayedFrequency((quint32)desiredFreq);
-    if(actualFreq < 1000)
+    // Actual: the number the device shows, with its unit (chosen by the request)
+    quint32 request = (quint32)desiredFreq;
+    const quint32 actual = awgActualFrequency(request);
+    if(request < 100000) {
         ui->labelAWGActualFrequencyUnit->setText("Hz");
-    else {
-        actualFreq = actualFreq / 1000;
+        ui->lineEditAWGActualFrequency->setText(QString::number(actual / 100.0, 'f', 2));
+    } else {
         ui->labelAWGActualFrequencyUnit->setText("kHz");
+        ui->lineEditAWGActualFrequency->setText(QString::number(actual / 100000.0, 'f', 5));
     }
-    ui->lineEditAWGActualFrequency->setText(QString::number(actualFreq));
     if(usbDevice.holdWrites)
         return;     // loading the device's settings: it already plays this frequency
     usbDevice.controlReadTransfer('c', (uint16_t)(desiredFreq >> 16), (uint16_t)(desiredFreq & 0x0000FFFF));
