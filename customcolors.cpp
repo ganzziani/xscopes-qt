@@ -12,7 +12,7 @@ CustomColors::CustomColors() {
     m_buttonsMap.insert("AXES", &axes);
     for(int i = 0; i < 8; i++) {
         m_buttonsMap.insert("BIT " + QString::number(i), &bit[i]);
-        m_buttonsMap.insert("BIT " + QString::number(i) + " REF", &bit[i]);
+        m_buttonsMap.insert("BIT " + QString::number(i) + " REF", &bitref[i]);
     }
     m_buttonsMap.insert("LABELS", &label);
 }

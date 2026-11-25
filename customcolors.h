@@ -16,6 +16,8 @@ public:
 
     void setColor(QString from, QColor new_color);
     QColor colorAt(QString from);
+    // A captured reference is drawn in a darker shade of its own trace's color.
+    static QColor referenceOf(const QColor &trace) { return trace.darker(170); }
 private:
     QMap<QString, QColor *> m_buttonsMap;
 };

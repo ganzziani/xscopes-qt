@@ -104,11 +104,11 @@ QString CustomTheme::idealForegroundColor(QColor color) {
 void CustomTheme::loadDefaultTheme() {
     customColors.ch1 = QColor(75, 229, 28);
     customColors.ch2 = QColor(Qt::red);
-    customColors.ch1ref = QColor(Qt::red);
-    customColors.ch2ref = QColor("#4be51c");
+    customColors.ch1ref = CustomColors::referenceOf(customColors.ch1);
+    customColors.ch2ref = CustomColors::referenceOf(customColors.ch2);
     for(int i = 0; i < 8; i++) {
         customColors.bit[i] = QColor(255 - i * 10, 4 + i * 10, 4);
-        customColors.bitref[i] = QColor(Qt::blue);
+        customColors.bitref[i] = CustomColors::referenceOf(customColors.bit[i]);
     }
     customColors.ch1fft = QColor(75, 229, 28);
     customColors.ch2fft = QColor(Qt::red);

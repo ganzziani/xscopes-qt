@@ -265,15 +265,14 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         ui->labelCH1Color->setStyleSheet(styleSheet);
         styleSheet = "QLabel { background-color : " + ch2Pen.color().name() + "; }";
         ui->labelCH2Color->setStyleSheet(styleSheet);
-        ch1RefPen = QPen(Qt::red, 2);
+        ch1RefPen = QPen(CustomColors::referenceOf(ch1Pen.color()), 2);
         ch1RefGraph->setPen(ch1RefPen);
-        ch2RefPen = QPen(QColor("#4be51c"), 2);
+        ch2RefPen = QPen(CustomColors::referenceOf(ch2Pen.color()), 2);
         ch2RefGraph->setPen(ch2RefPen);
         for(int i = 0; i < 8; i++) {
             chdPen[i] = QPen(QColor(255 - i * 10, 4 + i * 10, 4), 1.5);
-            //chdPen[i] = QPen(Qt::red, 1.5);
             chdGraph[i]->setPen(chdPen[i]);
-            chdRefPen[i] = QPen(Qt::blue, 1.5);
+            chdRefPen[i] = QPen(CustomColors::referenceOf(chdPen[i].color()), 1.5);
             chdRefGraph[i]->setPen(chdRefPen[i]);
         }
         ch1BarPen = QPen(QColor("#4be51c"), 2);
@@ -315,15 +314,14 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         ui->labelCH1Color->setStyleSheet(styleSheet);
         styleSheet = "QLabel { background-color : " + ch2Pen.color().name() + "; }";
         ui->labelCH2Color->setStyleSheet(styleSheet);
-        ch1RefPen = QPen(Qt::red, 2);
+        ch1RefPen = QPen(CustomColors::referenceOf(ch1Pen.color()), 2);
         ch1RefGraph->setPen(ch1RefPen);
-        ch2RefPen = QPen(QColor("#4be51c"), 2);
+        ch2RefPen = QPen(CustomColors::referenceOf(ch2Pen.color()), 2);
         ch2RefGraph->setPen(ch2RefPen);
         for(int i = 0; i < 8; i++) {
             chdPen[i] = QPen(QColor(4 + i * 20, i, 255 - i * 5), 1.5);
-            //chdPen[i] = QPen(Qt::red, 1.5);
             chdGraph[i]->setPen(chdPen[i]);
-            chdRefPen[i] = QPen(Qt::blue, 1.5);
+            chdRefPen[i] = QPen(CustomColors::referenceOf(chdPen[i].color()), 1.5);
             chdRefGraph[i]->setPen(chdRefPen[i]);
         }
         ch1BarPen = QPen(QColor("#2a50fd"), 2);
