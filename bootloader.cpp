@@ -28,24 +28,40 @@ const TargetMemory *targetMemory(const QString &name) {
 }
 
 // The Device Select group, one row per button: its device code (DEVICE_CODE in the
-// firmwares' hardware.h) and the product photo the About tab shows for the family. The
-// 2.4 and 1.11 boards are hardware revisions that keep the old case, so they share one.
+// firmwares' hardware.h), the product photo the About tab shows for the family (the 2.4
+// and 1.11 boards are hardware revisions that keep the old case, so they share one), the
+// dfu-programmer target and the name of its firmware files on gabotronics.com.
 struct DeviceRow {
     int code;
     QRadioButton *button;
     const char *photo;
+    const char *target;
+    const char *firmware;
 };
 QVector<DeviceRow> deviceRows(Ui::bootloader *ui) {
     QVector<DeviceRow> rows;
-    rows << DeviceRow{0x10, ui->radioXprotolab, ":/Bitmaps/Bitmaps/xprotolab.png"}
-         << DeviceRow{0x11, ui->radioXprotolabPlain, ":/Bitmaps/Bitmaps/xprotolab-plain.png"}
-         << DeviceRow{0x12, ui->radioXprotolabPortable, ":/Bitmaps/Bitmaps/xprotolab-portable.png"}
-         << DeviceRow{0x13, ui->radioXminilab, ":/Bitmaps/Bitmaps/xminilab.png"}
-         << DeviceRow{0x14, ui->radioXminilabB, ":/Bitmaps/Bitmaps/xminilab.png"}
-         << DeviceRow{0x15, ui->radioXminiulabPortable, ":/Bitmaps/Bitmaps/xminilab-portable.png"}
-         << DeviceRow{0x16, ui->radioXminiulabPortable1_11, ":/Bitmaps/Bitmaps/xminilab-portable.png"}
-         << DeviceRow{0x20, ui->radioOW, ":/Bitmaps/Bitmaps/oscilloscope-watch.jpg"};
+    rows << DeviceRow{0x10, ui->radioXprotolab, ":/Bitmaps/Bitmaps/xprotolab.png",
+                      "atxmega32a4u", "xprotolab"}
+         << DeviceRow{0x11, ui->radioXprotolabPlain, ":/Bitmaps/Bitmaps/xprotolab-plain.png",
+                      "atxmega32a4u", "xprotolab-plain"}
+         << DeviceRow{0x12, ui->radioXprotolabPortable, ":/Bitmaps/Bitmaps/xprotolab-portable.png",
+                      "atxmega32a4u", "xprotolab-portable"}
+         << DeviceRow{0x13, ui->radioXminilab, ":/Bitmaps/Bitmaps/xminilab.png",
+                      "atxmega32a4u", "xminilab"}
+         << DeviceRow{0x14, ui->radioXminilabB, ":/Bitmaps/Bitmaps/xminilab.png",
+                      "atxmega32a4u", "xminilab2_4"}
+         << DeviceRow{0x15, ui->radioXminiulabPortable, ":/Bitmaps/Bitmaps/xminilab-portable.png",
+                      "atxmega32a4u", "xminilab-portable1_1"}
+         << DeviceRow{0x16, ui->radioXminiulabPortable1_11, ":/Bitmaps/Bitmaps/xminilab-portable.png",
+                      "atxmega32a4u", "xminilab-portable1_11"}
+         << DeviceRow{0x20, ui->radioOW, ":/Bitmaps/Bitmaps/oscilloscope-watch.jpg",
+                      "atxmega256a3u", "oscilloscope-watch"};
     return rows;
+}
+
+// Where the flash and EEPROM file fields of one device are remembered
+QString fileKey(int deviceCode, const char *kind) {
+    return QString("Firmware/%1/%2").arg(deviceCode, 2, 16, QLatin1Char('0')).arg(QLatin1String(kind));
 }
 }
 
@@ -65,28 +81,22 @@ Bootloader::Bootloader(QWidget *parent) :
     connect(EEPDownloader, SIGNAL(downloaded(QNetworkReply::NetworkError, QString)),
             this, SLOT(EEPDownloaded(QNetworkReply::NetworkError, QString)));
     QSettings settings;
-    // The photo next to the group follows the buttons, however they get picked
-    const QVector<DeviceRow> rows = deviceRows(ui);
-    for(int i = 0; i < rows.size(); i++)
-        connect(rows[i].button, SIGNAL(clicked()), this, SLOT(showDevicePhoto()));
-    // Open on the device used last time. The .ui checks the Watch, whose slot has to run
-    // once so the target and the download URLs match the checked button. That direct call
-    // emits no signal, so the photo is set once more below. Both this and selectDevice()
-    // clear the file fields, so they stay ahead of the restore.
-    on_radioOW_clicked();
-    selectDevice(settings.value("lastDeviceCode").toInt());
-    showDevicePhoto();
     workingDir = settings.value("workingDir").toString();
     // A read-back has to go somewhere the user can find it and that is writable even when the
     // application lives in Program Files, so fall back to Documents instead of the CWD.
     if(!QDir(workingDir).exists())
         workingDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-    QString LastHexFile = settings.value("lastHEXFile").toString();
-    QString LastEEPFile = settings.value("lastEEPFile").toString();
-    QFileInfo fileInfoHEX(LastHexFile);
-    QFileInfo fileInfoEEP(LastEEPFile);
-    if(fileInfoHEX.exists()) ui->lineFlash->setText(LastHexFile);
-    if(fileInfoEEP.exists()) ui->lineEEPROM->setText(LastEEPFile);
+    // One file pair for every device, from before the files were remembered per device
+    settings.remove("lastHEXFile");
+    settings.remove("lastEEPFile");
+    // Target, download URLs, photo and file fields follow the buttons, however they get picked
+    const QVector<DeviceRow> rows = deviceRows(ui);
+    for(int i = 0; i < rows.size(); i++)
+        connect(rows[i].button, &QRadioButton::clicked, this, &Bootloader::applyDevice);
+    // Open on the device used last time (the .ui checks the Watch). selectDevice() applies
+    // it only if it clicks a button, so it is applied here as well.
+    selectDevice(settings.value("lastDeviceCode").toInt());
+    applyDevice();
     // The EEPROM fields start disabled; make sure the button text matches the checkbox
     on_checkPreserveEE_toggled(ui->checkPreserveEE->isChecked());
 }
@@ -94,8 +104,7 @@ Bootloader::Bootloader(QWidget *parent) :
 Bootloader::~Bootloader() {
     QSettings settings;
     settings.setValue("workingDir", workingDir);
-    settings.setValue("lastHEXFile", ui->lineFlash->text());
-    settings.setValue("lastEEPFile", ui->lineEEPROM->text());
+    storeFiles();
     delete ui;
 }
 
@@ -374,92 +383,49 @@ void Bootloader::selectDevice(int deviceCode) {
     for(int i = 0; i < rows.size(); i++) {
         if(rows[i].code != deviceCode)
             continue;
-        // click(), not setChecked(): the slots are wired to clicked(), and they are what
-        // set the target, the firmware URLs and the photo.
+        // click(), not setChecked(): applyDevice() is wired to clicked()
         if(!rows[i].button->isChecked())
             rows[i].button->click();
-        QSettings settings;
-        settings.setValue("lastDeviceCode", deviceCode);
         return;
     }
     // Unknown code, or a serial port: leave the selection alone
 }
 
-// The product photo of whichever device is selected
-void Bootloader::showDevicePhoto() {
+// The checked device's target, download URLs, photo and file fields. The fields of the
+// device that was selected before are remembered first, so each device gets its own
+// files back (they were one pair: the Watch's files could show up for an Xminilab).
+void Bootloader::applyDevice() {
     const QVector<DeviceRow> rows = deviceRows(ui);
     for(int i = 0; i < rows.size(); i++) {
-        if(!rows[i].button->isChecked())
+        const DeviceRow &row = rows[i];
+        if(!row.button->isChecked())
             continue;
-        ui->labelDevice->setPixmap(QPixmap(rows[i].photo));
+        storeFiles();
+        ui->lineTarget->setText(row.target);
+        const QString url = QString("https://www.gabotronics.com/download/firmware/%1.%2");
+        HEXFileUrl = QUrl(url.arg(QLatin1String(row.firmware), QLatin1String("hex")));
+        EEPFileUrl = QUrl(url.arg(QLatin1String(row.firmware), QLatin1String("eep")));
+        ui->labelDevice->setPixmap(QPixmap(row.photo));
         // The 2.4 and 1.11 revisions share a photo, the tooltip tells them apart
-        ui->labelDevice->setToolTip(rows[i].button->text());
+        ui->labelDevice->setToolTip(row.button->text());
+        QSettings settings;
+        settings.setValue("lastDeviceCode", row.code);
+        const QString flash = settings.value(fileKey(row.code, "flash")).toString();
+        const QString eeprom = settings.value(fileKey(row.code, "eeprom")).toString();
+        ui->lineFlash->setText(QFileInfo::exists(flash) ? flash : QString());
+        ui->lineEEPROM->setText(QFileInfo::exists(eeprom) ? eeprom : QString());
+        m_fileDevice = row.code;
         return;
     }
 }
 
-void Bootloader::on_radioOW_clicked() {
-    ui->lineTarget->setText("atxmega256a3u");
-    ui->lineEEPROM->clear();
-    ui->lineFlash->clear();
-    HEXFileUrl = QUrl("https://www.gabotronics.com/download/firmware/oscilloscope-watch.hex");
-    EEPFileUrl = QUrl("https://www.gabotronics.com/download/firmware/oscilloscope-watch.eep");
-}
-
-void Bootloader::on_radioXprotolab_clicked() {
-    ui->lineTarget->setText("atxmega32a4u");
-    ui->lineEEPROM->clear();
-    ui->lineFlash->clear();
-    HEXFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xprotolab.hex");
-    EEPFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xprotolab.eep");
-}
-
-void Bootloader::on_radioXminilab_clicked() {
-    ui->lineTarget->setText("atxmega32a4u");
-    ui->lineEEPROM->clear();
-    ui->lineFlash->clear();
-    HEXFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xminilab.hex");
-    EEPFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xminilab.eep");
-}
-
-void Bootloader::on_radioXminilabB_clicked() {
-    ui->lineTarget->setText("atxmega32a4u");
-    ui->lineEEPROM->clear();
-    ui->lineFlash->clear();
-    HEXFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xminilab2_4.hex");
-    EEPFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xminilab2_4.eep");
-}
-
-void Bootloader::on_radioXprotolabPortable_clicked() {
-    ui->lineTarget->setText("atxmega32a4u");
-    ui->lineEEPROM->clear();
-    ui->lineFlash->clear();
-    HEXFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xprotolab-portable.hex");
-    EEPFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xprotolab-portable.eep");
-}
-
-void Bootloader::on_radioXminiulabPortable_clicked() {
-    ui->lineTarget->setText("atxmega32a4u");
-    ui->lineEEPROM->clear();
-    ui->lineFlash->clear();
-    HEXFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xminilab-portable1_1.hex");
-    EEPFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xminilab-portable1_1.eep");
-}
-
-void Bootloader::on_radioXminiulabPortable1_11_clicked() {
-    ui->lineTarget->setText("atxmega32a4u");
-    ui->lineEEPROM->clear();
-    ui->lineFlash->clear();
-    HEXFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xminilab-portable1_11.hex");
-    EEPFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xminilab-portable1_11.eep");
-}
-
-void Bootloader::on_radioXprotolabPlain_clicked() {
-    ui->lineTarget->setText("atxmega32a4u");
-    ui->lineEEPROM->clear();
-    ui->lineFlash->clear();
-    HEXFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xprotolab-plain.hex");
-    EEPFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xprotolab-plain.eep");
+// The file fields, under the device they were picked for
+void Bootloader::storeFiles() {
+    if(m_fileDevice < 0)
+        return;
+    QSettings settings;
+    settings.setValue(fileKey(m_fileDevice, "flash"), ui->lineFlash->text());
+    settings.setValue(fileKey(m_fileDevice, "eeprom"), ui->lineEEPROM->text());
 }
 
 void Bootloader::on_checkPreserveEE_toggled(bool checked) {

@@ -22,8 +22,7 @@ public:
     void selectDevice(int deviceCode);
     Ui::bootloader *ui;
 private slots:
-    void showDevicePhoto();         // labelDevice follows the Device Select group
-    void on_radioOW_clicked();
+    void applyDevice();             // everything that follows the Device Select group
     void on_pushSelectFlashFile_clicked();
     void on_pushSelectEEPROMFile_clicked();
     void on_pushErase_clicked();
@@ -34,13 +33,6 @@ private slots:
     void HEXDownloaded(QNetworkReply::NetworkError error, QString ErrorString);
     void EEPDownloaded(QNetworkReply::NetworkError error, QString ErrorString);
     void on_pushAutoLoad_clicked();
-    void on_radioXprotolab_clicked();
-    void on_radioXminilab_clicked();
-    void on_radioXprotolabPortable_clicked();
-    void on_radioXminiulabPortable_clicked();
-    void on_radioXprotolabPlain_clicked();
-    void on_radioXminilabB_clicked();
-    void on_radioXminiulabPortable1_11_clicked();
     void on_checkPreserveEE_toggled(bool checked);
     void on_pushReadFlash_clicked();
     void on_pushReadEE_clicked();
@@ -67,6 +59,8 @@ private:
     void SaveDownload(FileDownloader *downloader, QNetworkReply::NetworkError error,
                       const QString &errorString, bool eeprom);
     static bool BlankEeprom(const QByteArray &intelHex);
+    void storeFiles();              // remembers the file fields for m_fileDevice
+    int m_fileDevice = -1;          // device code the file fields belong to
     bool doEverything;
     DfuProgrammer *dfu;
     QString workingDir;             // Working Directory for HEX/EEP files and read-backs
