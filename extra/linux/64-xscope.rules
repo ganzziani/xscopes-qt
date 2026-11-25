@@ -1,1 +1,12 @@
-ACTION=="add", SUBSYSTEM=="usb", ATTR{manufacturer}=="Gabotronics", GROUP="plugdev", MODE="066", SYMLINK+="XScope%n"
+# Gabotronics XScopes, Xprotolab, Xminilab and Oscilloscope Watch: lets the signed-in user
+# (uaccess) and the plugdev group open the device without root, and its bootloader too, or
+# the firmware upgrade cannot reach it. Copy to /etc/udev/rules.d/ (or /lib/udev/rules.d/)
+# and run: sudo udevadm control --reload-rules && sudo udevadm trigger
+# The number must stay below 73, where systemd-logind turns the uaccess tag into an ACL.
+
+# The oscilloscope (16D0:06F9)
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="16d0", ATTR{idProduct}=="06f9", MODE="0660", GROUP="plugdev", TAG+="uaccess", SYMLINK+="XScope%n"
+
+# Atmel's DFU bootloaders: ATxmega32A4U (XScopes) and ATxmega256A3U (Oscilloscope Watch)
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fe4", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="03eb", ATTR{idProduct}=="2fec", MODE="0660", GROUP="plugdev", TAG+="uaccess"
