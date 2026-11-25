@@ -53,6 +53,20 @@ private:
     bool RunDfu(const QString &what, const QStringList &args);
     // Saves a read-back, reports the result, runs the Do-Everything chain
     void OperationDone(int result, const QByteArray &standardOutput);
+    // The operations, false if one could not start
+    bool StartReadEE();
+    bool StartErase();
+    bool StartFlash();
+    bool StartEEPROM();
+    bool StartLaunch();
+    void StopEverything(const QString &reason);
+    // An Intel HEX file that fits memorySize bytes (0: any size); the reason in error if not
+    bool CheckIntelHex(const QString &path, quint32 memorySize, QString *error);
+    // CheckIntelHex() against the selected target's flash or EEPROM, logging the reason
+    bool CheckFile(const QString &path, bool eeprom);
+    void SaveDownload(FileDownloader *downloader, QNetworkReply::NetworkError error,
+                      const QString &errorString, bool eeprom);
+    static bool BlankEeprom(const QByteArray &intelHex);
     bool doEverything;
     DfuProgrammer *dfu;
     QString workingDir;             // Working Directory for HEX/EEP files and read-backs

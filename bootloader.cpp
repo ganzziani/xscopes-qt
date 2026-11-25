@@ -7,9 +7,26 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QDateTime>
 #include <QVector>
 
 namespace {
+// Flash (application and boot sections) and EEPROM of each target the dialog selects
+struct TargetMemory {
+    const char *name;
+    quint32 flash, eeprom;
+};
+const TargetMemory kTargets[] = {
+    {"atxmega32a4u", 0x9000, 0x400},
+    {"atxmega256a3u", 0x42000, 0x1000},
+};
+const TargetMemory *targetMemory(const QString &name) {
+    for(const TargetMemory &t : kTargets)
+        if(name == QLatin1String(t.name))
+            return &t;
+    return nullptr;
+}
+
 // The Device Select group, one row per button: its device code (DEVICE_CODE in the
 // firmwares' hardware.h) and the product photo the About tab shows for the family. The
 // 2.4 and 1.11 boards are hardware revisions that keep the old case, so they share one.
@@ -102,6 +119,79 @@ bool Bootloader::RunDfu(const QString &what, const QStringList &args) {
     return true;
 }
 
+// An Intel HEX file the device can take: every record well formed with a good checksum,
+// an end-of-file record, at least one data byte, and nothing past the end of the memory.
+// dfu-programmer reads the file only after the chip was erased, so a download error page
+// or the other device's firmware has to be caught before Do Everything starts.
+bool Bootloader::CheckIntelHex(const QString &path, quint32 memorySize, QString *error) {
+    QFile file(path);
+    if(!file.open(QFile::ReadOnly | QFile::Text)) {
+        *error = file.errorString();
+        return false;
+    }
+    quint32 base = 0, top = 0;
+    bool data = false, eof = false;
+    int lineNumber = 0;
+    while(!file.atEnd()) {
+        const QByteArray line = file.readLine().trimmed();
+        lineNumber++;
+        if(line.isEmpty())
+            continue;
+        const QByteArray bytes = QByteArray::fromHex(line.mid(1));
+        if(line[0] != ':' || line.size() % 2 == 0 || bytes.size() < 5 || bytes.size() != 5 + quint8(bytes[0])) {
+            *error = tr("line %1 is not an Intel HEX record").arg(lineNumber);
+            return false;
+        }
+        quint8 sum = 0;
+        for(char b : bytes)
+            sum += quint8(b);
+        if(sum != 0) {
+            *error = tr("line %1 has a bad checksum").arg(lineNumber);
+            return false;
+        }
+        const int count = quint8(bytes[0]);
+        const quint32 address = (quint8(bytes[1]) << 8) | quint8(bytes[2]);
+        switch(quint8(bytes[3])) {
+        case 0x00:
+            if(count) {
+                data = true;
+                top = qMax(top, base + address + count);
+            }
+            break;
+        case 0x01: eof = true; break;
+        case 0x02: base = ((quint8(bytes[4]) << 8) | quint8(bytes[5])) << 4; break;
+        case 0x04: base = ((quint8(bytes[4]) << 8) | quint8(bytes[5])) << 16; break;
+        default: break;     // start addresses
+        }
+        if(eof)
+            break;
+    }
+    if(!eof || !data) {
+        *error = !data ? tr("there is no data in it") : tr("it has no end record (cut short?)");
+        return false;
+    }
+    if(memorySize && top > memorySize) {
+        *error = tr("it reaches 0x%1, past the %2 bytes of the %3 (a file for another device?)")
+                 .arg(top, 0, 16).arg(memorySize).arg(ui->lineTarget->text());
+        return false;
+    }
+    return true;
+}
+
+bool Bootloader::CheckFile(const QString &path, bool eeprom) {
+    const TargetMemory *memory = targetMemory(ui->lineTarget->text());
+    const quint32 size = memory ? (eeprom ? memory->eeprom : memory->flash) : 0;
+    QString error;
+    if(path.isEmpty() || !QFileInfo::exists(path))
+        error = tr("no file selected");
+    else if(!CheckIntelHex(path, size, &error))
+        error = QDir::toNativeSeparators(path) + ": " + error;
+    else
+        return true;
+    Log((eeprom ? tr("Invalid EEPROM file: ") : tr("Invalid HEX file: ")) + error);
+    return false;
+}
+
 QString Bootloader::SelectFile(bool LoadHEX) {
     QFileDialog dialog;
     QString newFileName;
@@ -143,103 +233,132 @@ void Bootloader::on_pushSelectEEPROMFile_clicked() {
         ui->lineEEPROM->setText(fileName);
 }
 
+// The buttons run one operation each and leave a Do Everything chain alone; the Start*
+// functions return false when the operation could not start.
+bool Bootloader::StartReadEE() {
+    return RunDfu(QString("Reading EEPROM from ") + ui->lineTarget->text(),
+                  QStringList() << ui->lineTarget->text() << "read" << "--eeprom");
+}
+
+bool Bootloader::StartErase() {
+    return RunDfu(QString("Erasing memory of ") + ui->lineTarget->text(),
+                  QStringList() << ui->lineTarget->text() << "erase");
+}
+
+bool Bootloader::StartFlash() {
+    if(!CheckFile(ui->lineFlash->text(), false))
+        return false;
+    return RunDfu(QString("Programming Flash to ") + ui->lineTarget->text(),
+                  QStringList() << ui->lineTarget->text() << "flash" << ui->lineFlash->text()
+                                << "--ignore-outside");
+}
+
+bool Bootloader::StartEEPROM() {
+    if(!CheckFile(ui->lineEEPROM->text(), true))
+        return false;
+    return RunDfu(QString("Programming EEPROM to ") + ui->lineTarget->text(),
+                  QStringList() << ui->lineTarget->text() << "flash" << "--eeprom"
+                                << ui->lineEEPROM->text() << "--force");
+}
+
+bool Bootloader::StartLaunch() {
+    // "launch" resets the device into the application; the legacy "start" command would
+    // jump without a reset.
+    return RunDfu("Starting Application...", QStringList() << ui->lineTarget->text() << "launch");
+}
+
+// A button pressed by hand is not a step of a Do Everything that stopped
 void Bootloader::on_pushReadFlash_clicked() {
+    if(doEverything)
+        return Log(tr("Busy, wait for the running operation to finish"));
     RunDfu(QString("Reading Flash from ") + ui->lineTarget->text(),
            QStringList() << ui->lineTarget->text() << "read");
 }
 
 void Bootloader::on_pushReadEE_clicked() {
-    RunDfu(QString("Reading EEPROM from ") + ui->lineTarget->text(),
-           QStringList() << ui->lineTarget->text() << "read" << "--eeprom");
+    if(doEverything)
+        return Log(tr("Busy, wait for the running operation to finish"));
+    StartReadEE();
 }
 
 void Bootloader::on_pushErase_clicked() {
-    RunDfu(QString("Erasing memory of ") + ui->lineTarget->text(),
-           QStringList() << ui->lineTarget->text() << "erase");
+    if(doEverything)
+        return Log(tr("Busy, wait for the running operation to finish"));
+    StartErase();
 }
 
 void Bootloader::on_pushFlash_clicked() {
-    QFileInfo fileInfoHEX(ui->lineFlash->text());
-    if(!fileInfoHEX.exists()) {
-        Log("Invalid HEX File");
-        return;
-    }
-    RunDfu(QString("Programming Flash to ") + ui->lineTarget->text(),
-           QStringList() << ui->lineTarget->text() << "flash" << ui->lineFlash->text()
-                         << "--ignore-outside");
+    if(doEverything)
+        return Log(tr("Busy, wait for the running operation to finish"));
+    StartFlash();
 }
 
 void Bootloader::on_pushEEPROM_clicked() {
-    QFileInfo fileInfoEEP(ui->lineEEPROM->text());
-    if(!fileInfoEEP.exists()) {
-        Log("Invalid EEPROM file");
-        return;
-    }
-    RunDfu(QString("Programming EEPROM to ") + ui->lineTarget->text(),
-           QStringList() << ui->lineTarget->text() << "flash" << "--eeprom"
-                         << ui->lineEEPROM->text() << "--force");
+    if(doEverything)
+        return Log(tr("Busy, wait for the running operation to finish"));
+    StartEEPROM();
 }
 
 void Bootloader::on_pushStart_clicked() {
-    // "launch" resets the device into the application; the legacy "start" command would
-    // jump without a reset.
-    doEverything = false;
-    RunDfu("Starting Application...", QStringList() << ui->lineTarget->text() << "launch");
+    if(doEverything)
+        return Log(tr("Busy, wait for the running operation to finish"));
+    StartLaunch();
 }
 
 void Bootloader::on_pushDoEverything_clicked() {
-    QFileInfo fileInfoHEX(ui->lineFlash->text());
-    QFileInfo fileInfoEEP(ui->lineEEPROM->text());
-    if(!fileInfoHEX.exists()) {
-        Log("Invalid HEX File");
+    if(doEverything || dfu->isRunning())
+        return Log(tr("Busy, wait for the running operation to finish"));
+    const bool preserve = ui->checkPreserveEE->isChecked();
+    // Both files are checked before anything is erased
+    if(!CheckFile(ui->lineFlash->text(), false))
         return;
-    }
-    if(!ui->checkPreserveEE->isChecked() && !fileInfoEEP.exists()) {
-        Log("Invalid EEPROM file");
+    if(!preserve && !CheckFile(ui->lineEEPROM->text(), true))
         return;
-    }
     Log("Performing Firmware Update...");
+    if(preserve)
+        ui->lineEEPROM->clear();    // only this device's read-back may be programmed back
     doEverything = true;
-    if(ui->checkPreserveEE->isChecked())
-        on_pushReadEE_clicked();
-    else
-        on_pushErase_clicked();
+    if(!(preserve ? StartReadEE() : StartErase()))
+        StopEverything(tr("it could not start"));
+}
+
+void Bootloader::StopEverything(const QString &reason) {
+    doEverything = false;
+    Log(tr("Firmware update stopped: %1.").arg(reason));
 }
 
 void Bootloader::HEXDownloaded(QNetworkReply::NetworkError error, QString ErrorString) {
-    if(error) {
-        Log(QString("Could not download HEX File: ") + ErrorString);
-        ShowDownloadError(error);
-        return;
-    }
-    QString fileName = TempDir.path() + "/" + HEXDownloader->CurrentUrl().fileName();
-    QFile file(fileName);
-    if(!file.open(QIODevice::WriteOnly)) {
-        Log(QString("Unable to open ") + fileName + ": " + file.errorString());
-        return;
-    }
-    file.write(HEXDownloader->downloadedData());
-    file.close();
-    ui->lineFlash->setText(fileName);
-    Log("HEX File downloaded successfully");
+    SaveDownload(HEXDownloader, error, ErrorString, false);
 }
 
 void Bootloader::EEPDownloaded(QNetworkReply::NetworkError error, QString ErrorString) {
+    SaveDownload(EEPDownloader, error, ErrorString, true);
+}
+
+// A download is kept only if it is an Intel HEX file that fits the selected device
+void Bootloader::SaveDownload(FileDownloader *downloader, QNetworkReply::NetworkError error,
+                              const QString &errorString, bool eeprom) {
+    const QString kind = eeprom ? "EEP" : "HEX";
     if(error) {
-        Log(QString("Could not download EEP File: ") + ErrorString);
+        Log(QString("Could not download %1 File: ").arg(kind) + errorString);
         ShowDownloadError(error);
         return;
     }
-    QString fileName = TempDir.path() + "/" + EEPDownloader->CurrentUrl().fileName();
+    QString fileName = TempDir.path() + "/" + downloader->CurrentUrl().fileName();
     QFile file(fileName);
-    if(!file.open(QIODevice::WriteOnly)) {
-        Log(QString("Unable to open ") + fileName + ": " + file.errorString());
+    const QByteArray data = downloader->downloadedData();
+    if(!file.open(QIODevice::WriteOnly) || file.write(data) != data.size()) {
+        Log(QString("Unable to write ") + fileName + ": " + file.errorString());
         return;
     }
-    file.write(EEPDownloader->downloadedData());
     file.close();
-    ui->lineEEPROM->setText(fileName);
-    Log("EEP File downloaded successfully");
+    if(!CheckFile(fileName, eeprom))
+        return;
+    if(eeprom)
+        ui->lineEEPROM->setText(fileName);
+    else
+        ui->lineFlash->setText(fileName);
+    Log(QString("%1 File downloaded successfully").arg(kind));
 }
 
 void Bootloader::on_pushAutoLoad_clicked() {
@@ -283,64 +402,64 @@ void Bootloader::on_radioOW_clicked() {
     ui->lineTarget->setText("atxmega256a3u");
     ui->lineEEPROM->clear();
     ui->lineFlash->clear();
-    HEXFileUrl = QUrl("http://www.gabotronics.com/download/firmware/oscilloscope-watch.hex");
-    EEPFileUrl = QUrl("http://www.gabotronics.com/download/firmware/oscilloscope-watch.eep");
+    HEXFileUrl = QUrl("https://www.gabotronics.com/download/firmware/oscilloscope-watch.hex");
+    EEPFileUrl = QUrl("https://www.gabotronics.com/download/firmware/oscilloscope-watch.eep");
 }
 
 void Bootloader::on_radioXprotolab_clicked() {
     ui->lineTarget->setText("atxmega32a4u");
     ui->lineEEPROM->clear();
     ui->lineFlash->clear();
-    HEXFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xprotolab.hex");
-    EEPFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xprotolab.eep");
+    HEXFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xprotolab.hex");
+    EEPFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xprotolab.eep");
 }
 
 void Bootloader::on_radioXminilab_clicked() {
     ui->lineTarget->setText("atxmega32a4u");
     ui->lineEEPROM->clear();
     ui->lineFlash->clear();
-    HEXFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xminilab.hex");
-    EEPFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xminilab.eep");
+    HEXFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xminilab.hex");
+    EEPFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xminilab.eep");
 }
 
 void Bootloader::on_radioXminilabB_clicked() {
     ui->lineTarget->setText("atxmega32a4u");
     ui->lineEEPROM->clear();
     ui->lineFlash->clear();
-    HEXFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xminilab2_4.hex");
-    EEPFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xminilab2_4.eep");
+    HEXFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xminilab2_4.hex");
+    EEPFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xminilab2_4.eep");
 }
 
 void Bootloader::on_radioXprotolabPortable_clicked() {
     ui->lineTarget->setText("atxmega32a4u");
     ui->lineEEPROM->clear();
     ui->lineFlash->clear();
-    HEXFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xprotolab-portable.hex");
-    EEPFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xprotolab-portable.eep");
+    HEXFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xprotolab-portable.hex");
+    EEPFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xprotolab-portable.eep");
 }
 
 void Bootloader::on_radioXminiulabPortable_clicked() {
     ui->lineTarget->setText("atxmega32a4u");
     ui->lineEEPROM->clear();
     ui->lineFlash->clear();
-    HEXFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xminilab-portable1_1.hex");
-    EEPFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xminilab-portable1_1.eep");
+    HEXFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xminilab-portable1_1.hex");
+    EEPFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xminilab-portable1_1.eep");
 }
 
 void Bootloader::on_radioXminiulabPortable1_11_clicked() {
     ui->lineTarget->setText("atxmega32a4u");
     ui->lineEEPROM->clear();
     ui->lineFlash->clear();
-    HEXFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xminilab-portable1_11.hex");
-    EEPFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xminilab-portable1_11.eep");
+    HEXFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xminilab-portable1_11.hex");
+    EEPFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xminilab-portable1_11.eep");
 }
 
 void Bootloader::on_radioXprotolabPlain_clicked() {
     ui->lineTarget->setText("atxmega32a4u");
     ui->lineEEPROM->clear();
     ui->lineFlash->clear();
-    HEXFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xprotolab-plain.hex");
-    EEPFileUrl = QUrl("http://www.gabotronics.com/download/firmware/xprotolab-plain.eep");
+    HEXFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xprotolab-plain.hex");
+    EEPFileUrl = QUrl("https://www.gabotronics.com/download/firmware/xprotolab-plain.eep");
 }
 
 void Bootloader::on_checkPreserveEE_toggled(bool checked) {
@@ -364,24 +483,25 @@ void Bootloader::DfuFinished(int result) {
 void Bootloader::OperationDone(int result, const QByteArray &standardOutput) {
     bool isRead = arguments.contains("read");
     bool isEeprom = arguments.contains("--eeprom");
+    bool readSaved = false;
     if(isRead) {
-        QFile file;
-        if(isEeprom)
-            file.setFileName(workingDir + "/" + ui->lineTarget->text() + ".eep");
-        else
-            file.setFileName(workingDir + "/" + ui->lineTarget->text() + ".hex");
+        // Each read-back gets its own name: a second Do Everything after one that stopped
+        // reads the erased EEPROM, and must not overwrite the calibration saved the first time
+        QFile file(workingDir + "/" + ui->lineTarget->text() + "-" +
+                   QDateTime::currentDateTime().toString("yyyy-MM-dd-hhmmss") + (isEeprom ? ".eep" : ".hex"));
         if(result != 0 || standardOutput.isEmpty()) {
             Log(tr("Read failed, no file was written"));
-        } else if(!file.open(QFile::WriteOnly | QFile::Text)) {
-            Log(QString("Can't open file: ") + file.fileName() + ": " + file.errorString());
+        } else if(!file.open(QFile::WriteOnly | QFile::Text) ||
+                  file.write(standardOutput) != standardOutput.size()) {
+            Log(QString("Can't write file: ") + file.fileName() + ": " + file.errorString());
         } else {
-            file.write(standardOutput.data(), standardOutput.length());
             file.close();
+            readSaved = true;
             if(isEeprom)
                 ui->lineEEPROM->setText(file.fileName());
             else
                 ui->lineFlash->setText(file.fileName());
-            Log(QString("File saved at: ") + file.fileName());
+            Log(QString("File saved at: ") + QDir::toNativeSeparators(file.fileName()));
         }
     } else if(!standardOutput.isEmpty()) {
         Log(QString::fromLocal8Bit(standardOutput));
@@ -397,18 +517,54 @@ void Bootloader::OperationDone(int result, const QByteArray &standardOutput) {
                    "driver (Zadig / libwdi), or on Linux that the udev rule covers 03EB:2FEC/2FE4."));
         }
     }
-    if(doEverything) {  // Doing all operations?
-        if(isRead && isEeprom)
-            on_pushErase_clicked();
-        else if(arguments.contains("erase"))
-            on_pushFlash_clicked();
-        else if(arguments.contains("flash") && !isEeprom)
-            on_pushEEPROM_clicked();
-        else if(arguments.contains("flash") && isEeprom)
-            on_pushStart_clicked();
-        else
-            doEverything = false;
+    if(!doEverything)
+        return;
+    // Do Everything goes on only after a step that succeeded: a failed EEPROM read went on
+    // to erase the chip and program whatever file the EEPROM field held
+    const bool erased = !(isRead && isEeprom);     // every step after the read-back
+    if(result != 0 || (isRead && !readSaved)) {
+        StopEverything(erased ? tr("the device is in the bootloader, fix the problem and program it again")
+                              : tr("nothing was changed on the device"));
+        return;
     }
+    bool started = false;
+    if(isRead && isEeprom) {
+        if(BlankEeprom(standardOutput)) {
+            StopEverything(tr("the EEPROM is blank, there is no calibration to keep. If an earlier "
+                              "update stopped after the erase, program its read-back with Program "
+                              "EEPROM, or clear Preserve EEPROM to use the default file"));
+            return;
+        }
+        started = StartErase();
+    } else if(arguments.contains("erase"))
+        started = StartFlash();
+    else if(arguments.contains("flash") && !isEeprom)
+        started = StartEEPROM();
+    else if(arguments.contains("flash") && isEeprom)
+        started = StartLaunch();
+    else {
+        doEverything = false;   // launch: done
+        Log(tr("Firmware update done."));
+        return;
+    }
+    if(!started)
+        StopEverything(tr("the next step could not start; the device is in the bootloader"));
+}
+
+// True when a read-back holds nothing but 0xFF (an erased EEPROM)
+bool Bootloader::BlankEeprom(const QByteArray &intelHex) {
+    for(const QByteArray &raw : intelHex.split('\n')) {
+        const QByteArray line = raw.trimmed();
+        if(line.size() < 11 || line[0] != ':')
+            continue;
+        const QByteArray bytes = QByteArray::fromHex(line.mid(1));
+        if(bytes.size() < 5 || quint8(bytes[3]) != 0)
+            continue;
+        for(int i = 4; i < bytes.size() - 1; i++)
+            if(quint8(bytes[i]) != 0xFF)
+                return false;
+    }
+    return true;
 }
 
 void Bootloader::ShowDownloadError(QNetworkReply::NetworkError error) {

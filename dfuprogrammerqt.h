@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
+#include <atomic>
 
 // Runs the vendored dfu-programmer (third_party/dfu-programmer) inside the application
 // instead of starting an external executable, so firmware upgrades work on every platform
@@ -33,7 +34,7 @@ private slots:
     void run(const QStringList &args);  // blocks, runs on the worker thread
 private:
     static void appendOutput(const QByteArray &text);
-    bool running;
+    std::atomic<bool> running;     // set by start(), cleared by the worker thread
     QByteArray output;
 };
 
