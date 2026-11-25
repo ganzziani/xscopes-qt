@@ -48,25 +48,11 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     ui->splitterMain->setStretchFactor(0, 1);
     ui->splitterMain->setStretchFactor(1, 0);
     ui->splitterMain->setChildrenCollapsible(false);
-    QFile file_css;
 #if defined(Q_OS_MAC)
-    file_css.setFileName(":/Bitmaps/mac-css.qss");
+    setStyleSheet(readStyleSheet(":/Bitmaps/mac-css.qss"));
 #else
-    file_css.setFileName(":/Bitmaps/win-css.qss");
+    setStyleSheet(readStyleSheet(":/Bitmaps/win-css.qss"));
 #endif
-    file_css.open(QFile::ReadOnly);
-    QString styleSheet = QLatin1String(file_css.readAll());
-    this->setStyleSheet(styleSheet);
-    file_css.close();
-    QFile file_tab;
-#if defined(Q_OS_MAC)
-    file_tab.setFileName(":/Bitmaps/mac-tab.qss");
-#else
-    file_tab.setFileName(":/Bitmaps/win-tab.qss");
-#endif
-    file_tab.open(QFile::ReadOnly);
-    QString tabStyleSheet = QLatin1String(file_tab.readAll());
-    file_tab.close();
     ui->labelAWGActualFrequencyUnit->setStyleSheet("QLabel{font-size: 32px};");
     ui->labelConnectionStatus->setStyleSheet("QLabel{font-size: 12px};");
     readAppSettings();

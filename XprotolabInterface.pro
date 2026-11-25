@@ -108,8 +108,6 @@ macx {
 OTHER_FILES += \
     win-css.qss \
     mac-css.qss \
-    mac-tab.qss \
-    win-tab.qss \
     customtheme.qss \
     colorDialogStyle.qss
 

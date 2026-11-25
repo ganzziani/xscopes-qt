@@ -20,6 +20,16 @@ namespace Ui {
     class CustomTheme;
 }
 
+// A stylesheet from the resources, or an empty one (and a warning) if it cannot be read
+inline QString readStyleSheet(const QString &path) {
+    QFile file(path);
+    if(!file.open(QFile::ReadOnly)) {
+        qWarning() << "Cannot open stylesheet" << path << file.errorString();
+        return QString();
+    }
+    return QString::fromUtf8(file.readAll());
+}
+
 class CustomTheme : public QDialog {
     Q_OBJECT
 

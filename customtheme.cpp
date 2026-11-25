@@ -10,20 +10,10 @@ CustomTheme::CustomTheme(QWidget *parent) :
     const QRect screen = QGuiApplication::primaryScreen()->availableGeometry();
     this->move(screen.center() - this->rect().center());
     colorDialog = new QColorDialog();
-    QFile colorDialog_css;
-    colorDialog_css.setFileName(":/Bitmaps/colorDialogStyle.qss");
-    colorDialog_css.open(QFile::ReadOnly);
-    QString colorDialogStyleSheet = QLatin1String(colorDialog_css.readAll());
-    colorDialog->setStyleSheet(colorDialogStyleSheet);
-    colorDialog_css.close();
+    colorDialog->setStyleSheet(readStyleSheet(":/Bitmaps/colorDialogStyle.qss"));
     prepareButtons();
     loadTheme();
-    QFile file_css;
-    file_css.setFileName(":/Bitmaps/customtheme.qss");
-    file_css.open(QFile::ReadOnly);
-    QString styleSheet = QLatin1String(file_css.readAll());
-    this->setStyleSheet(styleSheet);
-    file_css.close();
+    setStyleSheet(readStyleSheet(":/Bitmaps/customtheme.qss"));
 #if defined(Q_OS_MAC)
     ui->gridLayout_2->setHorizontalSpacing(15);
     ui->gridLayout_2->setVerticalSpacing(15);

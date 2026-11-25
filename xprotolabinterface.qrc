@@ -78,8 +78,6 @@
         <file>Bitmaps/separator-bg.png</file>
         <file>win-css.qss</file>
         <file>mac-css.qss</file>
-        <file>mac-tab.qss</file>
-        <file>win-tab.qss</file>
         <file>Bitmaps/scrollbar2-v.png</file>
         <file>Bitmaps/scrollbar2-v-down.png</file>
         <file>customtheme.qss</file>
