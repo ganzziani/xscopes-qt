@@ -223,6 +223,7 @@ private:
     void setTriggerIcon(int);
     void moveTrigger(QPointF);
     double logicLowLevel(int bitIndex) const;
+    double logicHighLevel(int bitIndex) const;
     QVector<QPair<double, double>> logicLowRuns(int bitIndex, const QVector<double> &key,
                                                 const QVector<double> &values) const;
     static QPen thickLowPen(const QPen &tracePen);
@@ -500,8 +501,6 @@ private:
     QPen  gridPen, axesPen;
     QBrush  backgroundBrush;
 
-    int initPosScroll, lastTriggerSource;
-    bool bitTriggerSource;
 
     QFile *logFile;
     QTextStream *ts;

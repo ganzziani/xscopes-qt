@@ -31,7 +31,9 @@ public:
     void notifyDeviceRemoved();
     bool controlReadTransfer(uint8_t command, uint16_t value = 0, uint16_t index = 0);
     void asyncBulkReadTransfer();
-    void awgBulkWriteTransfer();
+    bool awgBulkWriteTransfer();
+    bool serialRead(uint8_t *buffer, int count, int timeoutMs);
+    void drainSerial();
     void controlWriteTransfer(uint16_t index, uint8_t value);
     QString requestFirmwareVersion();
     bool requestDisplayBitmap(QByteArray &bmp);

@@ -97,11 +97,9 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     displayLoadedWave = false;
     persistenceIndex = 0;
     persistenceItem = nullptr;
-    bitTriggerSource = false;
     m_cursorChannel = CursorOff;
     m_cursorVertical = m_cursorAuto = m_cursorTrack = m_deviceReference = false;
     mode = OSCILLOSCOPE;
-    lastTriggerSource = 0;
     m_meterSrate = 0;
     m_meterCh1Gain = m_meterCh2Gain = -1;   // unknown until 'u' has been read
     m_meterLastF1 = m_meterLastF2 = m_meterLastSrate = -1;
@@ -729,7 +727,6 @@ void XprotolabInterface::plotData() {
     QVector<double> key;
     double ch1, ch2, minV = 0, maxV = 0, aTrack, bTrack;
     vppMinCh1 = 0, vppMaxCh1 = 0, vppMinCh2 = 0, vppMaxCh2 = 0;
-    byte minX1 = 0, minX2 = 255, samples = 255, a, mid, *p;
     QVector<double> ch1Buffer, ch2Buffer, fft1, fft2, ch1RefBuff, ch2RefBuff;
     QVector<double> bit[8], bitRefBuff[8];
     QVector<byte> chdRaw;       // the logic byte under each key, for the hex readouts
@@ -742,8 +739,6 @@ void XprotolabInterface::plotData() {
     if(ui->sliderSampling->value() < 11) {
         step = 2;
         i = m_horizontalPosition;
-        minX2 = 127;
-        samples = 127;
     } else if(ui->checkBoxRollMode->isChecked()) {
         i = usbDevice.chData[769];
     }
@@ -766,8 +761,6 @@ void XprotolabInterface::plotData() {
             }
             if(minV > ch1) {
                 minV = ch1;
-                if(xtime < 100)
-                    minX1 = xtime;
             } else if(maxV < ch1) {
                 maxV = ch1;
             }
@@ -798,77 +791,23 @@ void XprotolabInterface::plotData() {
         } else if(vppMaxCh2 < ch2) {
             vppMaxCh2 = ch2;
         }
-        int pos;
-        chdRaw.push_back(usbDevice.chData[i + 512]);
+        const byte data = usbDevice.chData[i + 512];
+        chdRaw.push_back(data);
         for(int m = 0; m < 8; m++) {
-            byte data = usbDevice.chData[i + 512];
-            const int chdOffset = 20 + (m * 20) + m_chdPosition * kChdPositionStep;
-            if((data & (byte)(1 << m)) != 0) {
-                pos = chdOffset + ui->sliderCHDSize->value();
-                bit[m].push_back(pos);
-                textLabelBit[m]->position->setCoords(246, pos - 5);
-                if(m + 2 == ui->comboBoxTriggerSource->currentIndex() && ui->groupBoxCHD->isChecked())
-                    moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((triggerPost - m_horizontalPosition) * 2), ui->customPlot->yAxis->coordToPixel(pos)));
-            } else {
-                pos = chdOffset - 10 - ui->sliderCHDSize->value();
+            if((data & (byte)(1 << m)) != 0)
+                bit[m].push_back(logicHighLevel(m));
+            else
                 bit[m].push_back(logicLowLevel(m));
-                pos = chdOffset + ui->sliderCHDSize->value();
-                textLabelBit[m]->position->setCoords(246, pos - 5);
-                if(m + 2 == ui->comboBoxTriggerSource->currentIndex() && ui->groupBoxCHD->isChecked())
-                    moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((triggerPost - m_horizontalPosition) * 2), ui->customPlot->yAxis->coordToPixel(pos)));
-            }
         }
     }
-    if(isCursorOnCh1()) {
-        samples = 255;
-        p = usbDevice.chData + i;
-        mid = minV + (maxV - minV) / 2;
-        a = 0;
-        if(p[0] < mid) {
-            while(*p++ < mid) {
-                a++;
-                if(a == samples)
-                    goto ENDSCAN;
-            }
-            minX1 = a;
-            while(*p++ > mid) {
-                a++;
-                if(a == samples)
-                    goto ENDSCAN;
-            }
-            minX2 = ++a;
-            while(*p++ < mid) {
-                a++;
-                if(a == samples)
-                    goto ENDSCAN;
-            }
-            minX2 = ++a;
-        } else {
-            while(*p++ > mid) {
-                a++;
-                if(a == samples)
-                    goto ENDSCAN;
-            }
-            minX1 = a;
-            while(*p++ < mid) {
-                a++;
-                if(a == samples)
-                    goto ENDSCAN;
-            }
-            minX2 = ++a;
-            while(*p++ > mid) {
-                a++;
-                if(a == samples)
-                    goto ENDSCAN;
-            }
-            minX2 = ++a;
-        }
-ENDSCAN:
-        if(ui->sliderSampling->value() >= 11) {
-            minX1 = minX1 >> 1;
-            minX2 = minX2 >> 1;
-        }
-    }
+    // Once per frame (they were set for every sample): each bit's label at its high level,
+    // and a logic trigger's marker on its bit
+    for(int m = 0; m < 8; m++)
+        textLabelBit[m]->position->setCoords(246, logicHighLevel(m) - 5);
+    const int triggerBit = ui->comboBoxTriggerSource->currentIndex() - 2;
+    if(triggerBit >= 0 && triggerBit < 8 && ui->groupBoxCHD->isChecked())
+        moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((triggerPost - m_horizontalPosition) * 2),
+                            ui->customPlot->yAxis->coordToPixel(logicHighLevel(triggerBit))));
     // CRT persistence: write this frame once into a ring of ghost graphs. They age
     // by one slot per frame and get dimmer pens (see applyPersistenceStyle()).
     if(newSamples && !ui->checkBoxPersistence->isChecked() && !ui->checkBoxXYMode->isChecked() &&
@@ -1698,7 +1637,6 @@ void XprotolabInterface::sniffProtocol() {
         }
         if(protocol == RS232) {
             ui->textEditUARTRX->setPlainText(rxData);
-            ui->textEditUARTRX->textCursor().movePosition(QTextCursor::Down);
         } else if(protocol == SPI)
             ui->plainTextEditSPIMOSI->setPlainText(rxData);
         i = 0;
@@ -2240,13 +2178,7 @@ void XprotolabInterface::readDeviceSettings() {
     data = usbDevice.inBuffer[24];   // Trigger source
     logToFile("M 24 Trigger source: " + QString::number(data));
     checkFCRadioButtons(data);
-    if(data <= 10) {
-        ui->comboBoxTriggerSource->setCurrentIndex(data);
-        lastTriggerSource = data;
-    } else {
-        ui->comboBoxTriggerSource->setCurrentIndex(0);
-        lastTriggerSource = 0;
-    }
+    ui->comboBoxTriggerSource->setCurrentIndex(data <= 10 ? data : 0);
     // M 25 Trigger Level
     int tlevel, tlevelWin1, tlevelWin2;
     tlevel = usbDevice.inBuffer[25];
@@ -2389,9 +2321,6 @@ void XprotolabInterface::readDeviceSettings() {
     ch1ZeroPos = rangeMax / 2 + m_ch1Position;
     ch2ZeroPos = rangeMax / 2 + m_ch2Position;
     triggerPost = 256 - triggerPost;
-    if(ui->comboBoxTriggerSource->currentIndex() > 1)
-        bitTriggerSource = true;
-    initPosScroll = m_horizontalPosition;
     triggerLevel = tlevel;
     triggerWin1Level = tlevelWin1;
     triggerWin2Level = tlevelWin2;
@@ -2466,7 +2395,10 @@ void XprotolabInterface::parseCSV(QString csvString, byte *buffer) {
 void XprotolabInterface::on_pushButtonAWGSaveCustom_clicked() {
     if(usbDevice.isDeviceConnected) {
         parseCSV(ui->textEditAWGCSV->toPlainText(), usbDevice.awgBuffer);
-        usbDevice.awgBulkWriteTransfer();
+        if(!usbDevice.awgBulkWriteTransfer()) {
+            QMessageBox::warning(this, tr("Save as Custom"), tr("The device did not take the waveform."));
+            return;
+        }
         usbDevice.saveAWG();
         ui->radioButtonAWGCustom->setChecked(true);
         selectWaveForm(5);
@@ -3298,17 +3230,6 @@ void XprotolabInterface::setTriggerPost() {
 // M 24 Trigger source
 void XprotolabInterface::on_comboBoxTriggerSource_currentIndexChanged(int index) {
     usbDevice.controlWriteTransfer(24, (byte)(index));
-    if(index == 0 && bitTriggerSource) {
-        bitTriggerSource = false;
-        lastTriggerSource  = 0;
-    } else if(index == 1 && bitTriggerSource) {
-        bitTriggerSource = false;
-        lastTriggerSource = 1;
-    } else if(index == 0 && lastTriggerSource == 1) {
-        lastTriggerSource  = 0;
-    } else if(index == 1 && lastTriggerSource == 0) {
-        lastTriggerSource = 1;
-    }
     // A logic bit has no level or slope: only its edges can trigger
     const int mode = ui->comboBoxTriggerMode->currentIndex();
     if(index > 1 && (mode == Positive || mode == Negative || mode == Window)) {
@@ -3360,7 +3281,6 @@ void XprotolabInterface::setCh1Position(int value) {
     usbDevice.controlWriteTransfer(29, mapRange(value, 128, -128, 0, -128));
     ch1ZeroPos = rangeMax / 2 + value;
     updateCursorVisibility();   // the cursors are placed relative to the new zero
-    initPosScroll = m_horizontalPosition;
     ch1ZeroHead->topLeft->setPixelPosition(QPointF(2, ui->customPlot->yAxis->coordToPixel(ch1ZeroPos)));
     if(ui->comboBoxTriggerSource->currentIndex() == 0 && !initializing) {
         updateTriggerPos();
@@ -3380,7 +3300,6 @@ void XprotolabInterface::setCh2Position(int value) {
     usbDevice.controlWriteTransfer(30, mapRange(value, 128, -128, 0, -128));
     ch2ZeroPos = rangeMax / 2 + value;
     updateCursorVisibility();   // the cursors are placed relative to the new zero
-    initPosScroll = m_horizontalPosition;
     ch2ZeroHead->topLeft->setPixelPosition(QPointF(2, ui->customPlot->yAxis->coordToPixel(ch2ZeroPos)));
     if(ui->comboBoxTriggerSource->currentIndex() == 1 && !initializing) {
         updateTriggerPos();
@@ -3422,7 +3341,6 @@ void XprotolabInterface::setChdPosition(int value) {
     if(chPos > temp)
         chPos = temp;
     usbDevice.controlWriteTransfer(31, chPos);
-    initPosScroll = m_horizontalPosition;
     chdZeroPos = kChdPositionBase + m_chdPosition * kChdPositionStep;
     chdZeroHead->topLeft->setPixelPosition(QPointF(2, ui->customPlot->yAxis->coordToPixel(chdZeroPos)));
     m_repaint = true;
@@ -4144,6 +4062,10 @@ double XprotolabInterface::logicLowLevel(int bitIndex) const {
     return 20 + bitIndex * 20 + m_chdPosition * kChdPositionStep - 10;
 }
 
+double XprotolabInterface::logicHighLevel(int bitIndex) const {
+    return 20 + bitIndex * 20 + m_chdPosition * kChdPositionStep + ui->sliderCHDSize->value();
+}
+
 // "Thick 0" (CHDctrl bit 3): a logic low is drawn thicker, as on the device's LCD. These
 // are the runs of a bit at its low level, as (from, to) keys. The step trace changes level
 // halfway between samples, so a run reaches from the edge before its first sample to the
@@ -4305,13 +4227,11 @@ void XprotolabInterface::itemDoubleClick(QCPAbstractItem *item, QMouseEvent *eve
 void XprotolabInterface::on_pushButtonRestoreSettings_clicked() {
     if(!usbDevice.isDeviceConnected)
         return;
-    ui->pushButtonRestoreSettings->setEnabled(false);
     if(!usbDevice.wayOfConnecting) {
         usbDevice.serial.write("p");
     }
     usbDevice.restoreSettings();
     QTimer::singleShot(1000, this, SLOT(readDeviceSettings()));
-    ui->pushButtonRestoreSettings->setEnabled(true);
 }
 
 void XprotolabInterface::on_pushButtonSnifferPause_clicked() {

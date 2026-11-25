@@ -326,41 +326,76 @@ bool LibUsbDevice::controlReadTransfer(uint8_t command, uint16_t value, uint16_t
             return false;
         }
     } else {
-        if(command == 'u' || command == 'c' || command == 'w' || command == 'x')
-            turnOffAutoMode();
-        QByteArray ba;
-        ba[0] = command;
-        ba[1] = index;
-        ba[2] = index >> 8;
-        ba[3] = value;
-        ba[4] = value >> 8;
-        serial.writeByteArray(ba);
-        if(command == 'u') {
-            while(serial.serial->bytesAvailable() < 44) {
-                serial.serial->waitForReadyRead(1000);
-            }
-            char tmp[44];
-            int size = serial.serial->read(tmp, 44);
-            for(int i = 0; i < size; i++) {
-                inBuffer[i] = tmp[i];
-            }
-            turnOnAutoMode();
-            if(size >= 0) {
-                if(size < LEN_CONTROL_BUFFER)
-                    inBuffer[size] = '\0';
-                return true;
-            } else {
-                cstatus = tr("Read Error!");
-                qDebug() << "read error: " << size;
-                return false;
-            }
-        } else {
-            if(command == 'c' || command == 'w' || command == 'x')
-                turnOnAutoMode();
-            return true;
+        // Over the UART a command reads only its own parameter bytes (interface.c): 'c' the
+        // four bytes of M.AWGdesiredF, as USB's wIndex then wValue, and 'j' the two of
+        // M.Tpost (USB's wValue). Anything more runs as the next commands ('j' sent its
+        // index first, so Tpost got 0 and the value bytes ran as commands).
+        const bool reply = command == 'u';
+        turnOffAutoMode();
+        if(reply)
+            drainSerial();
+        QByteArray ba(1, char(command));
+        if(command == 'c') {
+            ba.append(char(index & 0xFF)).append(char(index >> 8));
+            ba.append(char(value & 0xFF)).append(char(value >> 8));
+        } else if(command == 'j') {
+            ba.append(char(value & 0xFF)).append(char(value >> 8));
         }
+        serial.writeByteArray(ba);
+        bool ok = true;
+        if(reply) {
+            ok = serialRead(inBuffer, 44, 1000);
+            if(ok)
+                inBuffer[44] = '\0';
+            else
+                cstatus = tr("Read Error!");
+        }
+        turnOnAutoMode();
+        return ok;
     }
     return false;
+}
+
+// QextSerialPort has no waitForReadyRead(): poll the port until count bytes are in, or
+// the time is up
+bool LibUsbDevice::serialRead(uint8_t *buffer, int count, int timeoutMs) {
+    if(!serial.serial)
+        return false;
+    QElapsedTimer elapsed;
+    elapsed.start();
+    int got = 0;
+    while(got < count && elapsed.elapsed() < timeoutMs) {
+        const qint64 available = serial.serial->bytesAvailable();
+        if(available > 0) {
+            const qint64 n = serial.serial->read(reinterpret_cast<char *>(buffer) + got, qMin<qint64>(available, count - got));
+            if(n < 0)
+                return false;
+            got += n;
+        } else {
+            QThread::msleep(1);
+        }
+    }
+    return got == count;
+}
+
+// After 'p' the device can still be sending the rest of a frame: drop bytes until the
+// line has been quiet for longer than a USB serial adapter holds them back (16 ms)
+void LibUsbDevice::drainSerial() {
+    if(!serial.serial)
+        return;
+    QElapsedTimer total, idle;
+    total.start();
+    idle.start();
+    while(total.elapsed() < 500) {
+        if(serial.serial->bytesAvailable() > 0) {
+            serial.serial->readAll();
+            idle.restart();
+        } else if(idle.elapsed() >= 30) {
+            break;
+        } else {
+            QThread::msleep(1);
+        }
+    }
 }
 
 void LibUsbDevice::asyncBulkReadTransfer() {
@@ -430,26 +465,31 @@ void LibUsbDevice::saveDeviceSettings() {
         serial.write("d");
 }
 
-void LibUsbDevice::awgBulkWriteTransfer() {
+// The custom waveform into the device's AWG buffer: bulk endpoint 2 over USB. Over the
+// UART it is the 'x' command: the device answers 'G', reads 256 bytes and answers 'T'.
+// (This read 256 bytes from the port instead, which never came.)
+bool LibUsbDevice::awgBulkWriteTransfer() {
     if(!isDeviceConnected) {
         qDebug() << "Device not connected";
-        return;
+        return false;
     }
-    int actual;
-    if(wayOfConnecting)
-        libusb_bulk_transfer(deviceHandle, USB_ENDPOINT_OUT, awgBuffer, 256, &actual, 1000);
-    else {
-        serial.sendData = false;
-        while(serial.serial->bytesAvailable() != 256) {
-            serial.serial->waitForReadyRead(1000);
-        }
-        char tmp[256];
-        int size = serial.serial->read(tmp, 256);
-        for(int i = 0; i < size; i++) {
-            awgBuffer[i] = tmp[i];
-        }
-        serial.sendData = true;
+    if(wayOfConnecting) {
+        int actual = 0;
+        return libusb_bulk_transfer(deviceHandle, USB_ENDPOINT_OUT, awgBuffer, 256, &actual, 1000) == 0 && actual == 256;
     }
+    turnOffAutoMode();
+    drainSerial();
+    serial.write("x");
+    uint8_t answer = 0;
+    bool ok = serialRead(&answer, 1, 1000) && answer == 'G';
+    if(ok) {
+        serial.writeByteArray(QByteArray(reinterpret_cast<const char *>(awgBuffer), 256));
+        ok = serialRead(&answer, 1, 2000) && answer == 'T';
+    }
+    if(!ok)
+        cstatus = tr("The device did not take the waveform");
+    turnOnAutoMode();
+    return ok;
 }
 
 QString LibUsbDevice::requestFirmwareVersion() {
@@ -462,21 +502,13 @@ QString LibUsbDevice::requestFirmwareVersion() {
     if(wayOfConnecting) {
         bytesRead = libusb_control_transfer(deviceHandle, 0xC0, 'a', 0, 0, buffer, 4, 1000);
     } else {
+        drainSerial();
         serial.write("a");
-        char tmp[4];
-        QElapsedTimer elapsed_timer;
-        elapsed_timer.start();
-        while(serial.serial->bytesAvailable() != 4) {
-            serial.serial->waitForReadyRead(1000);
-            if(elapsed_timer.hasExpired(10000)) {
-                emit serial.connectionStatus("Port is busy or unreachable.");
-                return "-1";
-            }
+        if(!serialRead(buffer, 4, 2000)) {
+            emit serial.connectionStatus("Port is busy or unreachable.");
+            return "-1";
         }
-        bytesRead = serial.serial->read(tmp, 4);
-        for(int i = 0; i < bytesRead; i++) {
-            buffer[i] = tmp[i];
-        }
+        bytesRead = 4;
     }
     if(bytesRead > 0) {
         return getStringFromUnsignedChar(buffer, 4);

@@ -119,6 +119,7 @@ void SerialPortConnection::onReadyRead() {
             if(checkIfStartOfFrame(tmp + i, false)) {
                 index = 0;
                 m_stateOfConnection = 1;
+                frameCounter++;
                 continue;
             }
             if(checkIfEndOfFrame(tmp + i)) {
@@ -127,10 +128,16 @@ void SerialPortConnection::onReadyRead() {
             }
             if(m_stateOfConnection == 0)
                 continue;
-            wsk[index ] = tmp[i];
+            if(index > 255)
+                continue;       // more samples than a frame holds: wait for the next start
+            wsk[index] = tmp[i];
             wsk[index + 256] = tmp[i + 1];
             wsk[index + 512] = tmp[i + 2];
-            index ++;
+            index++;
+            // The frame number and write index the USB frames carry, so the plot sees new
+            // samples (it repaints, ages the persistence trail and records only those)
+            wsk[768] = frameCounter;
+            wsk[769] = quint8(index);
             emit newData(3);
         }
     } else {
@@ -156,7 +163,7 @@ void SerialPortConnection::onReadyRead() {
                 wsk[i] = tmp[i];
             }
             if(size == 768) {
-                wsk[768] = 0;
+                wsk[768] = ++frameCounter;      // each frame is new, as over USB
                 wsk[769] = 0;
             }
             emit newData(770);

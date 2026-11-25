@@ -48,6 +48,7 @@ public:
     bool finish;
     int samplingValue;
     int index;
+    quint8 frameCounter = 0;
 
     int m_stateOfConnection;    //0 - wait for start of frame, 1 - get data, 2 - wait for end of frame
 
