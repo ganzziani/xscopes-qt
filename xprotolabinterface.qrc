@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/Bitmaps">
-        <file>Bitmaps/colorgradient.png</file>
         <file>Bitmaps/dual.png</file>
         <file>Bitmaps/elastic.png</file>
         <file>Bitmaps/expo.png</file>
@@ -75,8 +74,6 @@
         <file>Bitmaps/scrollbar-v-down.png</file>
         <file>Bitmaps/separator-h.png</file>
         <file>Bitmaps/separator-v.png</file>
-        <file>Bitmaps/ico-save.png</file>
-        <file>Bitmaps/ico-screenshot.png</file>
         <file>Bitmaps/gt.icns</file>
         <file>Bitmaps/separator-bg.png</file>
         <file>win-css.qss</file>

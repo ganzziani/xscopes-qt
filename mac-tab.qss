@@ -5,7 +5,3 @@ QTabBar::tab{
     font-size: 10px;
     margin-left: 1px;
 }
-
-QLabel#labelAboutXminilabPortableLink {
-    font-size: 30px;
-}

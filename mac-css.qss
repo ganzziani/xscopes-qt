@@ -3,11 +3,6 @@ QWidget#XprotolabInterface {
     border: 3px solid #c8c9d0;
 }
 
-QWidget#widget_2 {
-    background-image: url(":/Bitmaps/Bitmaps/about-bg.png");
-    background-repeat: none;
-}
-
 QWidget {
     font-size: 12px;
 }
@@ -204,10 +199,6 @@ QWidget#tabSniffer {
 }
 
 QWidget#tabOptions {
-    background-color: #FFFFFF;
-}
-
-QWidget#tab {
     background-color: #FFFFFF;
 }
 

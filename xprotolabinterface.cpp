@@ -138,39 +138,6 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     ui->pushButtonRescan->setDisabled(!ui->radioButtonSerialPort->isChecked());
     QFont m_mmTabFont = QFont(m_monospaceFamily, 50, QFont::DemiBold);
     QFont m_mmTabFont2 = QFont(m_monospaceFamily, 40, QFont::DemiBold);
-#ifdef Q_OS_WIN
-    int dpiX = QPaintDevice::logicalDpiX();
-    int dpiY = QPaintDevice::logicalDpiY();
-    if(dpiX == 144 && dpiY == 144) {
-        ui->tabWidgetMain->setMinimumWidth(600);
-        ui->labelCH1Scale->setMinimumHeight(40);
-        ui->labelCH2Scale->setMinimumHeight(40);
-        ui->labelTimeScale->setMinimumHeight(40);
-        QFont fl = ui->labelAboutXminilabPortableLink->font();
-        fl.setPixelSize(27);
-        ui->labelAboutXminilabPortableLink->setFont(fl);
-        ui->labelCH1Color->setMinimumWidth(20);
-        ui->labelCH1Color->setMinimumHeight(20);
-        ui->labelCH2Color->setMinimumWidth(20);
-        ui->labelCH2Color->setMinimumHeight(20);
-        m_mmTabFont.setPixelSize(55);
-        m_mmTabFont2.setPixelSize(50);
-    } else if(dpiX == 192 && dpiY == 192) {
-        ui->tabWidgetMain->setMinimumWidth(700);
-        ui->labelCH1Scale->setMinimumHeight(50);
-        ui->labelCH2Scale->setMinimumHeight(50);
-        ui->labelTimeScale->setMinimumHeight(50);
-        QFont fl = ui->labelAboutXminilabPortableLink->font();
-        fl.setPixelSize(32);
-        ui->labelAboutXminilabPortableLink->setFont(fl);
-        ui->labelCH1Color->setMinimumWidth(25);
-        ui->labelCH1Color->setMinimumHeight(25);
-        ui->labelCH2Color->setMinimumWidth(25);
-        ui->labelCH2Color->setMinimumHeight(25);
-        m_mmTabFont.setPixelSize(55);
-        m_mmTabFont2.setPixelSize(50);
-    }
-#endif
     ui->labelVDCCH1->setFont(m_mmTabFont);
     ui->labelVDCCH2->setFont(m_mmTabFont);
     ui->labelVPPCH1->setFont(m_mmTabFont);
