@@ -3113,7 +3113,11 @@ Frequency</string>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="lineEditSweepSpeed"/>
+                   <widget class="QLineEdit" name="lineEditSweepSpeed">
+                    <property name="readOnly">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
@@ -3162,7 +3166,11 @@ Frequency</string>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="lineEditSweepStart"/>
+                   <widget class="QLineEdit" name="lineEditSweepStart">
+                    <property name="readOnly">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
                   </item>
                   <item>
                    <widget class="QLabel" name="labelSweepStartUnit">
@@ -3211,7 +3219,11 @@ Frequency</string>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="lineEditSweepEnd"/>
+                   <widget class="QLineEdit" name="lineEditSweepEnd">
+                    <property name="readOnly">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
                   </item>
                   <item>
                    <widget class="QLabel" name="labelSweepEndUnit">
@@ -4335,6 +4347,9 @@ Frequency</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
