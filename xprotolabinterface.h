@@ -167,6 +167,9 @@ private:
     void sendCursorControls();
     void updateCursorVisibility();
     void positionHorizontalCursors();
+    void applyGridPen();
+    void showSnifferSettings(byte data);
+    static double sweepFrequency(int sweep, int srate);
     double clampCursorY(double y) const;
     void setCursorChannel(CursorChannel channel);
     void setCursorVertical(bool on);
@@ -445,7 +448,7 @@ private:
         QString display;  // human readable version; ex "80mV"
     };
     QList<Gain> gains;
-    int freqValue[23], xmax, mode;
+    int xmax, mode;
     bool bitChecked[8], itemIsSelected, captureRef, saveWave, displayLoadedWave;
     QCPItemTracer *phaseTracerAA, *phaseTracerAB, *phaseTracerBA, *phaseTracerBB;
     QCPItemStraightLine *hCursorA, *hCursorB, *vCursorA, *vCursorB, *ch1Zero, *ch2Zero;
@@ -515,6 +518,7 @@ private:
     QElapsedTimer m_repaintClock;
 
     int m_prevTabIndex;
+    int m_appliedTheme = 0;     // the theme on the plot (the combo shows Custom while its dialog is open)
     QTimer m_mmTimer;
     // Consecutive failed 'm' requests. Meter mode pauses the bulk stream, which is
     // what notices an unplugged device otherwise.

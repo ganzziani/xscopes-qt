@@ -106,6 +106,11 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     m_meterLastF1 = m_meterLastF2 = m_meterLastSrate = -1;
     m_meterStableSamples = 0;
     connect(&customThemeDialog, SIGNAL(applyCustomTheme(int, CustomColors *)), this, SLOT(setTheme(int, CustomColors *)));
+    // Cancel (or closing the dialog) leaves the theme as it was: put the combo back on it.
+    // Apply runs setTheme(Custom) first, so then the combo stays on Custom.
+    connect(&customThemeDialog, &QDialog::finished, this, [this]() {
+        ui->comboBoxTheme->setCurrentIndex(m_appliedTheme);
+    });
     setupValues();
     setupGrid(ui->customPlot);
     connect(ui->customPlot, SIGNAL(mouseMove(QMouseEvent *)), this, SLOT(moveCursor(QMouseEvent *)));
@@ -257,10 +262,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         ch1BarGraph->setPen(ch1BarPen);
         ch2BarPen = QPen(Qt::red, 2);
         ch2BarGraph->setPen(ch2BarPen);
-        /************** Grid Pens **********/
-        gridPen = QPen(QColor(140, 140, 140), 1);
-        ui->customPlot->xAxis->grid()->setPen(gridPen);
-        ui->customPlot->yAxis->grid()->setPen(gridPen);
         axesPen = QPen(Qt::white, 1);
         ui->customPlot->xAxis->setTickPen(axesPen);
         ui->customPlot->yAxis->setTickPen(axesPen);
@@ -307,10 +308,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         ch1BarGraph->setPen(ch1BarPen);
         ch2BarPen = QPen(Qt::red, 2);
         ch2BarGraph->setPen(ch2BarPen);
-        /************** Grid Pens **********/
-        gridPen = QPen(QColor("C8C8C8"), 1, Qt::DotLine);
-        ui->customPlot->xAxis->grid()->setPen(gridPen);
-        ui->customPlot->yAxis->grid()->setPen(gridPen);
         axesPen = QPen(Qt::black, 1);
         ui->customPlot->xAxis->setTickPen(axesPen);
         ui->customPlot->yAxis->setTickPen(axesPen);
@@ -357,10 +354,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         ch1BarGraph->setPen(ch1BarPen);
         ch2BarPen = QPen(customColors->ch2fft, 2);
         ch2BarGraph->setPen(ch2BarPen);
-        /************** Grid Pens **********/
-        gridPen = QPen(customColors->grid, 1, Qt::DotLine);
-        ui->customPlot->xAxis->grid()->setPen(gridPen);
-        ui->customPlot->yAxis->grid()->setPen(gridPen);
         axesPen = QPen(customColors->axes, 1);
         ui->customPlot->xAxis->setTickPen(axesPen);
         ui->customPlot->yAxis->setTickPen(axesPen);
@@ -382,6 +375,8 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         textLabelVoltageA->setColor(customColors->label);
         textLabelMousePos->setColor(customColors->label);
     }
+    m_appliedTheme = theme;
+    applyGridPen();
     clearPersistenceImage();
     updatePersistencePens();
     ui->customPlot->replot(QCustomPlot::rpRefreshHint);
@@ -684,6 +679,9 @@ void XprotolabInterface::plotData() {
     if(!usbDevice.dataAvailable && !m_repaint)
         return;
     else if(mode == SNIFFER) {
+        // Consumed here, or the 4 ms timer rebuilt and compared the whole payload every tick
+        usbDevice.dataAvailable = false;
+        m_repaint = false;
         sniffProtocol();
         return;
     } else if(mode != OSCILLOSCOPE || usbDevice.dataLength > 770)
@@ -1068,16 +1066,21 @@ ENDSCAN:
                     fft1.push_back(magnitude);
                 }
             }
+            // 128 bins across the whole plot. The trace's key has 128 points at the fast time
+            // bases but 256 at the slow ones, where the spectrum took only the left half.
+            QVector<double> fftKey(128);
+            for(int k = 0; k < 128; k++)
+                fftKey[k] = k * (double)xmax / 128;
             if(!ui->checkBoxFFTIQ->isChecked()) {
                 ch1BarGraph->data()->clear();
                 if(ui->checkBoxFFTCH1->isChecked())
-                    ch1BarGraph->setData(key, fft1);
+                    ch1BarGraph->setData(fftKey, fft1);
                 ch2BarGraph->data()->clear();
                 if(ui->checkBoxFFTCH2->isChecked())
-                    ch2BarGraph->setData(key, fft2);
+                    ch2BarGraph->setData(fftKey, fft2);
             } else {
                 ch1BarGraph->data()->clear();
-                ch1BarGraph->setData(key, fft1);
+                ch1BarGraph->setData(fftKey, fft1);
             }
         }
     }
@@ -1125,25 +1128,21 @@ ENDSCAN:
     }
     if(!isCursorOff()) {
         double deltaVolt, voltA = 0, voltB = 0, gain = 0;
-        QString unit = gains[ui->sliderCH1Gain->value()].unit;
+        // Each channel's cursors read in that channel's gain, where the cursor is drawn: the
+        // positions are relative to the channel's zero (256 at 0 V), 64 per division, as the
+        // mouse readout reads them.
+        const int gainIndex = isCursorOnCh2() ? ui->sliderCH2Gain->value() : ui->sliderCH1Gain->value();
+        const QString unit = gains[gainIndex].unit;
+        gain = gains[gainIndex].value;
         if(isCursorOnCh1()) {
-            unit = gains[ui->sliderCH1Gain->value()].unit;
-            gain = gains[ui->sliderCH1Gain->value()].value;
+            voltA = hCursorAPosCh1 - 256;
+            voltB = hCursorBPosCh1 - 256;
         } else if(isCursorOnCh2()) {
-            unit = gains[ui->sliderCH2Gain->value()].unit;
-            gain = gains[ui->sliderCH1Gain->value()].value;
+            voltA = hCursorAPosCh2 - 256;
+            voltB = hCursorBPosCh2 - 256;
         }
-        if(isCursorOnCh1()) {
-            voltA = 64 - (127 - (hCursorAPosCh1 / 4));
-            voltB = 64 - (127 - (hCursorBPosCh1 / 4));
-        } else if(isCursorOnCh2()) {
-            voltA = 64 - (127 - (hCursorAPosCh2 / 4));
-            voltB = 64 - (127 - (hCursorBPosCh2 / 4));
-        }
-        voltA *= gain;
-        voltB *= gain;
-        voltA /= 16.0;
-        voltB /= 16.0;
+        voltA *= gain / 64.0;
+        voltB *= gain / 64.0;
         deltaVolt = voltB - voltA;
         textLabelDeltaVoltage->setVisible(true);
         textLabelVoltageA->setVisible(true);
@@ -2124,52 +2123,7 @@ void XprotolabInterface::readDeviceSettings() {
     data = usbDevice.inBuffer[7];
     logToFile("GPIO7 display: " + QString::number(data));
     ui->comboBoxGrid->setCurrentIndex(data & 0x3);
-    int index = ui->comboBoxGrid->currentIndex();
-    if(ui->comboBoxTheme->currentIndex() == Dark) {
-        if(index == 0)
-            gridPen = QPen(Qt::NoPen);
-        else if(index == 1)
-            gridPen = QPen(QColor(140, 140, 140), 1, Qt::DotLine);
-        else if(index == 2)
-            gridPen = QPen(QColor(140, 140, 140), 1, Qt::SolidLine);
-        else if(index == 3)
-            gridPen = QPen(QColor(140, 140, 140), 1, Qt::SolidLine);
-        ui->customPlot->xAxis->grid()->setPen(gridPen);
-        ui->customPlot->yAxis->grid()->setPen(gridPen);
-    } else  if(ui->comboBoxTheme->currentIndex() == Light) {
-        if(index == 0)
-            gridPen = QPen(Qt::NoPen);
-        else if(index == 1)
-            gridPen = QPen(QColor("C8C8C8"), 1, Qt::DotLine);
-        else if(index == 2)
-            gridPen = QPen(QColor("C8C8C8"), 1, Qt::SolidLine);
-        else if(index == 3)
-            gridPen = QPen(QColor("C8C8C8"), 1, Qt::SolidLine);
-        ui->customPlot->xAxis->grid()->setPen(gridPen);
-        ui->customPlot->yAxis->grid()->setPen(gridPen);
-    } else if(ui->comboBoxTheme->currentIndex() == Custom) {
-        if(index == 0)
-            gridPen = QPen(Qt::NoPen);
-        else if(index == 1)
-            gridPen = QPen(customThemeDialog.customColors.grid, 1, Qt::DotLine);
-        else if(index == 2)
-            gridPen = QPen(customThemeDialog.customColors.grid, 1, Qt::SolidLine);
-        else if(index == 3)
-            gridPen = QPen(customThemeDialog.customColors.grid, 1, Qt::SolidLine);
-        ui->customPlot->xAxis->grid()->setPen(gridPen);
-        ui->customPlot->yAxis->grid()->setPen(gridPen);
-    } else if(ui->comboBoxTheme->currentIndex() == Custom) {
-        if(index == 0)
-            gridPen = QPen(Qt::NoPen);
-        else if(index == 1)
-            gridPen = QPen(customThemeDialog.customColors.grid, 1, Qt::DotLine);
-        else if(index == 2)
-            gridPen = QPen(customThemeDialog.customColors.grid, 1, Qt::SolidLine);
-        else if(index == 3)
-            gridPen = QPen(customThemeDialog.customColors.grid, 1, Qt::SolidLine);
-        ui->customPlot->xAxis->grid()->setPen(gridPen);
-        ui->customPlot->yAxis->grid()->setPen(gridPen);
-    }
+    applyGridPen();
     ui->checkBoxElasticTrace->setChecked((data & (byte)(1 << 2)) != 0);
     ui->checkBoxDisplayInvert->setChecked((data & (byte)(1 << 3)) != 0);
     ui->checkBoxDisplayFlip->setChecked((data & (byte)(1 << 4)) != 0);
@@ -2181,7 +2135,7 @@ void XprotolabInterface::readDeviceSettings() {
     ch2Graph->setPen(ch2Pen);
     ui->checkBoxVectors->setChecked((data & (byte)(1 << 6)) != 0);
     setupScatterStyles(ui->checkBoxVectors->isChecked());
-    ui->checkBoxShowSettings->setChecked((data & (byte)(1 << 6)) != 0);
+    ui->checkBoxShowSettings->setChecked((data & (byte)(1 << 7)) != 0);
     // GPIO8 MFFT
     data = usbDevice.inBuffer[8];
     logToFile("GPIO8 MFFT: " + QString::number(data));
@@ -2199,7 +2153,7 @@ void XprotolabInterface::readDeviceSettings() {
     ui->checkBoxXYMode->setChecked((data & (byte)(1 << 6)) != 0);
     ui->groupBoxFFT->setChecked((data & (byte)(1 << 7)) != 0);
     if(((data & (byte)(1 << 5)) == 0) && ((data & (byte)(1 << 6)) == 0) && ((data & (byte)(1 << 7)) == 0)) {
-        ui->tabWidgetMain->setCurrentIndex(1);
+        ui->tabWidgetMain->setCurrentWidget(ui->tabMeter);     // meter mode: no scope, XY or FFT bit
     }
     // GPIO9 Sweep
     data = usbDevice.inBuffer[9];
@@ -2215,50 +2169,19 @@ void XprotolabInterface::readDeviceSettings() {
     // GPIOA Sniffer Controls
     data = usbDevice.inBuffer[10]; // param
     logToFile("GPIOA Sniffer Controls: " + QString::number(data));
-    ui->comboBoxUARTBaud->setCurrentIndex(data & 0x07);
-    ui->spinBoxUARTDataBits->setValue(((data & 0x18) >> 3) + 5);
-    ui->checkBoxSPIInvertSS->setChecked((data & (byte)(1 << 5)) != 0);   // SPI /SS invert
-    if((data & (byte)(1 << 6)) != 0)
-        ui->comboBoxSPICPOL->setCurrentIndex(1);
-    else
-        ui->comboBoxSPICPOL->setCurrentIndex(0);
-    if((data & (byte)(1 << 7)) != 0)
-        ui->comboBoxSPICPHA->setCurrentIndex(1);
-    else
-        ui->comboBoxSPICPHA->setCurrentIndex(0);
-    if((data & (byte)(1 << 5)) != 0) {
-        if((data & (byte)(1 << 6)) != 0)
-            ui->comboBoxUARTParity->setCurrentIndex(2);    // Odd: parmode and parity
-        else
-            ui->comboBoxUARTParity->setCurrentIndex(1);    // Even: parmode only
-    } else
-        ui->comboBoxUARTParity->setCurrentIndex(0);
-    if((data & (byte)(1 << 7)) != 0)
-        ui->comboBoxUARTStopBits->setCurrentIndex(1);
-    else
-        ui->comboBoxUARTStopBits->setCurrentIndex(0);
+    showSnifferSettings(data);
     // GPIOB MStatus
     data = usbDevice.inBuffer[11];
     logToFile("GPIOB MStatus: " + QString::number(data));
-    if((data & (byte)(1 << 3)) != 0) {
-        ui->pushButtonSnifferStart->setText(tr("STOP"));
-        mode = SNIFFER;
-        ui->pushButtonSnifferPause->setEnabled(true);
-        ui->pushButtonSnifferPause->setText(tr("Pause"));
-        ui->tabWidgetMain->setCurrentIndex(2);
-    } else {
-        ui->pushButtonSnifferStart->setText(tr("START"));
-        ui->pushButtonSnifferPause->setEnabled(false);
-        ui->pushButtonSnifferPause->setText(tr("Pause"));
-        enableSnifferControls(true);
-    }
-    if((data & (byte)(1 << 4)) != 0)
-        mode = OSCILLOSCOPE;
-    else if(mode == OSCILLOSCOPE || mode == SNIFFER)
-        ui->pushButtonStartStop->setText(tr("STOP"));
-    else
-        ui->pushButtonStartStop->setText(tr("START"));
-    if(ui->tabWidgetMain->currentIndex() == 1) {
+    const bool sniffing = (data & (byte)(1 << 3)) != 0;     // gosniffer
+    ui->pushButtonSnifferStart->setText(sniffing ? tr("STOP") : tr("START"));
+    ui->pushButtonSnifferPause->setEnabled(sniffing);
+    ui->pushButtonSnifferPause->setText(tr("Pause"));
+    enableSnifferControls(!sniffing);
+    mode = sniffing ? SNIFFER : OSCILLOSCOPE;
+    // MStatus.stop is the scope's Start/Stop state; the button names the action it offers
+    ui->pushButtonStartStop->setText((data & (byte)(1 << 4)) != 0 ? tr("START") : tr("STOP"));
+    if(ui->tabWidgetMain->currentWidget() == ui->tabMeter) {
         if((data & (byte)(1 << 6)) == 0 && (data & (byte)(1 << 7)) == 0) {
             ui->tabWidgetMeter->setCurrentIndex(2);
         } else {
@@ -2391,15 +2314,24 @@ void XprotolabInterface::readDeviceSettings() {
     // M 32 Decode Protocol
     data = usbDevice.inBuffer[32]; // decode
     logToFile("M 32 Decode Protocol: " + QString::number(data));
-    ui->tabWidgetSniffer->setCurrentIndex(data);
+    {
+        // The handler restarts the decoder (it leaves the sniffer), which would undo gosniffer
+        const QSignalBlocker blocker(ui->tabWidgetSniffer);
+        ui->tabWidgetSniffer->setCurrentIndex(data);
+    }
+    if(sniffing)
+        ui->tabWidgetMain->setCurrentWidget(ui->tabSniffer);
     // M 33 Sweep Start Frequency
     logToFile("M 33 Sweep Start Frequency: " + QString::number(usbDevice.inBuffer[33]));
-    ui->sliderSweepStart->setValue(usbDevice.inBuffer[33]);
-    ui->sliderSweepStart->setSliderPosition(usbDevice.inBuffer[33]);
     // M 34 Sweep End Frequency
     logToFile("M 34 Sweep End Frequency: " + QString::number(usbDevice.inBuffer[34]));
-    ui->sliderSweepEnd->setValue(usbDevice.inBuffer[34]);
-    ui->sliderSweepEnd->setSliderPosition(usbDevice.inBuffer[34]);
+    {
+        // Each slider's handler clamps it to the other one, which still has the old value
+        const QSignalBlocker blockStart(ui->sliderSweepStart);
+        const QSignalBlocker blockEnd(ui->sliderSweepEnd);
+        ui->sliderSweepStart->setValue(usbDevice.inBuffer[33]);
+        ui->sliderSweepEnd->setValue(usbDevice.inBuffer[34]);
+    }
     // M 35 Sweep Speed
     data = usbDevice.inBuffer[35];
     logToFile("M 35 Sweep Speed: " + QString::number(data));
@@ -2460,6 +2392,9 @@ void XprotolabInterface::readDeviceSettings() {
     if(freq > 100000)
         freq = 100000;
     ui->doubleSpinBoxAWGFrequency->setValue(freq);
+    // The slider's handler sets the spin box from the slider, which rounds the frequency to
+    // the range's step (1234.56 Hz became 1200)
+    const QSignalBlocker blockFrequency(ui->sliderAWGFrequency);
     if(freq >= 10000) {
         ui->radioButtonAWGRange100kHz->setChecked(true);
         ui->sliderAWGFrequency->setValue((int)freq / 1000);
@@ -2482,6 +2417,7 @@ void XprotolabInterface::readDeviceSettings() {
         ui->radioButtonAWGRange100mHz->setChecked(true);
         ui->sliderAWGFrequency->setValue(qRound(freq * 1000));
     }
+    sendDesiredFrequency(freq);     // the Actual readout (nothing is sent while holdWrites)
     ch1ZeroPos = rangeMax / 2 + m_ch1Position;
     ch2ZeroPos = rangeMax / 2 + m_ch2Position;
     triggerPost = 256 - triggerPost;
@@ -2738,6 +2674,7 @@ void XprotolabInterface::on_sliderCHDPull_valueChanged(int) {
 
 void XprotolabInterface::on_checkBoxSnifferASCII_clicked() {
     sendCHDControls();
+    m_repaint = true;
 }
 
 /*********CHD Mask***************************/
@@ -2954,7 +2891,7 @@ void XprotolabInterface::sendDisplayControls() {
     if(ui->checkBoxVectors->isChecked())
         field += (1 << 6);   // Line/Pixel Display
     if(ui->checkBoxShowSettings->isChecked())
-        field += (1 << 7);   // Edge
+        field += (1 << 7);   // Show the settings on the device screen
     usbDevice.controlWriteTransfer(7, field);
     double width = 2;
     ch1Pen.setWidthF(width);
@@ -2989,41 +2926,29 @@ void XprotolabInterface::on_checkBoxVectors_clicked() {
     sendDisplayControls();
 }
 
-void XprotolabInterface::on_comboBoxGrid_currentIndexChanged(int index) {
-    if(ui->comboBoxTheme->currentIndex() == Dark) {
-        if(index == 0)
-            gridPen = QPen(Qt::NoPen);
-        else if(index == 1)
-            gridPen = QPen(QColor(140, 140, 140), 1, Qt::DotLine);
-        else if(index == 2)
-            gridPen = QPen(QColor(140, 140, 140), 1, Qt::SolidLine);
-        else if(index == 3)
-            gridPen = QPen(QColor(140, 140, 140), 1, Qt::SolidLine);
-        ui->customPlot->xAxis->grid()->setPen(gridPen);
-        ui->customPlot->yAxis->grid()->setPen(gridPen);
-    } else  if(ui->comboBoxTheme->currentIndex() == Light) {
-        if(index == 0)
-            gridPen = QPen(Qt::NoPen);
-        else if(index == 1)
-            gridPen = QPen(QColor("C8C8C8"), 1, Qt::DotLine);
-        else if(index == 2)
-            gridPen = QPen(QColor("C8C8C8"), 1, Qt::SolidLine);
-        else if(index == 3)
-            gridPen = QPen(QColor("C8C8C8"), 1, Qt::SolidLine);
-        ui->customPlot->xAxis->grid()->setPen(gridPen);
-        ui->customPlot->yAxis->grid()->setPen(gridPen);
-    } else if(ui->comboBoxTheme->currentIndex() == Custom) {
-        if(index == 0)
-            gridPen = QPen(Qt::NoPen);
-        else if(index == 1)
-            gridPen = QPen(customThemeDialog.customColors.grid, 1, Qt::DotLine);
-        else if(index == 2)
-            gridPen = QPen(customThemeDialog.customColors.grid, 1, Qt::SolidLine);
-        else if(index == 3)
-            gridPen = QPen(customThemeDialog.customColors.grid, 1, Qt::SolidLine);
-        ui->customPlot->xAxis->grid()->setPen(gridPen);
-        ui->customPlot->yAxis->grid()->setPen(gridPen);
+void XprotolabInterface::on_comboBoxGrid_currentIndexChanged(int) {
+    applyGridPen();
+    if(!initializing)
+        sendDisplayControls();
+    m_repaint = true;   // also redraw while the scope is stopped
+}
+
+// The grid's color comes from the theme, its style from the Grid combo (No Grid, Dots,
+// Lines, Full). One place for the three themes, so a theme change keeps the grid style.
+void XprotolabInterface::applyGridPen() {
+    QColor color;
+    switch(m_appliedTheme) {
+    case Light:  color = QColor(0xC8, 0xC8, 0xC8); break;
+    case Custom: color = customThemeDialog.customColors.grid; break;
+    default:     color = QColor(140, 140, 140); break;
     }
+    const int index = ui->comboBoxGrid->currentIndex();
+    if(index <= 0)
+        gridPen = QPen(Qt::NoPen);
+    else
+        gridPen = QPen(color, 1, index == 1 ? Qt::DotLine : Qt::SolidLine);
+    ui->customPlot->xAxis->grid()->setPen(gridPen);
+    ui->customPlot->yAxis->grid()->setPen(gridPen);
 }
 
 void XprotolabInterface::on_checkBoxElasticTrace_clicked() {
@@ -3183,30 +3108,54 @@ void XprotolabInterface::sendSnifferSettings() {
     // /SS invert / CPOL / CPHA; a protocol only reads the bits it needs. The bits
     // are set, not added: bit 7 means two stop bits for the UART and CPHA for SPI,
     // so two controls can legitimately want the same bit.
+    // The top three bits are taken from the protocol tab in use, and then both tabs show
+    // what the device has (setting CPHA is setting the UART's two stop bits).
     byte field;
     field = (byte)ui->comboBoxUARTBaud->currentIndex();
     field |= (byte)((ui->spinBoxUARTDataBits->value() - 5) << 3);
-    if(ui->comboBoxSPICPOL->currentIndex() == 1)
-        field |= (1 << 6);
-    if(ui->comboBoxSPICPHA->currentIndex() == 1)
-        field |= (1 << 7);
-    if(ui->checkBoxSPIInvertSS->isChecked())
-        field |= (1 << 5);          // SPI: /SS invert (the UART's parity enable)
-    if(ui->comboBoxUARTParity->currentIndex() >= 1)
-        field |= (1 << 5);
-    if(ui->comboBoxUARTParity->currentIndex() == 2)
-        field |= (1 << 6);
-    if(ui->comboBoxUARTStopBits->currentIndex() == 1)
-        field |= (1 << 7);
+    if(ui->tabWidgetSniffer->currentWidget() == ui->tabSPI) {
+        if(ui->checkBoxSPIInvertSS->isChecked())
+            field |= (1 << 5);      // SSINV
+        if(ui->comboBoxSPICPOL->currentIndex() == 1)
+            field |= (1 << 6);      // CPOL
+        if(ui->comboBoxSPICPHA->currentIndex() == 1)
+            field |= (1 << 7);      // CPHA
+    } else {
+        if(ui->comboBoxUARTParity->currentIndex() >= 1)
+            field |= (1 << 5);      // parmode
+        if(ui->comboBoxUARTParity->currentIndex() == 2)
+            field |= (1 << 6);      // parity: odd
+        if(ui->comboBoxUARTStopBits->currentIndex() == 1)
+            field |= (1 << 7);      // stopbit: two
+    }
     usbDevice.controlWriteTransfer(10, field);
+    showSnifferSettings(field);
 }
 
+// GPIOA as the sniffer tabs show it, without running their handlers
+void XprotolabInterface::showSnifferSettings(byte data) {
+    const QSignalBlocker b1(ui->comboBoxUARTBaud), b2(ui->spinBoxUARTDataBits), b3(ui->checkBoxSPIInvertSS),
+                         b4(ui->comboBoxSPICPOL), b5(ui->comboBoxSPICPHA), b6(ui->comboBoxUARTParity),
+                         b7(ui->comboBoxUARTStopBits);
+    ui->comboBoxUARTBaud->setCurrentIndex(data & 0x07);
+    ui->spinBoxUARTDataBits->setValue(((data & 0x18) >> 3) + 5);
+    ui->checkBoxSPIInvertSS->setChecked((data & (byte)(1 << 5)) != 0);
+    ui->comboBoxSPICPOL->setCurrentIndex((data & (byte)(1 << 6)) != 0 ? 1 : 0);
+    ui->comboBoxSPICPHA->setCurrentIndex((data & (byte)(1 << 7)) != 0 ? 1 : 0);
+    if((data & (byte)(1 << 5)) != 0)
+        ui->comboBoxUARTParity->setCurrentIndex((data & (byte)(1 << 6)) != 0 ? 2 : 1);   // Odd / Even
+    else
+        ui->comboBoxUARTParity->setCurrentIndex(0);
+    ui->comboBoxUARTStopBits->setCurrentIndex((data & (byte)(1 << 7)) != 0 ? 1 : 0);
+}
+
+// Normal / Single is Mcursors bit 7 (singlesniff), not a GPIOA bit
 void XprotolabInterface::on_radioButtonSnifferNormal_clicked() {
-    sendSnifferSettings();
+    sendCursorControls();
 }
 
 void XprotolabInterface::on_radioButtonSnifferSingle_clicked() {
-    sendSnifferSettings();
+    sendCursorControls();
 }
 
 void XprotolabInterface::on_comboBoxUARTBaud_currentIndexChanged(int) {
@@ -3511,35 +3460,47 @@ void XprotolabInterface::setChdPosition(int value) {
     m_repaint = true;
 }
 
+// The frequency the device plays for a frequency sweep value (M.Sweep1/2), as the firmware
+// computes it (mso.c, AWG sweep): AWGdesiredF = Sweep * 16 * (freqval[Srate] / 4096) / 2, in
+// 0.01 Hz, or / 2000 at the slow rates, and at most 0x00BEFFFF at the fast ones.
+double XprotolabInterface::sweepFrequency(int sweep, int srate) {
+    // mso.c freqval[]: the maximum frequency of each time base * 100000
+    static const quint32 freqval[22] = {
+        200000000, 100000000, 50000000, 25000000, 12500000, 6250000, 3200000,
+        1600000000, 800000000, 320000000, 160000000,
+        160000000, 64000000, 32000000, 16000000, 6400000, 3200000,
+        1600000, 640000, 320000, 160000, 64000
+    };
+    srate = qBound(0, srate, 21);
+    const quint64 freqv = freqval[srate] / 4096;
+    quint64 desired;
+    if(srate <= 6)
+        desired = qMin<quint64>(quint64(sweep) * 16 * freqv / 2, 0x00BEFFFF);
+    else
+        desired = quint64(sweep) * 16 * freqv / 2000;
+    return desired / 100.0;
+}
+
 void XprotolabInterface::updateSweepCursors() {
     byte sweepmin, sweepmax;
     sweepmin = (byte)(ui->sliderSweepStart->value());
     sweepmax = (byte)(ui->sliderSweepEnd->value());
     if(ui->checkBoxSweepFrequency->isChecked()) {
-        double freqv;
-        if(ui->sliderSampling->value() >= 11)
-            freqv = freqValue[ui->sliderSampling->value()] / 128;   // Slow sampling rate uses 2 samples per pixel
-        else
-            freqv = freqValue[ui->sliderSampling->value()] / 256;
-        if(ui->sliderSampling->value() <= 6) {
-            ui->lineEditSweepStart->setText(QString::number(sweepmin * freqv / 2000));//.ToString("##.000");
-            ui->lineEditSweepEnd->setText(QString::number(sweepmax * freqv / 2000));//.ToString("##.000");
-            ui->labelSweepStartUnit->setText("kHz");
-            ui->labelSweepEndUnit->setText("kHz");
-        } else {
-            ui->lineEditSweepStart->setText(QString::number(sweepmin * freqv / 2000));//.ToString("##.000");
-            ui->lineEditSweepEnd->setText(QString::number(sweepmax * freqv / 2000));//.ToString("##.000");
-            ui->labelSweepStartUnit->setText("Hz");
-            ui->labelSweepEndUnit->setText("Hz");
-        }
+        const int srate = ui->sliderSampling->value();
+        const bool kilo = srate <= 6;
+        ui->lineEditSweepStart->setText(QString::number(sweepFrequency(sweepmin, srate) / (kilo ? 1000 : 1)));
+        ui->lineEditSweepEnd->setText(QString::number(sweepFrequency(sweepmax, srate) / (kilo ? 1000 : 1)));
+        ui->labelSweepStartUnit->setText(kilo ? "kHz" : "Hz");
+        ui->labelSweepEndUnit->setText(kilo ? "kHz" : "Hz");
     } else if(ui->checkBoxSweepAmplitude->isChecked()) {
         ui->lineEditSweepStart->setText(QString::number(((double)sweepmin / 64)));//.ToString("##.000");
         ui->lineEditSweepEnd->setText(QString::number(((double)sweepmax / 64)));//.ToString("##.000");
         ui->labelSweepStartUnit->setText("V");
         ui->labelSweepEndUnit->setText("V");
     } else if(ui->checkBoxSweepOffset->isChecked()) {
-        ui->lineEditSweepStart->setText(QString::number((double) - ((255 - sweepmin) * 0.50016 / 32) + 2)); //.ToString("##.000");
-        ui->lineEditSweepEnd->setText(QString::number((double) - ((255 - sweepmax) * 0.50016 / 32) + 2)); //.ToString("##.000");
+        // The firmware sweeps M.AWGoffset = Sweep - 128; the Offset box shows it negated
+        ui->lineEditSweepStart->setText(QString::number((128 - sweepmin) * 0.50016 / 32));
+        ui->lineEditSweepEnd->setText(QString::number((128 - sweepmax) * 0.50016 / 32));
         ui->labelSweepStartUnit->setText("V");
         ui->labelSweepEndUnit->setText("V");
     } else if(ui->checkBoxSweepDutyCycle->isChecked()) {
@@ -3755,33 +3716,7 @@ void XprotolabInterface::setupValues() {
              << "2ms/div" << "5ms/div" << "10ms/div" << "20ms/div" << "50ms/div" << "0.1s/div" << "0.2s/div" << "0.5s/div"
              << "1s/div" << "2s/div" << "5s/div" << "10s/div" << "20s/div" << "50s/div";
     // Gain with x1 probe
-    gains = {{5.12f, "V", "5.12V"}, {2.56f, "V", "2.56V"}, {1.28f, "V", "1.28V"}, {0.64f, "V", "0.64V"}, {0.32f, "V", "0.32V"}, {0.16f, "V", "0.16V"}, {0.08f, "mV", "80mV/div"}, {0.0f, "", "----"}};
-    freqValue[0] = 10;
-    int temp = 2000000, i = 1;
-    for(i = 1; i < 7; i++) { // Kilo Hertz
-        freqValue[i] = temp;
-        temp = temp / 2;
-    }
-    freqValue[7] = 32000;
-    freqValue[8] = 16000000;
-    freqValue[9] = 8000000;
-    temp = 3200000;
-    for(i = 10; i < 13; i++) { // Hertz
-        freqValue[i] = temp;
-        temp = temp / 2;
-    }
-    freqValue[13] = 320000;
-    freqValue[14] = 160000;
-    freqValue[15] = 80000;
-    freqValue[16] = 32000;
-    freqValue[17] = 16000;
-    freqValue[18] = 8000;
-    temp = 3200;
-    for(i = 19; i < 22; i++) { // Hertz
-        freqValue[i] = temp;
-        temp = temp / 2;
-    }
-    freqValue[22] = 320;
+    gains = {{5.12f, "V", "5.12V"}, {2.56f, "V", "2.56V"}, {1.28f, "V", "1.28V"}, {0.64f, "V", "0.64V"}, {0.32f, "V", "0.32V"}, {0.16f, "V", "0.16V"}, {80.0f, "mV", "80mV"}, {0.0f, "", "----"}};
     QString tempP = ":/Bitmaps/Bitmaps/";
     triggerIconPathsG << tempP + "risingg.png" << tempP + "fallingg.png" << tempP + "dualg.png" << tempP + "positiveg.png" << tempP + "negativeg.png" << tempP + "window1g.png" << tempP + "window2g.png";
     triggerIconPathsR << tempP + "risingr.png" << tempP + "fallingr.png" << tempP + "dualr.png" << tempP + "positiver.png" << tempP + "negativer.png" << tempP + "window1r.png" << tempP + "window2r.png";
