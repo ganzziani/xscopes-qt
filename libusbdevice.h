@@ -36,7 +36,10 @@ public:
     void drainSerial();
     void controlWriteTransfer(uint16_t index, uint8_t value);
     QString requestFirmwareVersion();
+    // The device's display as a BMP, over USB. At the rates where the firmware redraws every
+    // frame it holds the picture still while reading (stop + persistent display, ~170 ms).
     bool requestDisplayBitmap(QByteArray &bmp);
+    bool readDisplayBlocks(QByteArray &bmp);    // the 'C' block reads alone
     void stopScope();
     void startScope();
     void forceTrigger();

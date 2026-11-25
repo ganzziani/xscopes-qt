@@ -532,6 +532,15 @@ QString LibUsbDevice::requestFirmwareVersion() {
 // rows, bottom row first: the XScopes send 128x64 (1086 bytes, 17 blocks), the
 // Oscilloscope Watch 128x128 (2110 bytes, 33 blocks). The size is read from the
 // width and height in the header, so both are handled the same way.
+// 'C' reads the display buffer the firmware draws into, 64 bytes at a time (17 blocks,
+// 11.6 ms). Where the firmware clears and redraws it every frame - Srate 0..10 and roll mode,
+// in the scope, FFT and XY modes - it does so even while stopped, so a read could catch a
+// half-drawn frame (half the reads at 128 us/div). Stopped and in persistent mode it no longer
+// clears it, so the picture holds still while it is read. At the slower rates the sweep is
+// drawn point by point without clearing, plain reads are whole, and persistence would pile
+// the new samples onto the picture (they keep coming for a while after the stop), so those
+// are read as they are. The device's own settings say whether it is running, which the
+// Start/Stop button may not know after a Single capture.
 bool LibUsbDevice::requestDisplayBitmap(QByteArray &bmp) {
     bmp.clear();
     if(!isDeviceConnected) {
@@ -543,6 +552,36 @@ bool LibUsbDevice::requestDisplayBitmap(QByteArray &bmp) {
         cstatus = tr("Not available on the serial port");
         return false;
     }
+    // Registers by GPIO number (main.h in both firmwares): Srate, Mcursors, Display, MFFT, MStatus
+    enum { Srate = 0, Mcursors = 6, Display = 7, MFFT = 8, MStatus = 11 };
+    enum { roll = 0x01, persistent = 0x20, scopeModes = 0xE0, gosniffer = 0x08, stopped = 0x10 };
+    uint8_t settings[LEN_CONTROL_BUFFER];
+    const int got = libusb_control_transfer(deviceHandle, 0xC0, 'u', 0, 14, settings,
+                                            LEN_CONTROL_BUFFER, 1000);
+    const bool freeze = got > MStatus && (settings[MFFT] & scopeModes) &&
+            !(settings[MStatus] & gosniffer) && (settings[Srate] <= 10 || (settings[Mcursors] & roll));
+    const bool running = freeze && !(settings[MStatus] & stopped);
+    if(freeze) {
+        if(running) {
+            libusb_control_transfer(deviceHandle, 0xC0, 'f', 0, 0, NULL, 0, 1000);
+            QThread::msleep(50);    // the frame in progress is still drawn after the stop
+        }
+        // The change clears the screen once and the stopped frame is drawn again. Without the
+        // wait above, the last frame acquired could land on it as a second trace.
+        libusb_control_transfer(deviceHandle, 0xC0, 'b', settings[Display] | persistent, Display,
+                                NULL, 0, 1000);
+        QThread::msleep(100);
+    }
+    const bool ok = readDisplayBlocks(bmp);
+    if(freeze) {
+        libusb_control_transfer(deviceHandle, 0xC0, 'b', settings[Display], Display, NULL, 0, 1000);
+        if(running)
+            libusb_control_transfer(deviceHandle, 0xC0, 'g', 0, 0, NULL, 0, 1000);
+    }
+    return ok;
+}
+
+bool LibUsbDevice::readDisplayBlocks(QByteArray &bmp) {
     uint8_t block[LEN_CONTROL_BUFFER];
     int bmpSize = 0;
     for(int blockIndex = 0; blockIndex < 64; blockIndex++) {
