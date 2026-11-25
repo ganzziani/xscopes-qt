@@ -111,6 +111,7 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
         ui->comboBoxTheme->setCurrentIndex(m_appliedTheme);
     });
     setupValues();
+    setupAboutTab();
     setupGrid(ui->customPlot);
     connect(ui->customPlot, SIGNAL(mouseMove(QMouseEvent *)), this, SLOT(moveCursor(QMouseEvent *)));
     connect(ui->customPlot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(selectItem(QMouseEvent *)));
@@ -3344,6 +3345,27 @@ void XprotolabInterface::setChdPosition(int value) {
     chdZeroPos = kChdPositionBase + m_chdPosition * kChdPositionStep;
     chdZeroHead->topLeft->setPixelPosition(QPointF(2, ui->customPlot->yAxis->coordToPixel(chdZeroPos)));
     m_repaint = true;
+}
+
+// The version comes from VERSION in the .pro (the .ui had a stale 2.0.0.0), and the licence
+// notice the GPL asks an interactive program to show: the licence, no warranty, where the
+// source and the third-party licences are.
+void XprotolabInterface::setupAboutTab() {
+    ui->labelAboutVersion->setText(
+        tr("<p align=\"center\">XScopes Interface Software</p>"
+           "<p align=\"center\"><span style=\"font-weight:600;\">Version:</span> %1</p>")
+        .arg(QCoreApplication::applicationVersion().toHtmlEscaped()));
+    ui->labelAboutCopyright->setTextFormat(Qt::RichText);
+    ui->labelAboutCopyright->setOpenExternalLinks(true);
+    ui->labelAboutCopyright->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    ui->labelAboutCopyright->setWordWrap(true);
+    ui->labelAboutCopyright->setText(
+        tr("<p align=\"center\">Copyright &copy; 2013-2026 Gabotronics.<br>"
+           "Free software under the GNU General Public License v3 or later, with ABSOLUTELY NO "
+           "WARRANTY. Source code: <a href=\"https://github.com/ganzziani/xscopes-qt\">"
+           "github.com/ganzziani/xscopes-qt</a>.<br>"
+           "Third-party components and their licences: gpl.txt and the licenses folder next to "
+           "the program.</p>"));
 }
 
 // The frequency the device plays for a frequency sweep value (M.Sweep1/2), as the firmware

@@ -1,3 +1,5 @@
+/* Modified for the XScopes Interface by Gabotronics, 2026-11-12, from dfu-programmer v1.1.0: 
+ * #include <libusb.h>, const return types of the two *_to_string() functions. Details in PATCHES.md. */
 /*
  * dfu-programmer
  *

@@ -22,6 +22,9 @@
 **             Date: 06.11.22                                             **
 **          Version: 2.1.1                                                **
 ****************************************************************************/
+/*  Modified for the XScopes Interface by Gabotronics, 2026-10-31: QCustomPlot::savePdf() is
+    commented out, so the application does not need Qt Print Support. Nothing else differs
+    from the QCustomPlot 2.1.1 release. */
 
 #include "qcustomplot.h"
 
@@ -15233,6 +15236,8 @@ void QCustomPlot::rescaleAxes(bool onlyVisiblePlottables)
   message. This is also the case if for other reasons the define flag \c QT_NO_PRINTER is set.
 
   \see savePng, saveBmp, saveJpg, saveRastered
+
+  (XScopes Interface, 2026-10-31: the definition below is commented out, see the top of the file.)
 
 bool QCustomPlot::savePdf(const QString &fileName, int width, int height, QCP::ExportPen exportPen, const QString &pdfCreator, const QString &pdfTitle)
 {

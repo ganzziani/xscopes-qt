@@ -173,6 +173,7 @@ private:
     void updateCursorVisibility();
     void positionHorizontalCursors();
     void applyGridPen();
+    void setupAboutTab();
     void showSnifferSettings(byte data);
     static double sweepFrequency(int sweep, int srate);
     double clampCursorY(double y) const;

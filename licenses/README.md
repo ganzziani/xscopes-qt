@@ -11,8 +11,8 @@ It contains third-party code under other licences. Nothing here is optional: kee
 | XScopes Interface (this application) | — | GPL-3.0-or-later | [`gpl.txt`](../gpl.txt) | this repository |
 | [Qt](https://www.qt.io/) 6 | 6.12.0, shipped as `Qt6*.dll` + plugins | LGPL-3.0, GPL-2.0 or GPL-3.0 (used here under GPL-3.0) | [`gpl.txt`](../gpl.txt) | <https://download.qt.io/archive/qt/6.12/6.12.0/submodules/> (`qtbase`, `qtsvg`, `qtserialport`) |
 | Third-party code inside the Qt libraries (PCRE2, zlib, libpng, libjpeg-turbo, FreeType, HarfBuzz, …) | as bundled in Qt 6.12.0 | BSD, MIT, Zlib, IJG, FTL and others, per component | `Qt-third-party.txt`, written into each binary distribution (see below) | part of the Qt sources above |
-| [dfu-programmer](https://github.com/dfu-programmer/dfu-programmer) | 1.1.0, linked into the binary | GPL-2.0-or-later (distributed here under GPL-3.0) | [`third_party/dfu-programmer/COPYING`](../third_party/dfu-programmer/COPYING) | [`third_party/dfu-programmer/`](../third_party/dfu-programmer/) — upstream tag `v1.1.0`, changes in `PATCHES.md`; credits in `AUTHORS` |
-| [QCustomPlot](https://www.qcustomplot.com/) | 2.1.1 | GPL-3.0-or-later | [`gpl.txt`](../gpl.txt); notice in [`qcustomplot.h`](../qcustomplot.h) | [`qcustomplot.cpp`](../qcustomplot.cpp), [`qcustomplot.h`](../qcustomplot.h) — unmodified |
+| [dfu-programmer](https://github.com/dfu-programmer/dfu-programmer) | 1.1.0, linked into the binary | GPL-2.0-or-later (distributed here under GPL-3.0) | [`third_party/dfu-programmer/COPYING`](../third_party/dfu-programmer/COPYING) | [`third_party/dfu-programmer/`](../third_party/dfu-programmer/) — upstream tag `v1.1.0`, changes in `PATCHES.md` and noted at the top of each changed file; credits in `AUTHORS` |
+| [QCustomPlot](https://www.qcustomplot.com/) | 2.1.1 | GPL-3.0-or-later | [`gpl.txt`](../gpl.txt); notice in [`qcustomplot.h`](../qcustomplot.h) | [`qcustomplot.cpp`](../qcustomplot.cpp), [`qcustomplot.h`](../qcustomplot.h) — `savePdf()` commented out, noted at the top of `qcustomplot.cpp` |
 | [QextSerialPort](https://github.com/qextserialport/qextserialport) | vendored | MIT | [`MIT-QextSerialPort.txt`](MIT-QextSerialPort.txt) (also in every file header) | [`extserialport/`](../extserialport/) — patched for Qt 6 only |
 | [libusb](https://libusb.info/) | 1.0.30, shipped as `libusb-1.0.dll` | LGPL-2.1-or-later | [`LGPL-2.1.txt`](LGPL-2.1.txt) | <https://github.com/libusb/libusb/releases/tag/v1.0.30> (archive verified in [`libs/win/README.md`](../libs/win/README.md)) |
 | [Liberation Mono](https://github.com/liberationfonts/liberation-fonts) | 2.1.5, embedded in the binary | SIL OFL 1.1 | [`OFL-1.1.txt`](OFL-1.1.txt) | [`Bitmaps/LiberationMono-Regular.ttf`](../Bitmaps/LiberationMono-Regular.ttf), [`-Bold.ttf`](../Bitmaps/LiberationMono-Bold.ttf) — unmodified |
@@ -23,12 +23,19 @@ It contains third-party code under other licences. Nothing here is optional: kee
 * **GPLv3 (application, QCustomPlot)**: a binary distribution must come with the GPLv3 text
   and the complete corresponding source. Under the GPLv3 that is more than this repository:
   it includes the shared libraries the application needs, so the Qt and libusb sources too.
-* **Source with each release**: publish, next to every binary download, this repository's
-  source for that release, the Qt source archives `qtbase-everywhere-src-6.12.0.tar.xz`,
-  `qtsvg-everywhere-src-6.12.0.tar.xz` and `qtserialport-everywhere-src-6.12.0.tar.xz`, and
-  `libusb-1.0.30.tar.bz2`. Offering them from the same place as the binary
-  covers both the GPLv3 and the LGPL-2.1; a link to an upstream site alone does not, because
-  that copy can disappear.
+* **Source with each release**: publish, next to every binary download (the GitHub release
+  `v<version>`), the source archive the installer build writes with the installer,
+  `XScopes-Interface-<version>-source.zip`: this repository at the commit the binary was built
+  from, plus the scripts that build the installer, which the GPL counts as part of the source
+  ("scripts used to control compilation and installation"). Publish with it the Qt source
+  archives `qtbase-everywhere-src-6.12.0.tar.xz`, `qtsvg-everywhere-src-6.12.0.tar.xz` and
+  `qtserialport-everywhere-src-6.12.0.tar.xz`, and `libusb-1.0.30.tar.bz2`. Offering them from
+  the same place as the binary covers both the GPLv3 (section 6d) and the LGPL-2.1; a link to an
+  upstream site alone does not, because that copy can disappear. Keep them there for as long as
+  that binary is offered. The installed `ReadMe.txt` names the release and these files.
+* **Modified third-party files** must say so, with a date (GPLv3 section 5a, GPLv2 section 2a):
+  the changed dfu-programmer files and `qcustomplot.cpp` carry such a note at the top. Add one
+  to any third-party file changed later.
 * **GPL-2.0-or-later (dfu-programmer)**: its files are compiled into the application, so the
   combined binary is distributed under GPLv3 (permitted by the "or later" clause). Keep the
   copyright headers in the vendored files and ship `COPYING`. Credits: `AUTHORS`.
@@ -46,6 +53,8 @@ It contains third-party code under other licences. Nothing here is optional: kee
   the payload's `licenses\` from the attribution pages in the documentation of the Qt version it builds with (`C:\Qt\Docs\Qt-<version>`,
   modules `qtcore`, `qtgui`, `qtnetwork`), leaving out components that Qt uses only on other
   platforms or to build itself. So it always matches the Qt DLLs it ships with.
+* **Legal notices in the program**: the About tab shows the copyright, the GPL, the absence of
+  warranty and where the source and the third-party licences are (`setupAboutTab()`).
 * **MIT (QextSerialPort)**: the copyright and permission notice must accompany copies; the file
   headers do that, and `MIT-QextSerialPort.txt` exists for binary-only distributions.
 * **SIL OFL 1.1 (Liberation Mono)**: the font may be bundled and modified, but it must ship with
@@ -76,5 +85,6 @@ The relative links in this file assume that layout (`../gpl.txt`), so keep `lice
 The installed `libusb-1.0.dll` must stay a drop-in replaceable DLL (do not merge it into the
 executable); the Qt DLLs and plugin folders next to it are deployed unmodified by `windeployqt`.
 
-And with every release, outside the installer: the source archives listed under "Source with
-each release" above.
+And with every release, outside the installer: the source archive the installer build writes and
+the Qt and libusb archives listed under "Source with each release" above, in a GitHub release
+named `v<version>`, which is where `ReadMe.txt` sends users.

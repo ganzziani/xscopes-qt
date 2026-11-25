@@ -1,3 +1,5 @@
+/* Modified for the XScopes Interface by Gabotronics, 2026-11-12, from dfu-programmer v1.1.0: 
+ * renamed from commands.c; message strings are const char*. Details in PATCHES.md. */
 /*
  * dfu-programmer
  *

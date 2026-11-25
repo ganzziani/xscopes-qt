@@ -1,3 +1,5 @@
+/* Modified for the XScopes Interface by Gabotronics, 2026-11-12, from dfu-programmer v1.1.0: 
+ * renamed from libdfu.c; #include <libusb.h> instead of <libusb-1.0/libusb.h>. Details in PATCHES.md. */
 /*
  * dfu-programmer
  *
