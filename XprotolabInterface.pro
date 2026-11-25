@@ -7,8 +7,8 @@ TEMPLATE = app
 # The application version, written down only here. qmake puts it in the Windows version
 # resource it generates (with the QMAKE_TARGET_* strings and RC_ICONS below) and in the macOS
 # Info.plist; main.cpp gets it as APP_VERSION_STRING; build-installer.bat reads this line.
-# 1.0.0.x was the Qt 4/5 series. The Qt 6 port is 1.1.x.
-VERSION = 1.1.0
+# 1.0.0.x was the Qt 4/5 series. The Qt 6 port is 2.x.
+VERSION = 2.0.0
 DEFINES += APP_VERSION_STRING=\\\"$$VERSION\\\"
 
 QMAKE_TARGET_COMPANY = Gabotronics

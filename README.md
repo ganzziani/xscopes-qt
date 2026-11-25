@@ -10,7 +10,7 @@ Copyright (C) Gabotronics. Licensed under the GNU GPL v3 or later, see [gpl.txt]
 History
 -------
 
-1.1.0   - Qt 6 (6.8+), in-process firmware update, sniffer layouts, Windows installer
+2.0.0   - Qt 6 (6.8+), in-process firmware update, sniffer layouts, Windows installer
 1.0.0.2 - Fixes for QT5
 1.0.0.1 - QT4 version
 
