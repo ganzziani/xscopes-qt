@@ -732,6 +732,13 @@ void XprotolabInterface::plotData() {
     } else if(ui->checkBoxRollMode->isChecked()) {
         i = usbDevice.chData[769];
     }
+    const int samples = (xmax + step - 1) / step;
+    key.reserve(samples);
+    ch1Buffer.reserve(samples);
+    ch2Buffer.reserve(samples);
+    chdRaw.reserve(samples);
+    for(int m = 0; m < 8; m++)
+        bit[m].reserve(samples);
     for(int xtime = 0; xtime < xmax; xtime += step, i++) {
         if(i > 255)
             i = 0;
