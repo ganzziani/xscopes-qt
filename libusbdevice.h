@@ -54,6 +54,10 @@ public:
     // bulk read is not resubmitted while paused; over serial it is auto mode.
     void pauseStream();
     void resumeStream();
+    // GUI thread: move the latest whole USB transfer into chData/dataLength and set
+    // dataAvailable. False when none arrived since the last call (or on serial, which
+    // fills chData itself on the GUI thread).
+    bool takeFrame();
 signals:
     // Emitted from the event thread when the device goes away, connected queued
     void deviceDisconnected();
@@ -84,15 +88,25 @@ public:
     libusb_hotplug_callback_handle hotplugHandle[2];
     struct libusb_transfer *pcToUsbDeviceTransfer;
     struct libusb_transfer *usbDeviceToPcTransfer;
+    // dataAvailable, dataLength and chData: GUI thread only. Over USB, takeFrame() copies
+    // a finished transfer in; libusb never writes here, so a frame cannot change while
+    // plotData() reads it.
     bool dataAvailable;
     bool isDeviceRemoved;   // set when libusb reports a lost device
     int count, dataLength;
     uint8_t chData[LEN_BULK_IN_BUFFER];
+    // Event thread: the bulk IN transfer's buffer, and the last whole transfer the
+    // callback published from it (under streamMutex, with latestLength/framePending).
+    uint8_t rxBuffer[LEN_BULK_IN_BUFFER];
+    uint8_t latestFrame[LEN_BULK_IN_BUFFER];
+    int latestLength;
+    bool framePending;
     byte inBuffer[LEN_CONTROL_BUFFER];
     byte awgBuffer[256];
     std::atomic<bool> enableEventThread;   // read from the event thread
     // The bulk read and pauseStream()/resumeStream() decide under this lock whether
     // a read is in flight, so a resume cannot race the callback that stops resubmitting.
+    // It also guards latestFrame/latestLength/framePending.
     QMutex streamMutex;
     bool streamPaused;
     bool readPending;

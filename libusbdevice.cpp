@@ -2,6 +2,7 @@
 #include "libusbdeviceinfo.h"
 
 #include <QtEndian>
+#include <cstring>
 #include <QElapsedTimer>
 #include <QThread>
 #include "qextserialport.h"
@@ -25,6 +26,8 @@ LibUsbDevice::LibUsbDevice(QObject *parent) :
     deviceCode = 0;
     streamPaused = false;
     readPending = false;
+    latestLength = 0;
+    framePending = false;
     clearData();    // chData is read before the device has filled it
     connect(&serial, SIGNAL(newData(int)), this, SLOT(newDataAvailable(int)));
     connect(&serial, SIGNAL(clear()), this, SLOT(clearData()));
@@ -44,6 +47,7 @@ void LibUsbDevice::reset() {
     QMutexLocker lock(&streamMutex);
     streamPaused = false;
     readPending = false;
+    framePending = false;
 }
 
 void LibUsbDevice::clearData() {
@@ -100,8 +104,11 @@ extern "C" void LIBUSB_CALL asyncBulkReadTransferCallback(struct libusb_transfer
         cthis->readPending = false;
         return;
     }
-    cthis->dataLength = transfer->actual_length;
-    cthis->dataAvailable = true;
+    // Publish the frame before its buffer goes back to libusb: the GUI thread takes it
+    // from latestFrame (takeFrame()), never from the buffer the next transfer fills.
+    std::memcpy(cthis->latestFrame, transfer->buffer, transfer->actual_length);
+    cthis->latestLength = transfer->actual_length;
+    cthis->framePending = true;
     if(libusb_submit_transfer(transfer) != LIBUSB_SUCCESS) {
         cthis->readPending = false;
         qDebug() << "Cannot resubmit bulk read transfer";
@@ -417,7 +424,7 @@ void LibUsbDevice::asyncBulkReadTransfer() {
             if(readPending)
                 return;     // one read in flight at a time: the callback resubmits it
             libusb_fill_bulk_transfer(usbDeviceToPcTransfer, deviceHandle, USB_ENDPOINT_IN,
-                                      chData, LEN_BULK_IN_BUFFER, asyncBulkReadTransferCallback, this, 0);
+                                      rxBuffer, LEN_BULK_IN_BUFFER, asyncBulkReadTransferCallback, this, 0);
             int status = libusb_submit_transfer(usbDeviceToPcTransfer);
             if(status != 0) {
                 cstatus = tr("Bulk read transfer failed!");
@@ -669,6 +676,7 @@ void LibUsbDevice::pauseStream() {
         // The firmware does not wait for a host that stopped reading (EP1Hold()).
         QMutexLocker lock(&streamMutex);
         streamPaused = true;
+        framePending = false;   // a frame from before the pause is not shown after it
     } else {
         turnOffAutoMode();
     }
@@ -685,6 +693,19 @@ void LibUsbDevice::resumeStream() {
     } else {
         turnOnAutoMode();
     }
+}
+
+bool LibUsbDevice::takeFrame() {
+    if(!wayOfConnecting)
+        return false;
+    QMutexLocker lock(&streamMutex);
+    if(!framePending)
+        return false;
+    std::memcpy(chData, latestFrame, latestLength);
+    dataLength = latestLength;
+    framePending = false;
+    dataAvailable = true;
+    return true;
 }
 
 void LibUsbDevice::turnOnAutoMode() {

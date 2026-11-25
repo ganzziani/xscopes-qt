@@ -671,6 +671,9 @@ void XprotolabInterface::plotData() {
     /*if(ui->tabWidgetMain->currentIndex() == 1) {
         ui->customPlot->clearGraphs();
     }*/
+    // Over USB, the newest whole transfer becomes chData here and stays as it is
+    // until the next call: libusb fills a buffer of its own meanwhile.
+    usbDevice.takeFrame();
     if(!usbDevice.dataAvailable && !m_repaint)
         return;
     else if(mode == SNIFFER) {
