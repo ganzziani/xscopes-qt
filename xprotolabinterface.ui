@@ -481,16 +481,6 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBoxCH1Math">
-                   <property name="toolTip">
-                    <string>The channel math will be enabled</string>
-                   </property>
-                   <property name="text">
-                    <string>Math</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
                   <widget class="QCheckBox" name="checkBoxCH1Derivative">
                    <property name="text">
                     <string>Derivative</string>
@@ -626,16 +616,6 @@
                    </property>
                    <property name="text">
                     <string>Invert</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QCheckBox" name="checkBoxCH2Math">
-                   <property name="toolTip">
-                    <string>The channel math will be enabled</string>
-                   </property>
-                   <property name="text">
-                    <string>Math</string>
                    </property>
                   </widget>
                  </item>
@@ -782,16 +762,6 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBoxCH3Math">
-                   <property name="toolTip">
-                    <string>The channel math will be enabled</string>
-                   </property>
-                   <property name="text">
-                    <string>Math</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
                   <widget class="QCheckBox" name="checkBoxCH3Derivative">
                    <property name="text">
                     <string>Derivative</string>
@@ -812,6 +782,9 @@
                    </property>
                    <property name="checkable">
                     <bool>true</bool>
+                   </property>
+                   <property name="checked">
+                    <bool>false</bool>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_19">
                     <property name="leftMargin">
@@ -934,16 +907,6 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBoxCH4Math">
-                   <property name="toolTip">
-                    <string>The channel math will be enabled</string>
-                   </property>
-                   <property name="text">
-                    <string>Math</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
                   <widget class="QCheckBox" name="checkBoxCH4Derivative">
                    <property name="text">
                     <string>Derivative</string>
@@ -964,6 +927,9 @@
                    </property>
                    <property name="checkable">
                     <bool>true</bool>
+                   </property>
+                   <property name="checked">
+                    <bool>false</bool>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_26">
                     <property name="leftMargin">
@@ -1323,14 +1289,10 @@
                  <property name="checkable">
                   <bool>true</bool>
                  </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
                  <layout class="QVBoxLayout" name="verticalLayout_38">
-                  <item>
-                   <widget class="QRadioButton" name="radioButtonRect">
-                    <property name="text">
-                     <string>Rectangular</string>
-                    </property>
-                   </widget>
-                  </item>
                   <item>
                    <widget class="QRadioButton" name="radioButtonFFTHamming">
                     <property name="text">

@@ -2066,7 +2066,7 @@ void XprotolabInterface::readDeviceSettings() {
     ui->checkBoxCH1AC->setChecked(((data & (byte)(1 << 3)) != 0));
     ui->checkBoxCH1Invert->setChecked(((data & (byte)(1 << 4)) != 0));
     ui->checkBoxCH1Average->setChecked(((data & (byte)(1 << 5)) != 0));
-    ui->checkBoxCH1Math->setChecked(((data & (byte)(1 << 6)) != 0));
+    ui->groupBoxCH1Math->setChecked(((data & (byte)(1 << 6)) != 0));
     if((data & (byte)(1 << 7)) != 0)
         ui->radioButtonCH1Subtract->setChecked(true);
     else
@@ -2079,7 +2079,7 @@ void XprotolabInterface::readDeviceSettings() {
     ui->checkBoxCH2AC->setChecked((data & (byte)(1 << 3)) != 0);
     ui->checkBoxCH2Invert->setChecked((data & (byte)(1 << 4)) != 0);
     ui->checkBoxCH2Average->setChecked((data & (byte)(1 << 5)) != 0);
-    ui->checkBoxCH2Math->setChecked((data & (byte)(1 << 6)) != 0);
+    ui->groupBoxCH2Math->setChecked((data & (byte)(1 << 6)) != 0);
     if((data & (byte)(1 << 7)) != 0)
         ui->radioButtonCH2Subtract->setChecked(true);
     else
@@ -2246,19 +2246,15 @@ void XprotolabInterface::readDeviceSettings() {
     // GPIO8 MFFT
     data = usbDevice.inBuffer[8];
     logToFile("GPIO8 MFFT: " + QString::number(data));
-    if((data & (byte)(1 << 0)) != 0) {
+    // No window bit is the rectangular window: the FFT Window group is unchecked.
+    ui->groupBoxFFTWindow->setChecked((data & 0x07) != 0);
+    if((data & (byte)(1 << 0)) != 0)
         ui->radioButtonFFTHamming->setChecked(true);
-        setFFTWindow(Hamming);
-    } else if((data & (byte)(1 << 1)) != 0) {
+    else if((data & (byte)(1 << 1)) != 0)
         ui->radioButtonFFTHann->setChecked(true);
-        setFFTWindow(Hann);
-    } else if((data & (byte)(1 << 2)) != 0) {
+    else if((data & (byte)(1 << 2)) != 0)
         ui->radioButtonFFTBlackman->setChecked(true);
-        setFFTWindow(Blackman);
-    } else {
-        ui->radioButtonRect->setChecked(true);
-        setFFTWindow(Rectangular);
-    }
+    setFFTWindow(selectedFFTWindow());
     ui->checkBoxFFTLogY->setChecked((data & (byte)(1 << 3)) != 0);
     ui->checkBoxFFTIQ->setChecked((data & (byte)(1 << 4)) != 0);
     ui->checkBoxXYMode->setChecked((data & (byte)(1 << 6)) != 0);
@@ -2662,7 +2658,7 @@ void XprotolabInterface::sendCH1Controls() {
         field += (1 << 4);
     if(ui->checkBoxCH1Average->isChecked())
         field += (1 << 5);
-    if(ui->checkBoxCH1Math->isChecked())
+    if(ui->groupBoxCH1Math->isChecked())
         field += (1 << 6);
     if(ui->radioButtonCH1Subtract->isChecked())
         field += (1 << 7);
@@ -2695,7 +2691,7 @@ void XprotolabInterface::on_checkBoxCH1AC_clicked() {
     sendCH1Controls();
 }
 
-void XprotolabInterface::on_checkBoxCH1Math_clicked() {
+void XprotolabInterface::on_groupBoxCH1Math_clicked() {
     sendCH1Controls();
     updateCh1Label();
 }
@@ -2723,7 +2719,7 @@ void XprotolabInterface::sendCH2Controls() {
         field += (1 << 4);
     if(ui->checkBoxCH2Average->isChecked())
         field += (1 << 5);
-    if(ui->checkBoxCH2Math->isChecked())
+    if(ui->groupBoxCH2Math->isChecked())
         field += (1 << 6);
     if(ui->radioButtonCH2Subtract->isChecked())
         field += (1 << 7);
@@ -2756,7 +2752,7 @@ void XprotolabInterface::on_checkBoxCH2AC_clicked() {
     sendCH2Controls();
 }
 
-void XprotolabInterface::on_checkBoxCH2Math_clicked() {
+void XprotolabInterface::on_groupBoxCH2Math_clicked() {
     sendCH2Controls();
     updateCh2Label();
 }
@@ -3151,14 +3147,28 @@ void XprotolabInterface::on_checkBoxElasticTrace_clicked() {
 
 
 // GPIO8 MFFT
+int XprotolabInterface::selectedFFTWindow() const {
+    // The FFT Window group unchecked is the rectangular window (no window bit).
+    if(!ui->groupBoxFFTWindow->isChecked())
+        return Rectangular;
+    if(ui->radioButtonFFTHann->isChecked())
+        return Hann;
+    if(ui->radioButtonFFTBlackman->isChecked())
+        return Blackman;
+    return Hamming;
+}
+
+byte XprotolabInterface::fftWindowBits() const {
+    switch(selectedFFTWindow()) {
+        case Hamming:  return 1 << 0;
+        case Hann:     return 1 << 1;
+        case Blackman: return 1 << 2;
+        default:       return 0;
+    }
+}
+
 void XprotolabInterface::sendMFFTControls() {
-    byte field = 0;
-    if(ui->radioButtonFFTHamming->isChecked())
-        field += (1 << 0);
-    else if(ui->radioButtonFFTHann->isChecked())
-        field += (1 << 1);
-    else if(ui->radioButtonFFTBlackman->isChecked())
-        field += (1 << 2);
+    byte field = fftWindowBits();
     if(ui->checkBoxFFTLogY->isChecked())
         field += (1 << 3);
     if(ui->checkBoxFFTIQ->isChecked()) {
@@ -3174,13 +3184,7 @@ void XprotolabInterface::sendMFFTControls() {
 }
 
 void XprotolabInterface::prepareMFFTControlsForMM() {
-    byte field = 0;
-    if(ui->radioButtonFFTHamming->isChecked())
-        field += (1 << 0);
-    else if(ui->radioButtonFFTHann->isChecked())
-        field += (1 << 1);
-    else if(ui->radioButtonFFTBlackman->isChecked())
-        field += (1 << 2);
+    byte field = fftWindowBits();
     if(ui->checkBoxFFTLogY->isChecked())
         field += (1 << 3);
     if(ui->checkBoxFFTIQ->isChecked()) {
@@ -3201,23 +3205,27 @@ void XprotolabInterface::on_checkBoxFFTIQ_clicked() {
     sendMFFTControls();
 }
 
-void XprotolabInterface::on_radioButtonRect_clicked() {
-    setFFTWindow(Rectangular);
+void XprotolabInterface::on_groupBoxFFTWindow_clicked() {
+    // Turning the window on with no window chosen yet (it was rectangular) picks Hamming.
+    if(ui->groupBoxFFTWindow->isChecked() && !ui->radioButtonFFTHamming->isChecked()
+       && !ui->radioButtonFFTHann->isChecked() && !ui->radioButtonFFTBlackman->isChecked())
+        ui->radioButtonFFTHamming->setChecked(true);
+    setFFTWindow(selectedFFTWindow());
     sendMFFTControls();
 }
 
 void XprotolabInterface::on_radioButtonFFTHamming_clicked() {
-    setFFTWindow(Hamming);
+    setFFTWindow(selectedFFTWindow());
     sendMFFTControls();
 }
 
 void XprotolabInterface::on_radioButtonFFTHann_clicked() {
-    setFFTWindow(Hann);
+    setFFTWindow(selectedFFTWindow());
     sendMFFTControls();
 }
 
 void XprotolabInterface::on_radioButtonFFTBlackman_clicked() {
-    setFFTWindow(Blackman);
+    setFFTWindow(selectedFFTWindow());
     sendMFFTControls();
 }
 
@@ -4711,7 +4719,7 @@ void XprotolabInterface::updateCh1Label() {
         tmp_label2 = "-CH2";
     else
         tmp_label2 = " CH2";
-    if(ui->checkBoxCH1Math->isChecked()) {
+    if(ui->groupBoxCH1Math->isChecked()) {
         if(ui->radioButtonCH1Subtract->isChecked()) {
             if(ui->checkBoxCH2Invert->isChecked())
                 tmp_text += " + CH2";
@@ -4731,7 +4739,7 @@ void XprotolabInterface::updateCh2Label() {
         tmp_text += "-CH2";
     else
         tmp_text += " CH2";
-    if(ui->checkBoxCH2Math->isChecked()) {
+    if(ui->groupBoxCH2Math->isChecked()) {
         if(ui->radioButtonCH2Subtract->isChecked()) {
             if(ui->checkBoxCH1Invert->isChecked())
                 tmp_text += " + CH1";

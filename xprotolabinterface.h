@@ -169,6 +169,8 @@ private:
     void setCursorVertical(bool on);
     void setCursorAuto(bool on);
     void setCursorTrack(bool on);
+    int selectedFFTWindow() const;
+    byte fftWindowBits() const;
     void sendMFFTControls();
     void prepareMFFTControlsForMM();
     void sendVerticalCursorA();
@@ -244,13 +246,13 @@ private slots:
     void on_sliderSampling_valueChanged(int value);
     void on_pushButtonAWGOpenCSV_clicked();
     void on_pushButtonAWGSaveCustom_clicked();
-    void on_checkBoxCH1Math_clicked();
+    void on_groupBoxCH1Math_clicked();
     void on_checkBoxCH1Invert_clicked();
     void on_groupBoxCH1_clicked();
     void on_checkBoxCH1Average_clicked();
     void on_checkBoxCH1Derivative_clicked();
     void on_checkBoxCH1AC_clicked();
-    void on_checkBoxCH2Math_clicked();
+    void on_groupBoxCH2Math_clicked();
     void on_checkBoxCH2Invert_clicked();
     void on_groupBoxCH2_clicked();
     void on_checkBoxCH2Average_clicked();
@@ -288,7 +290,7 @@ private slots:
     void on_checkBoxFFTLogY_clicked();
     void on_groupBoxFFT_clicked();
     void on_checkBoxFFTIQ_clicked();
-    void on_radioButtonRect_clicked();
+    void on_groupBoxFFTWindow_clicked();
     void on_radioButtonFFTHamming_clicked();
     void on_radioButtonFFTHann_clicked();
     void on_radioButtonFFTBlackman_clicked();
