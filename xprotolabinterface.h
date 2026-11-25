@@ -43,6 +43,7 @@
 #include "libusbdevice.h"
 #include "fft.h"
 #include "sniffer.h"
+#include "wavefile.h"
 
 #include <QFile>
 #include <QImage>
@@ -150,8 +151,12 @@ private:
     void setupCursors(QCustomPlot *);
     void setupItemLabels(QCustomPlot *);
     void setupScatterStyles(bool);
-    void saveWavetoFile();
-    QString saveWavetoString();
+    void saveWavetoFile(const QVector<double> &ch1, const QVector<double> &ch2, const QVector<double> *bit);
+    bool readWaveFile(const QString &path, QVector<WaveFrame> &frames);
+    void advancePlayback();
+    void stopPlayback();
+    void appendRecordedFrame(const QVector<double> &ch1, const QVector<double> &ch2, const QVector<double> *bit);
+    void stopRecording(bool report = true);
     void showDisplayBitmap();
     bool saveDisplayBmp(const QString &fileName);
     void closeEvent(QCloseEvent *);
@@ -470,9 +475,9 @@ private:
     static constexpr byte MaxHorizontalPosition = 127;
     // Reference traces: all 256 samples of the captured frame, in plot units and in the
     // order a slow sweep draws them (see captureReference()). They belong to the app only.
-    QVector<double> ch1RefBuffer, ch2RefBuffer, ch1SaveBuffer, ch2SaveBuffer;
+    QVector<double> ch1RefBuffer, ch2RefBuffer;
     int persistenceIndex;  // newest frame in the fading-copy ring
-    QVector<double> bitRef[8], bitSaveBuffer[8];
+    QVector<double> bitRef[8];
     bool initializing;
     QString defaultDir;
     QStringList triggerIconPathsG, triggerIconPathsR;
@@ -502,13 +507,12 @@ private:
     QTextStream *ts;
 
     bool recordingWaves;
-    QFile *recordWaveFile;
-    QTextStream *recordWaveTextStream;
-    QString dataToSave;
-    QList<QVector<double> > loadedWave;
-    QList<int> loadedFrequency;
-    bool loadRecordedWave;
-    int freqBeforeLoaded;
+    QFile m_recordFile;                 // Record appends each new frame to it
+    WaveFrame m_loadedFrame;            // Load Wave, shown in place of the live traces
+    QVector<WaveFrame> m_playFrames;    // Play
+    int m_playIndex = -1;               // the frame shown, -1 when not playing
+    int m_playSrateBefore = -1;         // the time base to put back when playback ends
+    QTimer m_playTimer;
     bool m_repaint;
     // Frame throttle: what the plot shows, and when it last repainted a device
     // frame. Only a payload that changed these bytes is worth a repaint.

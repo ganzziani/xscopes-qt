@@ -28,6 +28,7 @@ SOURCES += main.cpp\
     customtheme.cpp \
     serialportconnection.cpp \
     customcolors.cpp \
+    wavefile.cpp \
     filedownloader.cpp \
     bootloader.cpp \
     dfuprogrammerqt.cpp \
@@ -48,6 +49,7 @@ HEADERS  += xprotolabinterface.h \
     fft.h \
     complex.h \
     sniffer.h \
+    wavefile.h \
     customtheme.h \
     serialportconnection.h \
     customcolors.h \

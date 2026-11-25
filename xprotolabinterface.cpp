@@ -3,6 +3,7 @@
 #include <QActionGroup>
 #include <QScopeGuard>
 #include <QStandardItemModel>
+#include <QStandardPaths>
 #include <stdio.h>
 #include <string.h>
 
@@ -34,8 +35,8 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
         ts = new QTextStream(logFile);
     }
     recordingWaves = false;
-    recordWaveFile = new QFile();
-    loadRecordedWave = false;
+    m_playTimer.setInterval(31);    // about the frame rate a recording is made at
+    connect(&m_playTimer, &QTimer::timeout, this, &XprotolabInterface::advancePlayback);
     m_repaint = false;
     m_shownFrame = -1;
     m_shownIndex = -1;
@@ -170,11 +171,6 @@ XprotolabInterface::~XprotolabInterface() {
         logFile->close();
         delete logFile;
         delete ts;
-    }
-    if(recordWaveFile->isOpen()) {
-        recordWaveFile->close();
-        delete recordWaveFile;
-        delete recordWaveTextStream;
     }
     delete ui;
 }
@@ -699,7 +695,9 @@ void XprotolabInterface::plotData() {
     // holds whatever was there before - the flash of garbage at startup. (The
     // serial port fills this same buffer progressively and reports 3 bytes per
     // sample in roll mode, so it is not held to the frame length.)
-    if(usbDevice.wayOfConnecting && usbDevice.dataLength != 770)
+    // A loaded or played file is drawn without device frames (none, or the stream stopped)
+    const bool showingFile = displayLoadedWave || m_playIndex >= 0;
+    if(usbDevice.wayOfConnecting && usbDevice.dataLength != 770 && !(showingFile && m_repaint))
         return;
     // The device streams its buffer at its own pace even when it acquired nothing new:
     // on a slow timebase the same 770 bytes arrive ~50 times a second (measured on the
@@ -883,65 +881,23 @@ ENDSCAN:
         captureRef = false;
         captureReference();
     }
-    if(displayLoadedWave) {
-        ch1Buffer.clear();
-        ch1Buffer = ch1SaveBuffer;
-        ch2Buffer.clear();
-        ch2Buffer = ch2SaveBuffer;
-        for(int k = 0; k < 8; k++) {
-            bit[k].clear();
-            bit[k] = bitSaveBuffer[k];
-        }
-    }
-    if(loadRecordedWave) {
-        if(loadedWave.count() >= 10) {
-            usbDevice.controlWriteTransfer(0, (byte)loadedFrequency.at(0));
-            ui->sliderSampling->setValue(loadedFrequency.at(0));
-            usbDevice.serial.setSamplingValue(loadedFrequency.at(0));
-            loadedFrequency.removeFirst();
-            ch1Buffer.clear();
-            ch1Buffer = loadedWave.at(0);
-            loadedWave.removeFirst();
-            ch2Buffer.clear();
-            ch2Buffer = loadedWave.at(0);
-            loadedWave.removeFirst();
-            for(int k = 0; k < 8; k++) {
-                bit[k].clear();
-                bit[k] = loadedWave.at(0);
-                loadedWave.removeFirst();
-            }
-        } else {
-            loadRecordedWave = false;
-            ui->sliderSampling->setValue(freqBeforeLoaded);
-            usbDevice.serial.setSamplingValue(freqBeforeLoaded);
-            ui->labelRecordStatus->setText("");
-        }
+    // Record takes the live frame, before a loaded or played wave replaces it on screen
+    if(newFrame && recordingWaves)
+        appendRecordedFrame(ch1Buffer, ch2Buffer, bit);
+    const WaveFrame *fileFrame = nullptr;
+    if(m_playIndex >= 0 && m_playIndex < m_playFrames.size())
+        fileFrame = &m_playFrames[m_playIndex];
+    else if(displayLoadedWave)
+        fileFrame = &m_loadedFrame;
+    if(fileFrame) {
+        ch1Buffer = fileFrame->ch1;
+        ch2Buffer = fileFrame->ch2;
+        for(int k = 0; k < 8; k++)
+            bit[k] = fileFrame->bit[k];
     }
     if(saveWave) {
         saveWave = false;
-        ch1SaveBuffer.clear();
-        ch1SaveBuffer = ch1Buffer;
-        ch2SaveBuffer.clear();
-        ch2SaveBuffer = ch2Buffer;
-        for(int k = 0; k < 8; k++) {
-            bitSaveBuffer[k].clear();
-            bitSaveBuffer[k] = bit[k];
-        }
-        saveWavetoFile();
-    }
-    QString tmp_wave;
-    if(newFrame && recordingWaves) {
-        ch1SaveBuffer.clear();
-        ch1SaveBuffer = ch1Buffer;
-        ch2SaveBuffer.clear();
-        ch2SaveBuffer = ch2Buffer;
-        for(int k = 0; k < 8; k++) {
-            bitSaveBuffer[k].clear();
-            bitSaveBuffer[k] = bit[k];
-        }
-        tmp_wave = saveWavetoString();
-        dataToSave += QString::number(ui->sliderSampling->value()) + "<*>\n";
-        dataToSave += tmp_wave;
+        saveWavetoFile(ch1Buffer, ch2Buffer, bit);
     }
     // The reference traces are drawn at the height they were captured at. A fast time base
     // shows 128 of the 256 samples, from the horizontal position, like the live traces.
@@ -1841,55 +1797,67 @@ void XprotolabInterface::sniffProtocol() {
 }
 
 
-void XprotolabInterface::on_pushButtonPlay_clicked() {
-    ui->labelRecordStatus->setText("Reading data from file. Please wait");
-    QString fpath = QFileDialog::getOpenFileName(0, "Choose file with recorded wave", "", "Xscope files (*.xsp)");
-    activateWindow();
-    if(fpath != "") {
-        loadedWave.clear();
-        loadedFrequency.clear();
-        QString buffer;
-        QFile waveData(fpath);
-        if(waveData.open(QFile::ReadOnly)) {
-            freqBeforeLoaded = ui->sliderSampling->value();
-            buffer = waveData.readAll();
-            while(!buffer.isEmpty()) {
-                QStringList rawParsedData = buffer.split("<*>");
-                rawParsedData.removeAll("\n");
-                rawParsedData.removeAll("\r");
-                int freq = rawParsedData[0].toInt();
-                loadedFrequency.push_back(freq);
-                rawParsedData.removeFirst();
-                QStringList parsedData = rawParsedData[0].split(",");
-                QVector<double> tmp;
-                for(int i = 1; i < parsedData.length() - 1; i++) {
-                    tmp.push_back(parsedData[i].toDouble());
-                }
-                loadedWave.push_back(tmp);
-                parsedData.clear();
-                parsedData = rawParsedData[1].split(",");
-                QVector<double> tmp2;
-                for(int i = 1; i < parsedData.length() - 1; i++) {
-                    tmp2.push_back(parsedData[i].toDouble());
-                }
-                loadedWave.push_back(tmp2);
-                QVector<double> tmp3[8];
-                for(int k = 0; k < 8; k++) {
-                    parsedData.clear();
-                    parsedData = rawParsedData[k + 2].split(",");
-                    for(int i = 1; i < parsedData.length() - 1; i++) {
-                        tmp3[k].push_back(parsedData[i].toDouble());
-                    }
-                    loadedWave.push_back(tmp3[k]);
-                }
-                buffer = buffer.mid(buffer.indexOf("----------") + 10);
-            }
-        }
-        ui->labelRecordStatus->setText("Load recorded wave");
-        loadRecordedWave = true;
-    } else {
-        ui->labelRecordStatus->setText("");
+bool XprotolabInterface::readWaveFile(const QString &path, QVector<WaveFrame> &frames) {
+    QFile file(path);
+    if(!file.open(QFile::ReadOnly | QFile::Text) || !parseWaveFile(QString::fromUtf8(file.readAll()), frames)) {
+        QMessageBox::warning(this, tr("Open File"), tr("%1 has no waveform in it.").arg(QDir::toNativeSeparators(path)));
+        return false;
     }
+    defaultDir = QFileInfo(path).absolutePath();
+    return true;
+}
+
+// Plays a recording (or the one frame of a Save Wave file) at about the rate it was recorded,
+// at each frame's own time base. The device's time base is put back at the end.
+void XprotolabInterface::on_pushButtonPlay_clicked() {
+    const QString path = QFileDialog::getOpenFileName(this, tr("Choose file with recorded wave"), defaultDir,
+                         tr("Xscope files (*.xsp)"));
+    activateWindow();
+    if(path.isEmpty())
+        return;
+    stopPlayback();
+    ui->labelRecordStatus->setText(tr("Reading data from file. Please wait"));
+    QVector<WaveFrame> frames;
+    if(!readWaveFile(path, frames)) {
+        ui->labelRecordStatus->setText("");
+        return;
+    }
+    m_playFrames = std::move(frames);
+    m_playSrateBefore = ui->sliderSampling->value();
+    m_playIndex = -1;
+    ui->labelRecordStatus->setText(tr("Playing recorded wave"));
+    advancePlayback();
+    m_playTimer.start();
+}
+
+void XprotolabInterface::advancePlayback() {
+    if(m_playIndex + 1 >= m_playFrames.size()) {
+        stopPlayback();
+        return;
+    }
+    m_playIndex++;
+    const int srate = m_playFrames[m_playIndex].srate;
+    if(srate >= ui->sliderSampling->minimum() && srate <= ui->sliderSampling->maximum() &&
+            srate != ui->sliderSampling->value()) {
+        ui->sliderSampling->setValue(srate);
+        usbDevice.serial.setSamplingValue(srate);
+    }
+    m_repaint = true;
+}
+
+void XprotolabInterface::stopPlayback() {
+    m_playTimer.stop();
+    if(m_playIndex < 0)
+        return;
+    m_playIndex = -1;
+    m_playFrames.clear();
+    if(m_playSrateBefore >= 0 && m_playSrateBefore != ui->sliderSampling->value()) {
+        ui->sliderSampling->setValue(m_playSrateBefore);
+        usbDevice.serial.setSamplingValue(m_playSrateBefore);
+    }
+    m_playSrateBefore = -1;
+    ui->labelRecordStatus->setText("");
+    m_repaint = true;
 }
 
 void XprotolabInterface::on_pushButtonAuto_clicked() {
@@ -3982,7 +3950,8 @@ void XprotolabInterface::on_pushButtonSaveWave_clicked() {
     m_repaint = true;       // plotData() saves the frame on screen, also while the scope is stopped
 }
 
-void XprotolabInterface::saveWavetoFile() {
+void XprotolabInterface::saveWavetoFile(const QVector<double> &ch1, const QVector<double> &ch2,
+        const QVector<double> *bit) {
     QString fileName = "waveFile" + QTime::currentTime().toString() + ".xsp";
     fileName.replace(":", "");
     if(filePath.isEmpty()) {
@@ -3992,179 +3961,32 @@ void XprotolabInterface::saveWavetoFile() {
         return;
     defaultDir = filePath;
     QFile waveData(filePath + QDir::separator() + fileName);
-    if(waveData.open(QFile::WriteOnly | QFile::Truncate | QIODevice::Text)) {
-        QTextStream out(&waveData);
-        out << "CH1,";
-        for(int i = 0; i < ch1SaveBuffer.size(); i++) {
-            out << ch1SaveBuffer[i] << ",";
-        }
-        out << "<*>" << Qt::endl;
-        out << "CH2,";
-        for(int i = 0; i < ch2SaveBuffer.size(); i++) {
-            out << ch2SaveBuffer[i] << ",";
-        }
-        out << "<*>" << Qt::endl;
-        out << "Bit0,";
-        for(int i = 0; i < bitSaveBuffer[0].size(); i++) {
-            out << bitSaveBuffer[0].at(i) << ",";
-        }
-        out << "<*>" << Qt::endl;
-        out << "Bit1,";
-        for(int i = 0; i < bitSaveBuffer[1].size(); i++) {
-            out << bitSaveBuffer[1].at(i) << ",";
-        }
-        out << "<*>" << Qt::endl;
-        out << "Bit2,";
-        for(int i = 0; i < bitSaveBuffer[2].size(); i++) {
-            out << bitSaveBuffer[2].at(i) << ",";
-        }
-        out << "<*>" << Qt::endl;
-        out << "Bit3,";
-        for(int i = 0; i < bitSaveBuffer[3].size(); i++) {
-            out << bitSaveBuffer[3].at(i) << ",";
-        }
-        out << "<*>" << Qt::endl;
-        out << "Bit4,";
-        for(int i = 0; i < bitSaveBuffer[4].size(); i++) {
-            out << bitSaveBuffer[4].at(i) << ",";
-        }
-        out << "<*>" << Qt::endl;
-        out << "Bit5,";
-        for(int i = 0; i < bitSaveBuffer[5].size(); i++) {
-            out << bitSaveBuffer[5].at(i) << ",";
-        }
-        out << "<*>" << Qt::endl;
-        out << "Bit6,";
-        for(int i = 0; i < bitSaveBuffer[6].size(); i++) {
-            out << bitSaveBuffer[6].at(i) << ",";
-        }
-        out << "<*>" << Qt::endl;
-        out << "Bit7,";
-        for(int i = 0; i < bitSaveBuffer[7].size(); i++) {
-            out << bitSaveBuffer[7].at(i) << ",";
-        }
-    }
-    waveData.close();
-    ch1SaveBuffer.clear();
-    ch2SaveBuffer.clear();
-    for(int k = 0; k < 8; k++) {
-        bitSaveBuffer[k].clear();
+    const QByteArray text = waveFrameText(ch1, ch2, bit).toUtf8();
+    if(!waveData.open(QFile::WriteOnly | QFile::Truncate | QIODevice::Text) || waveData.write(text) != text.size()) {
+        ui->labelFileStatus->setText(tr("Could not write %1").arg(fileName));
+        return;
     }
     ui->labelFileStatus->setText("File " + fileName + " created!");
 }
 
-QString XprotolabInterface::saveWavetoString() {
-    QString out;
-    out += "CH1,";
-    for(int i = 0; i < ch1SaveBuffer.size(); i++) {
-        out += QString::number(ch1SaveBuffer[i]);
-        out += ",";
-    }
-    out += "<*>\n";
-    out += "CH2,";
-    for(int i = 0; i < ch2SaveBuffer.size(); i++) {
-        out += QString::number(ch2SaveBuffer[i]);
-        out += ",";
-    }
-    out += "<*>\n";
-    out += "Bit0,";
-    for(int i = 0; i < bitSaveBuffer[0].size(); i++) {
-        out += QString::number(bitSaveBuffer[0].at(i));
-        out += ",";
-    }
-    out += "<*>\n";
-    out += "Bit1,";
-    for(int i = 0; i < bitSaveBuffer[1].size(); i++) {
-        out += QString::number(bitSaveBuffer[1].at(i));
-        out += ",";
-    }
-    out += "<*>\n";
-    out += "Bit2,";
-    for(int i = 0; i < bitSaveBuffer[2].size(); i++) {
-        out += QString::number(bitSaveBuffer[2].at(i));
-        out += ",";
-    }
-    out += "<*>\n";
-    out += "Bit3,";
-    for(int i = 0; i < bitSaveBuffer[3].size(); i++) {
-        out += QString::number(bitSaveBuffer[3].at(i));
-        out += ",";
-    }
-    out += "<*>\n";
-    out += "Bit4,";
-    for(int i = 0; i < bitSaveBuffer[4].size(); i++) {
-        out += QString::number(bitSaveBuffer[4].at(i));
-        out += ",";
-    }
-    out += "<*>\n";
-    out += "Bit5,";
-    for(int i = 0; i < bitSaveBuffer[5].size(); i++) {
-        out += QString::number(bitSaveBuffer[5].at(i));
-        out += ",";
-    }
-    out += "<*>\n";
-    out += "Bit6,";
-    for(int i = 0; i < bitSaveBuffer[6].size(); i++) {
-        out += QString::number(bitSaveBuffer[6].at(i));
-        out += ",";
-    }
-    out += "<*>\n";
-    out += "Bit7,";
-    for(int i = 0; i < bitSaveBuffer[7].size(); i++) {
-        out += QString::number(bitSaveBuffer[7].at(i));
-        out += ",";
-    }
-    ch1SaveBuffer.clear();
-    ch2SaveBuffer.clear();
-    for(int k = 0; k < 8; k++) {
-        bitSaveBuffer[k].clear();
-    }
-    out += "----------";
-    return out;
-}
-
 void XprotolabInterface::on_pushButtonLoadWave_clicked() {
-    on_pushButtonClearWave_clicked();
-    QString buffer;
-    QString fpath;
-    fpath = QFileDialog::getOpenFileName(this, tr("Open File"),
-                                         defaultDir, "Xscope files (*.xsp)");
-    if(fpath.isEmpty()) {
+    const QString path = QFileDialog::getOpenFileName(this, tr("Open File"), defaultDir, tr("Xscope files (*.xsp)"));
+    if(path.isEmpty())
         return;
-    }
-    QFile waveData(fpath);
-    if(waveData.open(QFile::ReadOnly)) {
-        buffer = waveData.readAll();
-        QStringList rawParsedData = buffer.split("<*>");
-        rawParsedData.removeAll("\n");
-        rawParsedData.removeAll("\r");
-        QStringList parsedData = rawParsedData[0].split(",");
-        for(int i = 1; i < parsedData.length() - 1; i++) {
-            ch1SaveBuffer.push_back(parsedData[i].toDouble());
-        }
-        parsedData.clear();
-        parsedData = rawParsedData[1].split(",");
-        for(int i = 1; i < parsedData.length() - 1; i++) {
-            ch2SaveBuffer.push_back(parsedData[i].toDouble());
-        }
-        for(int k = 0; k < 8; k++) {
-            parsedData.clear();
-            parsedData = rawParsedData[k + 2].split(",");
-            for(int i = 1; i < parsedData.length() - 1; i++) {
-                bitSaveBuffer[k].push_back(parsedData[i].toDouble());
-            }
-        }
-        displayLoadedWave = true;
-    }
+    QVector<WaveFrame> frames;
+    if(!readWaveFile(path, frames))
+        return;
+    m_loadedFrame = frames.first();
+    displayLoadedWave = true;
+    ui->labelFileStatus->setText(tr("Loaded %1").arg(QFileInfo(path).fileName()));
+    m_repaint = true;       // shown now, also with the scope stopped or no device
 }
 
 void XprotolabInterface::on_pushButtonClearWave_clicked() {
     displayLoadedWave = false;
-    ch1SaveBuffer.clear();
-    ch2SaveBuffer.clear();
-    for(int k = 0; k < 8; k++) {
-        bitSaveBuffer[k].clear();
-    }
+    m_loadedFrame = WaveFrame();
+    ui->labelFileStatus->setText("");
+    m_repaint = true;
 }
 
 void XprotolabInterface::updatePersistencePens() {
@@ -4509,32 +4331,51 @@ void XprotolabInterface::logToFile(QString s) {
     }
 }
 
+// Each new frame is appended to the file as it arrives (it was kept in memory until Stop,
+// about 2 GB an hour). The file goes to the last folder used, or Documents.
 void XprotolabInterface::on_pushButtonRecord_clicked() {
-    if(!recordingWaves) {
-        ui->pushButtonRecord->setText("Stop");
-        ui->pushButtonRecord->setIcon(QIcon(":/Bitmaps/Bitmaps/ico-record-active.png"));
-        ui->labelRecordStatus->setText("Recording wave.");
-        recordingWaves = true;
-        recordWaveFile->setFileName("record" + QDateTime::currentDateTime().toString("yyyy-MM-ddhh-mm-ss") + ".xsp");
-        if(!recordWaveFile->open(QIODevice::Text | QIODevice::WriteOnly)) {
-            recordingWaves = false;
-            return;
-        }
-        recordWaveTextStream = new QTextStream(recordWaveFile);
-        dataToSave = "";
-    } else {
-        ui->pushButtonRecord->setText("Record");
-        ui->pushButtonRecord->setIcon(QIcon(":/Bitmaps/Bitmaps/ico-record.png"));
-        ui->labelRecordStatus->setText("");
-        (*recordWaveTextStream) << dataToSave;
-        recordingWaves = false;
-        delete recordWaveTextStream;
-        recordWaveFile->close();
-        ui->labelRecordStatus->setText("");
-        QMessageBox msgBox(QMessageBox::Information, "Success", "File " + recordWaveFile->fileName() + " saved.");
-        msgBox.setWindowIcon(QIcon(":/Bitmaps/Bitmaps/GT-icon24.png"));
-        msgBox.exec();
+    if(recordingWaves) {
+        stopRecording();
+        return;
     }
+    QString dir = defaultDir;
+    if(dir.isEmpty() || !QDir(dir).exists())
+        dir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    m_recordFile.setFileName(QDir(dir).filePath("record" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + ".xsp"));
+    if(!m_recordFile.open(QIODevice::Text | QIODevice::WriteOnly)) {
+        QMessageBox::warning(this, tr("Record"), tr("Could not create %1:\n%2")
+                             .arg(QDir::toNativeSeparators(m_recordFile.fileName()), m_recordFile.errorString()));
+        return;
+    }
+    recordingWaves = true;
+    ui->pushButtonRecord->setText("Stop");
+    ui->pushButtonRecord->setIcon(QIcon(":/Bitmaps/Bitmaps/ico-record-active.png"));
+    ui->labelRecordStatus->setText(tr("Recording wave."));
+}
+
+void XprotolabInterface::appendRecordedFrame(const QVector<double> &ch1, const QVector<double> &ch2,
+        const QVector<double> *bit) {
+    const QByteArray text = recordedFrameText(ui->sliderSampling->value(), ch1, ch2, bit).toUtf8();
+    if(m_recordFile.write(text) != text.size()) {
+        const QString error = m_recordFile.errorString();
+        stopRecording(false);
+        QMessageBox::warning(this, tr("Record"), tr("Recording stopped, the file could not be written:\n%1").arg(error));
+    }
+}
+
+void XprotolabInterface::stopRecording(bool report) {
+    recordingWaves = false;
+    const qint64 size = m_recordFile.size();
+    m_recordFile.close();
+    ui->pushButtonRecord->setText("Record");
+    ui->pushButtonRecord->setIcon(QIcon(":/Bitmaps/Bitmaps/ico-record.png"));
+    ui->labelRecordStatus->setText("");
+    if(!report)
+        return;
+    QMessageBox msgBox(QMessageBox::Information, "Success", tr("File %1 saved (%2 kB).")
+                       .arg(QDir::toNativeSeparators(m_recordFile.fileName())).arg(size / 1024));
+    msgBox.setWindowIcon(QIcon(":/Bitmaps/Bitmaps/GT-icon24.png"));
+    msgBox.exec();
 }
 
 void XprotolabInterface::on_radioButtonSerialPort_clicked() {

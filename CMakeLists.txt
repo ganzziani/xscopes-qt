@@ -107,6 +107,7 @@ set(HEADER_SRC
     fft.h
     complex.h
     sniffer.h
+    wavefile.h
     customcolors.h
     customtheme.h
     serialportconnection.h
@@ -120,6 +121,7 @@ set(CPP_SRC main.cpp
     fft.cpp
     complex.cpp
     customcolors.cpp
+    wavefile.cpp
     customtheme.cpp
     serialportconnection.cpp
     bootloader.cpp
