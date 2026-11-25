@@ -941,11 +941,9 @@ ENDSCAN:
     }
     // The reference traces are drawn at the height they were captured at. A fast time base
     // shows 128 of the 256 samples, from the horizontal position, like the live traces.
-    // Unchecking the Reference group hides them all.
-    const bool showRef = ui->groupBoxReference->isChecked();
-    const bool showCh1Ref = showRef && ui->checkBoxRefCH1->isChecked() && !ch1RefBuffer.isEmpty();
-    const bool showCh2Ref = showRef && ui->checkBoxRefCH2->isChecked() && !ch2RefBuffer.isEmpty();
-    const bool showChdRef = showRef && ui->checkBoxRefCHD->isChecked() && !bitRef[0].isEmpty();
+    const bool showCh1Ref = ui->checkBoxRefCH1->isChecked() && !ch1RefBuffer.isEmpty();
+    const bool showCh2Ref = ui->checkBoxRefCH2->isChecked() && !ch2RefBuffer.isEmpty();
+    const bool showChdRef = ui->checkBoxRefCHD->isChecked() && !bitRef[0].isEmpty();
     const int refFirst = ui->sliderSampling->value() < 11 ? m_horizontalPosition : 0;
     if(showCh1Ref)
         ch1RefBuff = ch1RefBuffer.mid(refFirst, key.size());
