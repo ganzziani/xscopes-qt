@@ -3040,6 +3040,7 @@ void XprotolabInterface::on_checkBoxPersistence_clicked() {
 
 void XprotolabInterface::on_checkBoxVectors_clicked() {
     setupScatterStyles(ui->checkBoxVectors->isChecked());
+    clearPersistenceImage();    // restart Infinite persistence in the new style
     sendDisplayControls();
 }
 
@@ -4373,6 +4374,15 @@ void XprotolabInterface::drawPersistenceFrame(const QVector<double> &key,
     QImage &image = persistenceItem->image;
     QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing, true);
+    // The analog traces as the live graphs draw them: lines with Vectors on, else one dot
+    // per sample (see setupScatterStyles()). Logic bits are always steps.
+    const bool vectors = ui->checkBoxVectors->isChecked();
+    auto drawSamples = [&](const QPolygonF &poly) {
+        if(vectors)
+            painter.drawPolyline(poly);
+        else
+            painter.drawPoints(poly);
+    };
     const int count = qMin(key.size(), ch1Buffer.size());
     if(ui->groupBoxCH1->isChecked() && count > 1) {
         QPolygonF poly;
@@ -4383,7 +4393,7 @@ void XprotolabInterface::drawPersistenceFrame(const QVector<double> &key,
         pen.setCapStyle(Qt::RoundCap);
         pen.setJoinStyle(Qt::RoundJoin);
         painter.setPen(pen);
-        painter.drawPolyline(poly);
+        drawSamples(poly);
     }
     const int count2 = qMin(key.size(), ch2Buffer.size());
     if(ui->groupBoxCH2->isChecked() && ui->sliderSampling->value() > 0 && count2 > 1) {
@@ -4395,7 +4405,7 @@ void XprotolabInterface::drawPersistenceFrame(const QVector<double> &key,
         pen.setCapStyle(Qt::RoundCap);
         pen.setJoinStyle(Qt::RoundJoin);
         painter.setPen(pen);
-        painter.drawPolyline(poly);
+        drawSamples(poly);
     }
     if(ui->groupBoxCHD->isChecked()) {
         for(int k = 0; k < 8; k++) {
