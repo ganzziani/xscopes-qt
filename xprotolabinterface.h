@@ -186,6 +186,7 @@ private:
     void sendMStatusControlsForMM();
     void updateFrequency();
     void sendDesiredFrequency(double value);
+    void setHorizontalPosition(int position);
     void updatePersistencePens();
     void applyPersistenceStyle();
     void clearPersistenceHistory();
@@ -235,7 +236,6 @@ private slots:
     void setTheme(int, CustomColors *customColors = nullptr);
     void on_pushButtonConnect_clicked();
     void onDeviceDisconnected();
-    void xAxisChanged(QCPRange);
     void on_pushButtonStartStop_clicked();
     void on_radioButtonAWGExpo_clicked();
     void on_radioButtonAWGTriangle_clicked();
@@ -315,7 +315,6 @@ private slots:
     void on_pushButtonForceTrigger_clicked();
     void on_sliderCH1Gain_valueChanged(int value);
     void on_sliderCH2Gain_valueChanged(int value);
-    void on_scrollBarTimePosition_valueChanged(int position);
     void on_doubleSpinBoxTriggerHold_valueChanged(double arg1);
     void on_comboBoxTriggerSource_currentIndexChanged(int index);
     void on_doubleSpinBoxTriggerTimeout_valueChanged(double arg1);
@@ -458,7 +457,9 @@ private:
     int triggerPost, triggerLevel, triggerWin1Level, triggerWin2Level;
     int currentSelected;
     QPointF m_dragStart;        // where a 0 V line or pan drag began, in pixels
-    int m_dragStartValue;       // the channel position or scroll bar value at that point
+    int m_dragStartValue;       // the channel or horizontal position at that point
+    int m_horizontalPosition;   // M 14: first sample shown at the fast time bases (0..MaxHorizontalPosition)
+    static constexpr byte MaxHorizontalPosition = 127;
     // Reference traces: all 256 samples of the captured frame, in plot units and in the
     // order a slow sweep draws them (see captureReference()). They belong to the app only.
     QVector<double> ch1RefBuffer, ch2RefBuffer, ch1SaveBuffer, ch2SaveBuffer;

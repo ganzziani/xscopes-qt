@@ -42,7 +42,7 @@
        <enum>Qt::Orientation::Horizontal</enum>
       </property>
       <widget class="QWidget" name="widgetPlot" native="true">
-       <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,0">
+       <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0">
         <item>
          <widget class="QCustomPlot" name="customPlot" native="true">
           <property name="sizePolicy">
@@ -220,22 +220,6 @@
           </item>
          </layout>
         </item>
-        <item>
-         <widget class="QScrollBar" name="scrollBarTimePosition">
-          <property name="maximum">
-           <number>127</number>
-          </property>
-          <property name="value">
-           <number>127</number>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Orientation::Horizontal</enum>
-          </property>
-          <property name="invertedControls">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
        </layout>
       </widget>
       <widget class="QTabWidget" name="tabWidgetMain">
@@ -244,18 +228,6 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>525</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>525</width>
-         <height>16777215</height>
-        </size>
        </property>
        <property name="font">
         <font>

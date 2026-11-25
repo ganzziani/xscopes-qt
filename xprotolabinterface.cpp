@@ -41,6 +41,11 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     ui->setupUi(this);
     m_prevTabIndex = 0;
     ui->tabWidgetMain->setCurrentIndex(0);
+    // The splitter handle moves the border between the plot and the tabs. A wider window goes to
+    // the plot, and neither side can be collapsed below its minimum size by dragging.
+    ui->splitterMain->setStretchFactor(0, 1);
+    ui->splitterMain->setStretchFactor(1, 0);
+    ui->splitterMain->setChildrenCollapsible(false);
     QFile file_css;
 #if defined(Q_OS_MAC)
     file_css.setFileName(":/Bitmaps/mac-css.qss");
@@ -72,6 +77,7 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     ch1ZeroPos = ch2ZeroPos = rangeMax / 2;
     currentSelected = isNone;
     m_dragStartValue = 0;
+    m_horizontalPosition = MaxHorizontalPosition;
     m_ch1Position = m_ch2Position = 0;
     m_chdPosition = 3;      // the old sliders' default
     chdZeroPos = kChdPositionBase + m_chdPosition * kChdPositionStep;
@@ -762,7 +768,7 @@ void XprotolabInterface::plotData() {
     int step = 1, i = 0;
     if(ui->sliderSampling->value() < 11) {
         step = 2;
-        i = ui->scrollBarTimePosition->value();
+        i = m_horizontalPosition;
         minX2 = 127;
         samples = 127;
     } else if(ui->checkBoxRollMode->isChecked()) {
@@ -829,14 +835,14 @@ void XprotolabInterface::plotData() {
                 bit[m].push_back(pos);
                 textLabelBit[m]->position->setCoords(246, pos - 5);
                 if(m + 2 == ui->comboBoxTriggerSource->currentIndex() && ui->groupBoxCHD->isChecked())
-                    moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((triggerPost - ui->scrollBarTimePosition->value()) * 2), ui->customPlot->yAxis->coordToPixel(pos)));
+                    moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((triggerPost - m_horizontalPosition) * 2), ui->customPlot->yAxis->coordToPixel(pos)));
             } else {
                 pos = chdOffset - 10 - ui->sliderCHDSize->value();
                 bit[m].push_back(chdOffset - 10);
                 pos = chdOffset + ui->sliderCHDSize->value();
                 textLabelBit[m]->position->setCoords(246, pos - 5);
                 if(m + 2 == ui->comboBoxTriggerSource->currentIndex() && ui->groupBoxCHD->isChecked())
-                    moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((triggerPost - ui->scrollBarTimePosition->value()) * 2), ui->customPlot->yAxis->coordToPixel(pos)));
+                    moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((triggerPost - m_horizontalPosition) * 2), ui->customPlot->yAxis->coordToPixel(pos)));
             }
         }
     }
@@ -963,13 +969,13 @@ ENDSCAN:
         dataToSave += tmp_wave;
     }
     // The reference traces are drawn at the height they were captured at. A fast time base
-    // shows 128 of the 256 samples, from the scroll bar's position, like the live traces.
+    // shows 128 of the 256 samples, from the horizontal position, like the live traces.
     // Unchecking the Reference group hides them all.
     const bool showRef = ui->groupBoxReference->isChecked();
     const bool showCh1Ref = showRef && ui->checkBoxRefCH1->isChecked() && !ch1RefBuffer.isEmpty();
     const bool showCh2Ref = showRef && ui->checkBoxRefCH2->isChecked() && !ch2RefBuffer.isEmpty();
     const bool showChdRef = showRef && ui->checkBoxRefCHD->isChecked() && !bitRef[0].isEmpty();
-    const int refFirst = ui->sliderSampling->value() < 11 ? ui->scrollBarTimePosition->value() : 0;
+    const int refFirst = ui->sliderSampling->value() < 11 ? m_horizontalPosition : 0;
     if(showCh1Ref)
         ch1RefBuff = ch1RefBuffer.mid(refFirst, key.size());
     if(showCh2Ref)
@@ -1045,7 +1051,7 @@ ENDSCAN:
                     CFFT::Forward(pSignal2, 256);
             } else
                 CFFT::Forward(pSignal1, 256);
-            i = ui->scrollBarTimePosition->value();
+            i = m_horizontalPosition;
             for(int k = 0; k < 128; k++, i++) {
                 if(i > 255)
                     i = 0;
@@ -1347,10 +1353,10 @@ void XprotolabInterface::moveCursor(QMouseEvent *event) {
                     setCh2Position(m_dragStartValue + dy);
             } else if(currentSelected == isPan) {
                 // A sample is 2 plot units wide. Dragging right brings earlier samples
-                // into view, so the scroll bar (first sample shown) goes down.
+                // into view, so the horizontal position (first sample shown) goes down.
                 QCPAxis *xAxis = ui->customPlot->xAxis;
                 const double dx = xAxis->pixelToCoord(event->position().x()) - xAxis->pixelToCoord(m_dragStart.x());
-                ui->scrollBarTimePosition->setValue(m_dragStartValue - qRound(dx / 2));
+                setHorizontalPosition(m_dragStartValue - qRound(dx / 2));
             } else if(currentSelected == isTriggerPixmap) {
                 triggerLevel = 511 - ui->customPlot->yAxis->pixelToCoord(event->position().toPoint().y());
                 triggerLevel += offset;
@@ -1359,7 +1365,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event) {
                     triggerPost = 255;
                 else if(triggerPost < 0)
                     triggerPost = 0;
-                triggerPost = triggerPost / 2 + ui->scrollBarTimePosition->value();
+                triggerPost = triggerPost / 2 + m_horizontalPosition;
                 setTriggerLevelPosition(event->pos(), Other);
             } else if(currentSelected == isTriggerWin1Pixmap) {
                 triggerWin1Level = 255 - ui->customPlot->yAxis->pixelToCoord(event->position().toPoint().y()) / 2;
@@ -1372,7 +1378,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event) {
                     triggerPost = 255;
                 else if(triggerPost < 0)
                     triggerPost = 0;
-                triggerPost = triggerPost / 2 + ui->scrollBarTimePosition->value();
+                triggerPost = triggerPost / 2 + m_horizontalPosition;
                 if(triggerWin1Level < rangeMax / 4)
                     triggerWin1Level = rangeMax / 4;
                 else if(triggerWin1Level > rangeMax * 3 / 4)
@@ -1389,7 +1395,7 @@ void XprotolabInterface::moveCursor(QMouseEvent *event) {
                     triggerPost = 255;
                 else if(triggerPost < 0)
                     triggerPost = 0;
-                triggerPost = triggerPost / 2 + ui->scrollBarTimePosition->value();
+                triggerPost = triggerPost / 2 + m_horizontalPosition;
                 if(triggerWin2Level < rangeMax / 4)
                     triggerWin2Level = rangeMax / 4;
                 else if(triggerWin1Level > rangeMax * 3 / 4)
@@ -1610,7 +1616,7 @@ void XprotolabInterface::selectItem(QMouseEvent *event) {
         m_dragStartValue = m_ch2Position;
         break;
     case isPan:
-        m_dragStartValue = ui->scrollBarTimePosition->value();
+        m_dragStartValue = m_horizontalPosition;
         break;
     case isNone:
         break;
@@ -1637,7 +1643,7 @@ void XprotolabInterface::deselectItem(QMouseEvent *event) {
 void XprotolabInterface::setTriggerLevelPosition(QPointF pos, int type) {
     if(ui->radioButtonTriggerFree->isChecked())
         return;
-    initPosScroll = ui->scrollBarTimePosition->value();
+    initPosScroll = m_horizontalPosition;
     int curPosX = pos.rx();
     if(curPosX < 16)
         curPosX = 16;
@@ -1880,11 +1886,6 @@ void XprotolabInterface::sniffProtocol() {
         ui->textEditI2C->setPlainText((QString)i2cData);
     }
     sniffBuffer = tempBuffer;
-}
-
-void XprotolabInterface::xAxisChanged(QCPRange range) {
-    ui->scrollBarTimePosition->setValue(qRound(range.center() * 1000.0)); // adjust position of scroll bar slider
-    ui->scrollBarTimePosition->setPageStep(qRound(range.size() * 1000.0)); // adjust size of scroll bar slider
 }
 
 
@@ -2344,8 +2345,8 @@ void XprotolabInterface::readDeviceSettings() {
     // M 14 HPos
     data = usbDevice.inBuffer[14];
     logToFile("M 14 HPos: " + QString::number(data));
-    if((byte)data >= ui->scrollBarTimePosition->minimum() && (byte)data <= ui->scrollBarTimePosition->maximum())
-        ui->scrollBarTimePosition->setValue((byte)data);
+    if((byte)data <= MaxHorizontalPosition)
+        setHorizontalPosition((byte)data);
     // M 15 Vertical cursor A
     data = usbDevice.inBuffer[15];
     logToFile("M 15 Vertical cursor A: " + QString::number(data));
@@ -2545,14 +2546,14 @@ void XprotolabInterface::readDeviceSettings() {
     ch2ZeroPos = rangeMax / 2 + m_ch2Position;
     int value = 0, hpos;
     triggerPost = 256 - triggerPost;
-    hpos = triggerPost * 2 - (ui->scrollBarTimePosition->value() * 2);
+    hpos = triggerPost * 2 - (m_horizontalPosition * 2);
     if(ui->comboBoxTriggerSource->currentIndex() == 0) {
         value = m_ch1Position;
     } else if(ui->comboBoxTriggerSource->currentIndex() == 1) {
         value = m_ch2Position;
     } else
         bitTriggerSource = true;
-    initPosScroll = ui->scrollBarTimePosition->value();
+    initPosScroll = m_horizontalPosition;
     setTriggerIcon(trigIcon);
     triggerLevel = 2 * tlevel;
     triggerPixmap->topLeft->setCoords(hpos, triggerLevel + value);
@@ -3425,8 +3426,12 @@ void XprotolabInterface::on_sliderCH2Gain_valueChanged(int value) {
     ui->labelCH2Scale->setText("CH2 = " + gains[ui->sliderCH2Gain->value()].display + "/div");
 }
 
-// M 14 Horizontal Position
-void XprotolabInterface::on_scrollBarTimePosition_valueChanged(int position) {
+// M 14 Horizontal Position: the first sample shown at the fast time bases, moved by dragging the plot
+void XprotolabInterface::setHorizontalPosition(int position) {
+    position = qBound(0, position, int(MaxHorizontalPosition));
+    if(position == m_horizontalPosition)
+        return;
+    m_horizontalPosition = position;
     if(!usbDevice.isDeviceConnected)
         return;
     usbDevice.controlWriteTransfer(14, (byte)(position));
@@ -3525,9 +3530,9 @@ void XprotolabInterface::on_comboBoxTriggerSource_currentIndexChanged(int index)
         ui->radioButtonTriggerNegativeSlope->setEnabled(true);
     }
     if(!initializing && index < 2) {
-        moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((triggerPost - ui->scrollBarTimePosition->value()) * 2),
+        moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((triggerPost - m_horizontalPosition) * 2),
                             ui->customPlot->yAxis->coordToPixel(triggerLevel) - offset));
-        moveWinTrigger(ui->customPlot->xAxis->coordToPixel((triggerPost - ui->scrollBarTimePosition->value()) * 2),
+        moveWinTrigger(ui->customPlot->xAxis->coordToPixel((triggerPost - m_horizontalPosition) * 2),
                        ui->customPlot->yAxis->coordToPixel(triggerWin1Level),
                        ui->customPlot->yAxis->coordToPixel(triggerWin2Level)) ;
     }
@@ -3571,7 +3576,7 @@ void XprotolabInterface::setCh1Position(int value) {
     usbDevice.controlWriteTransfer(29, mapRange(value, 128, -128, 0, -128));
     ch1ZeroPos = rangeMax / 2 + value;
     updateCursorVisibility();   // the cursors are placed relative to the new zero
-    initPosScroll = ui->scrollBarTimePosition->value();
+    initPosScroll = m_horizontalPosition;
     ch1ZeroHead->topLeft->setPixelPosition(QPointF(2, ui->customPlot->yAxis->coordToPixel(ch1ZeroPos)));
     if(ui->comboBoxTriggerSource->currentIndex() == 0 && !initializing) {
         updateTriggerPos();
@@ -3591,7 +3596,7 @@ void XprotolabInterface::setCh2Position(int value) {
     usbDevice.controlWriteTransfer(30, mapRange(value, 128, -128, 0, -128));
     ch2ZeroPos = rangeMax / 2 + value;
     updateCursorVisibility();   // the cursors are placed relative to the new zero
-    initPosScroll = ui->scrollBarTimePosition->value();
+    initPosScroll = m_horizontalPosition;
     ch2ZeroHead->topLeft->setPixelPosition(QPointF(2, ui->customPlot->yAxis->coordToPixel(ch2ZeroPos)));
     if(ui->comboBoxTriggerSource->currentIndex() == 1 && !initializing) {
         updateTriggerPos();
@@ -3633,9 +3638,9 @@ void XprotolabInterface::setChdPosition(int value) {
     if(chPos > temp)
         chPos = temp;
     usbDevice.controlWriteTransfer(31, chPos);
-    initPosScroll = ui->scrollBarTimePosition->value();
+    initPosScroll = m_horizontalPosition;
     if((ui->comboBoxTriggerSource->currentIndex() > 1 || ui->comboBoxTriggerSource->currentIndex() < 10) && !initializing) {
-        moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((triggerPost - ui->scrollBarTimePosition->value()) * 2), ui->customPlot->yAxis->coordToPixel(triggerLevel)));
+        moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((triggerPost - m_horizontalPosition) * 2), ui->customPlot->yAxis->coordToPixel(triggerLevel)));
     }
     chdZeroPos = kChdPositionBase + m_chdPosition * kChdPositionStep;
     chdZeroHead->topLeft->setPixelPosition(QPointF(2, ui->customPlot->yAxis->coordToPixel(chdZeroPos)));
@@ -4018,7 +4023,7 @@ void XprotolabInterface::updateLogicHex(const QVector<double> &key, const QVecto
 }
 
 void XprotolabInterface::on_pushButtonScreenshot_clicked() {
-    QPixmap sshot = ui->widgetPlot->grab(QRect(QPoint(0, 0), QSize(-1, ui->widgetPlot->height() - 20)));
+    QPixmap sshot = ui->widgetPlot->grab();   // the plot and the channel and time labels under it
     QString fileName = "sshot" + QTime::currentTime().toString() + ".png";
     fileName.replace(":", "");
     if(filePath.isEmpty()) {
@@ -4689,20 +4694,20 @@ void XprotolabInterface::updateTriggerPos() {
     if(!initializing) {
         if(ui->comboBoxTriggerSource->currentIndex() == 0) {
             if(!ui->checkBoxCH1Invert->isChecked()) {
-                moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((2 * triggerPost) - (ui->scrollBarTimePosition->value() * 2)), ui->customPlot->yAxis->coordToPixel(512 - triggerLevel + value))) ;
+                moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((2 * triggerPost) - (m_horizontalPosition * 2)), ui->customPlot->yAxis->coordToPixel(512 - triggerLevel + value))) ;
             } else {
                 int tmp_pos = triggerPixmap->topLeft->coords().y() - ch1ZeroPos;
                 triggerPixmap->topLeft->setCoords(QPointF(triggerPixmap->topLeft->coords().x(), ch1ZeroPos - tmp_pos));
             }
-            moveWinTrigger(ui->customPlot->xAxis->coordToPixel((2 * triggerPost) - (ui->scrollBarTimePosition->value() * 2)), ui->customPlot->yAxis->coordToPixel(triggerWin1Level - value), ui->customPlot->yAxis->coordToPixel(512 - triggerWin1Level + value));
+            moveWinTrigger(ui->customPlot->xAxis->coordToPixel((2 * triggerPost) - (m_horizontalPosition * 2)), ui->customPlot->yAxis->coordToPixel(triggerWin1Level - value), ui->customPlot->yAxis->coordToPixel(512 - triggerWin1Level + value));
         } else if(ui->comboBoxTriggerSource->currentIndex() == 1) {
             if(!ui->checkBoxCH2Invert->isChecked()) {
-                moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((2 * triggerPost) - (ui->scrollBarTimePosition->value() * 2)), ui->customPlot->yAxis->coordToPixel(triggerLevel + value)));
+                moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((2 * triggerPost) - (m_horizontalPosition * 2)), ui->customPlot->yAxis->coordToPixel(triggerLevel + value)));
             } else {
                 int tmp_pos = triggerPixmap->topLeft->coords().y() - ch2ZeroPos;
                 triggerPixmap->topLeft->setCoords(QPointF(triggerPixmap->topLeft->coords().x(), ch2ZeroPos - tmp_pos));
             }
-            moveWinTrigger(ui->customPlot->xAxis->coordToPixel((2 * triggerPost) - (ui->scrollBarTimePosition->value() * 2)), ui->customPlot->yAxis->coordToPixel(triggerWin2Level + value), ui->customPlot->yAxis->coordToPixel(512 - triggerWin2Level + value));
+            moveWinTrigger(ui->customPlot->xAxis->coordToPixel((2 * triggerPost) - (m_horizontalPosition * 2)), ui->customPlot->yAxis->coordToPixel(triggerWin2Level + value), ui->customPlot->yAxis->coordToPixel(512 - triggerWin2Level + value));
         }
     }
 }
