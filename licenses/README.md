@@ -26,8 +26,8 @@ It contains third-party code under other licences. Nothing here is optional: kee
 * **Source with each release**: publish, next to every binary download (the GitHub release
   `v<version>`), the source archive the installer build writes with the installer,
   `XScopes-Interface-<version>-source.zip`: this repository at the commit the binary was built
-  from, plus the scripts that build the installer, which the GPL counts as part of the source
-  ("scripts used to control compilation and installation"). Publish with it the Qt source
+  from, including the installer build scripts in `packaging/`, which the GPL counts as part of
+  the source ("scripts used to control compilation and installation"). Publish with it the Qt source
   archives `qtbase-everywhere-src-6.12.0.tar.xz`, `qtsvg-everywhere-src-6.12.0.tar.xz` and
   `qtserialport-everywhere-src-6.12.0.tar.xz`, and `libusb-1.0.30.tar.bz2`. Offering them from
   the same place as the binary covers both the GPLv3 (section 6d) and the LGPL-2.1; a link to an

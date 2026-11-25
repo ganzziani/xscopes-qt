@@ -33,3 +33,7 @@ log.txt
 
 # Qt Designer autosave
 *.autosave
+
+# Windows installer: written per build, names the signing certificate
+packaging/windows/signing.nsh
+__pycache__/
