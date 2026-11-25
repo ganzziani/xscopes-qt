@@ -37,14 +37,14 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_57">
     <item>
-     <widget class="QSplitter" name="splitter">
+     <widget class="QSplitter" name="splitterMain">
       <property name="orientation">
        <enum>Qt::Orientation::Horizontal</enum>
       </property>
-      <widget class="QWidget" name="widget" native="true">
+      <widget class="QWidget" name="widgetPlot" native="true">
        <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,0">
         <item>
-         <widget class="QCustomPlot" name="plotterWidget" native="true">
+         <widget class="QCustomPlot" name="customPlot" native="true">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -64,7 +64,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_109">
             <item>
-             <widget class="QLabel" name="ch1ColorLabel">
+             <widget class="QLabel" name="labelCH1Color">
               <property name="maximumSize">
                <size>
                 <width>15</width>
@@ -86,7 +86,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="ch1Label">
+             <widget class="QLabel" name="labelCH1Scale">
               <property name="minimumSize">
                <size>
                 <width>0</width>
@@ -124,7 +124,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_110">
             <item>
-             <widget class="QLabel" name="ch2ColorLabel">
+             <widget class="QLabel" name="labelCH2Color">
               <property name="maximumSize">
                <size>
                 <width>15</width>
@@ -146,7 +146,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="ch2Label">
+             <widget class="QLabel" name="labelCH2Scale">
               <property name="minimumSize">
                <size>
                 <width>0</width>
@@ -182,7 +182,7 @@
            </layout>
           </item>
           <item>
-           <widget class="QLabel" name="timeLabel">
+           <widget class="QLabel" name="labelTimeScale">
             <property name="minimumSize">
              <size>
               <width>0</width>
@@ -221,7 +221,7 @@
          </layout>
         </item>
         <item>
-         <widget class="QScrollBar" name="horizontalScrollBar">
+         <widget class="QScrollBar" name="scrollBarTimePosition">
           <property name="maximum">
            <number>127</number>
           </property>
@@ -238,7 +238,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QTabWidget" name="mainTabWidget">
+      <widget class="QTabWidget" name="tabWidgetMain">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -268,13 +268,13 @@
        <property name="elideMode">
         <enum>Qt::TextElideMode::ElideNone</enum>
        </property>
-       <widget class="QWidget" name="osciloscopeTab">
+       <widget class="QWidget" name="tabOscilloscope">
         <attribute name="title">
          <string>Oscilloscope</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_56">
          <item>
-          <widget class="QGroupBox" name="horizontalBox">
+          <widget class="QGroupBox" name="groupBoxHorizontal">
            <property name="title">
             <string>Horizontal</string>
            </property>
@@ -285,7 +285,7 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_2">
               <item>
-               <widget class="QLabel" name="label">
+               <widget class="QLabel" name="labelIconWaveBig">
                 <property name="text">
                  <string/>
                 </property>
@@ -298,7 +298,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QSlider" name="samplingSlider">
+               <widget class="QSlider" name="sliderSampling">
                 <property name="maximum">
                  <number>21</number>
                 </property>
@@ -332,7 +332,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_3">
+               <widget class="QLabel" name="labelIconWaveSmall">
                 <property name="text">
                  <string/>
                 </property>
@@ -349,7 +349,7 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_4">
               <item>
-               <widget class="QCheckBox" name="xyMode">
+               <widget class="QCheckBox" name="checkBoxXYMode">
                 <property name="toolTip">
                  <string>Changes the display from volts vs. time display to volts vs. volts</string>
                 </property>
@@ -363,7 +363,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QCheckBox" name="rollMode">
+               <widget class="QCheckBox" name="checkBoxRollMode">
                 <property name="toolTip">
                  <string>The data on the display is scrolled to the left as new data comes in</string>
                 </property>
@@ -377,7 +377,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QCheckBox" name="elasticMode">
+               <widget class="QCheckBox" name="checkBoxElasticTrace">
                 <property name="toolTip">
                  <string>Average previous trace data with the new data. The result is a more stable waveform displayed on the screen. However, using this setting only makes sense when the scope is properly triggered on a periodic signal.</string>
                 </property>
@@ -396,13 +396,13 @@
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox">
+          <widget class="QGroupBox" name="groupBoxChannels">
            <property name="title">
             <string>Channels</string>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_34">
             <item>
-             <widget class="QGroupBox" name="groupCH1">
+             <widget class="QGroupBox" name="groupBoxCH1">
               <property name="title">
                <string>CH1</string>
               </property>
@@ -413,7 +413,7 @@
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_74">
                  <item>
-                  <widget class="QLabel" name="label_10">
+                  <widget class="QLabel" name="labelCH1Gain">
                    <property name="text">
                     <string>Gain</string>
                    </property>
@@ -429,7 +429,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSlider" name="ch1GainSlider">
+                  <widget class="QSlider" name="sliderCH1Gain">
                    <property name="maximum">
                     <number>6</number>
                    </property>
@@ -505,7 +505,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QGroupBox" name="mathBoxCH1">
+                  <widget class="QGroupBox" name="groupBoxCH1Math">
                    <property name="title">
                     <string>Math</string>
                    </property>
@@ -533,7 +533,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QRadioButton" name="radioButtonCH1Sub">
+                     <widget class="QRadioButton" name="radioButtonCH1Subtract">
                       <property name="toolTip">
                        <string>The channel trace will be replaced with CH1-CH2</string>
                       </property>
@@ -551,7 +551,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QGroupBox" name="groupCH2">
+             <widget class="QGroupBox" name="groupBoxCH2">
               <property name="title">
                <string>CH2</string>
               </property>
@@ -562,7 +562,7 @@
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_13">
                  <item>
-                  <widget class="QLabel" name="label_12">
+                  <widget class="QLabel" name="labelCH2Gain">
                    <property name="text">
                     <string>Gain</string>
                    </property>
@@ -578,7 +578,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSlider" name="ch2GainSlider">
+                  <widget class="QSlider" name="sliderCH2Gain">
                    <property name="maximum">
                     <number>6</number>
                    </property>
@@ -654,7 +654,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QGroupBox" name="mathBoxCH2">
+                  <widget class="QGroupBox" name="groupBoxCH2Math">
                    <property name="title">
                     <string>Math</string>
                    </property>
@@ -679,7 +679,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QRadioButton" name="radioButtonCH2Sub">
+                     <widget class="QRadioButton" name="radioButtonCH2Subtract">
                       <property name="toolTip">
                        <string>The channel trace will be replaced with CH1-CH2</string>
                       </property>
@@ -697,7 +697,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QGroupBox" name="groupBox_25">
+             <widget class="QGroupBox" name="groupBoxCH3">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -714,7 +714,7 @@
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_15">
                  <item>
-                  <widget class="QLabel" name="label_14">
+                  <widget class="QLabel" name="labelCH3Gain">
                    <property name="text">
                     <string>Gain</string>
                    </property>
@@ -730,7 +730,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSlider" name="ch2GainSlider_2">
+                  <widget class="QSlider" name="sliderCH3Gain">
                    <property name="maximum">
                     <number>6</number>
                    </property>
@@ -762,7 +762,7 @@
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_18">
                  <item>
-                  <widget class="QCheckBox" name="checkBoxCH2Average_2">
+                  <widget class="QCheckBox" name="checkBoxCH3Average">
                    <property name="toolTip">
                     <string>The channel samples will be averaged to reduce aliasing</string>
                    </property>
@@ -772,7 +772,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBoxCH2Invert_2">
+                  <widget class="QCheckBox" name="checkBoxCH3Invert">
                    <property name="toolTip">
                     <string>The channel will be inverted. The displayed waveform and channel math will be affected.</string>
                    </property>
@@ -782,7 +782,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBoxCH2Math_2">
+                  <widget class="QCheckBox" name="checkBoxCH3Math">
                    <property name="toolTip">
                     <string>The channel math will be enabled</string>
                    </property>
@@ -792,21 +792,21 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBoxCH2Derivative_2">
+                  <widget class="QCheckBox" name="checkBoxCH3Derivative">
                    <property name="text">
                     <string>Derivative</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBoxCH2AC_2">
+                  <widget class="QCheckBox" name="checkBoxCH3AC">
                    <property name="text">
                     <string>AC</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QGroupBox" name="mathBoxCH2_2">
+                  <widget class="QGroupBox" name="groupBoxCH3Math">
                    <property name="title">
                     <string>Math</string>
                    </property>
@@ -821,7 +821,7 @@
                      <number>2</number>
                     </property>
                     <item>
-                     <widget class="QRadioButton" name="radioButtonCH2Multiply_2">
+                     <widget class="QRadioButton" name="radioButtonCH3Multiply">
                       <property name="toolTip">
                        <string>The channel trace will be replaced with CH1xCH2</string>
                       </property>
@@ -831,7 +831,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QRadioButton" name="radioButtonCH2Sub_2">
+                     <widget class="QRadioButton" name="radioButtonCH3Subtract">
                       <property name="toolTip">
                        <string>The channel trace will be replaced with CH1-CH2</string>
                       </property>
@@ -849,7 +849,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QGroupBox" name="groupBox_26">
+             <widget class="QGroupBox" name="groupBoxCH4">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -866,7 +866,7 @@
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_21">
                  <item>
-                  <widget class="QLabel" name="label_16">
+                  <widget class="QLabel" name="labelCH4Gain">
                    <property name="text">
                     <string>Gain</string>
                    </property>
@@ -882,7 +882,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSlider" name="ch2GainSlider_3">
+                  <widget class="QSlider" name="sliderCH4Gain">
                    <property name="maximum">
                     <number>6</number>
                    </property>
@@ -914,7 +914,7 @@
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_25">
                  <item>
-                  <widget class="QCheckBox" name="checkBoxCH2Average_3">
+                  <widget class="QCheckBox" name="checkBoxCH4Average">
                    <property name="toolTip">
                     <string>The channel samples will be averaged to reduce aliasing</string>
                    </property>
@@ -924,7 +924,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBoxCH2Invert_3">
+                  <widget class="QCheckBox" name="checkBoxCH4Invert">
                    <property name="toolTip">
                     <string>The channel will be inverted. The displayed waveform and channel math will be affected.</string>
                    </property>
@@ -934,7 +934,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBoxCH2Math_3">
+                  <widget class="QCheckBox" name="checkBoxCH4Math">
                    <property name="toolTip">
                     <string>The channel math will be enabled</string>
                    </property>
@@ -944,21 +944,21 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBoxCH2Derivative_3">
+                  <widget class="QCheckBox" name="checkBoxCH4Derivative">
                    <property name="text">
                     <string>Derivative</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkBoxCH2AC_3">
+                  <widget class="QCheckBox" name="checkBoxCH4AC">
                    <property name="text">
                     <string>AC</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QGroupBox" name="mathBoxCH2_3">
+                  <widget class="QGroupBox" name="groupBoxCH4Math">
                    <property name="title">
                     <string>Math</string>
                    </property>
@@ -973,7 +973,7 @@
                      <number>2</number>
                     </property>
                     <item>
-                     <widget class="QRadioButton" name="radioButtonCH2Multiply_3">
+                     <widget class="QRadioButton" name="radioButtonCH4Multiply">
                       <property name="toolTip">
                        <string>The channel trace will be replaced with CH1xCH2</string>
                       </property>
@@ -983,7 +983,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QRadioButton" name="radioButtonCH2Sub_3">
+                     <widget class="QRadioButton" name="radioButtonCH4Subtract">
                       <property name="toolTip">
                        <string>The channel trace will be replaced with CH1-CH2</string>
                       </property>
@@ -1004,7 +1004,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="verticalBox">
+          <widget class="QGroupBox" name="groupBoxVertical">
            <property name="maximumSize">
             <size>
              <width>16777215</width>
@@ -1022,7 +1022,7 @@
              <number>6</number>
             </property>
             <item>
-             <widget class="QGroupBox" name="groupCHD">
+             <widget class="QGroupBox" name="groupBoxCHD">
               <property name="title">
                <string>Logic</string>
               </property>
@@ -1033,7 +1033,7 @@
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_22">
                  <item>
-                  <widget class="QLabel" name="label_18">
+                  <widget class="QLabel" name="labelCHDSize">
                    <property name="text">
                     <string>Size</string>
                    </property>
@@ -1051,7 +1051,7 @@
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_106">
                    <item>
-                    <widget class="QSlider" name="chdSizeSlider">
+                    <widget class="QSlider" name="sliderCHDSize">
                      <property name="minimum">
                       <number>0</number>
                      </property>
@@ -1179,7 +1179,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSlider" name="chdPullSlider">
+                  <widget class="QSlider" name="sliderCHDPull">
                    <property name="minimum">
                     <number>0</number>
                    </property>
@@ -1209,7 +1209,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QGroupBox" name="groupBox1">
+             <widget class="QGroupBox" name="groupBoxReference">
               <property name="toolTip">
                <string/>
               </property>
@@ -1230,7 +1230,7 @@
                    <item>
                     <layout class="QVBoxLayout" name="verticalLayout_43">
                      <item>
-                      <widget class="QCheckBox" name="refCH1">
+                      <widget class="QCheckBox" name="checkBoxRefCH1">
                        <property name="text">
                         <string>CH1</string>
                        </property>
@@ -1241,7 +1241,7 @@
                    <item>
                     <layout class="QVBoxLayout" name="verticalLayout_44">
                      <item>
-                      <widget class="QCheckBox" name="refCH2">
+                      <widget class="QCheckBox" name="checkBoxRefCH2">
                        <property name="text">
                         <string>CH2</string>
                        </property>
@@ -1252,7 +1252,7 @@
                    <item>
                     <layout class="QVBoxLayout" name="verticalLayout_45">
                      <item>
-                      <widget class="QCheckBox" name="refLogic">
+                      <widget class="QCheckBox" name="checkBoxRefCHD">
                        <property name="text">
                         <string>Logic</string>
                        </property>
@@ -1265,7 +1265,7 @@
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_28">
                    <item>
-                    <widget class="QPushButton" name="captureButton">
+                    <widget class="QPushButton" name="pushButtonCapture">
                      <property name="text">
                       <string>Capture</string>
                      </property>
@@ -1279,7 +1279,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QGroupBox" name="groupFFT">
+             <widget class="QGroupBox" name="groupBoxFFT">
               <property name="title">
                <string>FFT</string>
               </property>
@@ -1302,21 +1302,21 @@
                 </widget>
                </item>
                <item>
-                <widget class="QCheckBox" name="checkBoxIQFFT">
+                <widget class="QCheckBox" name="checkBoxFFTIQ">
                  <property name="text">
                   <string>IQ FFT</string>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QCheckBox" name="checkBoxLogY">
+                <widget class="QCheckBox" name="checkBoxFFTLogY">
                  <property name="text">
                   <string>Log Y</string>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QGroupBox" name="groupBox_2">
+                <widget class="QGroupBox" name="groupBoxFFTWindow">
                  <property name="title">
                   <string>FFT Window</string>
                  </property>
@@ -1332,21 +1332,21 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QRadioButton" name="radioButtonHamming">
+                   <widget class="QRadioButton" name="radioButtonFFTHamming">
                     <property name="text">
                      <string>Hamming</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QRadioButton" name="radioButtonHann">
+                   <widget class="QRadioButton" name="radioButtonFFTHann">
                     <property name="text">
                      <string>Hann</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QRadioButton" name="radioButtonBlackman">
+                   <widget class="QRadioButton" name="radioButtonFFTBlackman">
                     <property name="text">
                      <string>Blackman</string>
                     </property>
@@ -1373,7 +1373,7 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QFrame" name="triggerBox">
+            <widget class="QFrame" name="frameTrigger">
              <property name="maximumSize">
               <size>
                <width>16777215</width>
@@ -1396,7 +1396,7 @@
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_40">
                 <item>
-                 <widget class="QGroupBox" name="groupBox_3">
+                 <widget class="QGroupBox" name="groupBoxTriggerSource">
                   <property name="title">
                    <string>Trigger Source</string>
                   </property>
@@ -1411,7 +1411,7 @@
                     <number>6</number>
                    </property>
                    <item>
-                    <widget class="QComboBox" name="comboBoxTrigSource">
+                    <widget class="QComboBox" name="comboBoxTriggerSource">
                      <property name="editable">
                       <bool>false</bool>
                      </property>
@@ -1482,7 +1482,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QGroupBox" name="groupBox_14">
+                 <widget class="QGroupBox" name="groupBoxTriggerTiming">
                   <property name="title">
                    <string>Trigger Timing</string>
                   </property>
@@ -1490,7 +1490,7 @@
                    <item>
                     <layout class="QHBoxLayout" name="horizontalLayout_32">
                      <item>
-                      <widget class="QLabel" name="label_37">
+                      <widget class="QLabel" name="labelTriggerTimeout">
                        <property name="toolTip">
                         <string>Trigger Timeout: Delay before generating an automatic trigger, when the trigger Type is set to Auto</string>
                        </property>
@@ -1509,7 +1509,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QDoubleSpinBox" name="doubleSpinBoxTrigAuto">
+                      <widget class="QDoubleSpinBox" name="doubleSpinBoxTriggerTimeout">
                        <property name="minimumSize">
                         <size>
                          <width>83</width>
@@ -1541,7 +1541,7 @@
                    <item>
                     <layout class="QHBoxLayout" name="horizontalLayout_33">
                      <item>
-                      <widget class="QLabel" name="label_38">
+                      <widget class="QLabel" name="labelTriggerHold">
                        <property name="toolTip">
                         <string>Time to wait before detecting the next trigger</string>
                        </property>
@@ -1560,7 +1560,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QDoubleSpinBox" name="doubleSpinBoxTrigHold">
+                      <widget class="QDoubleSpinBox" name="doubleSpinBoxTriggerHold">
                        <property name="minimumSize">
                         <size>
                          <width>83</width>
@@ -1584,13 +1584,13 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QGroupBox" name="groupBox_5">
+                 <widget class="QGroupBox" name="groupBoxTriggerType">
                   <property name="title">
                    <string>Trigger Type</string>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_48">
                    <item>
-                    <widget class="QRadioButton" name="radioButtonFree">
+                    <widget class="QRadioButton" name="radioButtonTriggerFree">
                      <property name="toolTip">
                       <string>Trace continuously ignoring the trigger</string>
                      </property>
@@ -1600,7 +1600,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QRadioButton" name="radioButtonNormal">
+                    <widget class="QRadioButton" name="radioButtonTriggerNormal">
                      <property name="toolTip">
                       <string>Trace only when the trigger event occurs</string>
                      </property>
@@ -1610,7 +1610,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QRadioButton" name="radioButtonAuto">
+                    <widget class="QRadioButton" name="radioButtonTriggerAuto">
                      <property name="toolTip">
                       <string>Trace when the trigger event occurs, or after the Auto trigger timeout</string>
                      </property>
@@ -1623,7 +1623,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QRadioButton" name="radioButtonSingle">
+                    <widget class="QRadioButton" name="radioButtonTriggerSingle">
                      <property name="toolTip">
                       <string>Only one trace is displayed when the trigger event occurs</string>
                      </property>
@@ -1633,7 +1633,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QPushButton" name="forceButton">
+                    <widget class="QPushButton" name="pushButtonForceTrigger">
                      <property name="minimumSize">
                       <size>
                        <width>80</width>
@@ -1652,13 +1652,13 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QGroupBox" name="groupBox_4">
+                 <widget class="QGroupBox" name="groupBoxTriggerMode">
                   <property name="title">
                    <string>Trigger Mode</string>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_49">
                    <item>
-                    <widget class="QRadioButton" name="radioButtonRising">
+                    <widget class="QRadioButton" name="radioButtonTriggerRising">
                      <property name="toolTip">
                       <string>The trigger occurs when the signal crosses the trigger level from below to above</string>
                      </property>
@@ -1672,7 +1672,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QRadioButton" name="radioButtonFalling">
+                    <widget class="QRadioButton" name="radioButtonTriggerFalling">
                      <property name="toolTip">
                       <string>The trigger occurs when the signal crosses the trigger level from above to below</string>
                      </property>
@@ -1686,7 +1686,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QRadioButton" name="radioButtonDual">
+                    <widget class="QRadioButton" name="radioButtonTriggerDual">
                      <property name="toolTip">
                       <string>The trigger occurs when the signal crosses the trigger level in any direction</string>
                      </property>
@@ -1700,7 +1700,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QRadioButton" name="radioButtonPositive">
+                    <widget class="QRadioButton" name="radioButtonTriggerPositiveSlope">
                      <property name="toolTip">
                       <string>The trigger occurs when the difference between two consecutive samples is greater than the trigger value, positive slope</string>
                      </property>
@@ -1714,7 +1714,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QRadioButton" name="radioButtonNegative">
+                    <widget class="QRadioButton" name="radioButtonTriggerNegativeSlope">
                      <property name="toolTip">
                       <string>The trigger occurs when the difference between two consecutive samples is greater than the trigger value, negative slope</string>
                      </property>
@@ -1728,7 +1728,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QRadioButton" name="radioButtonWindow">
+                    <widget class="QRadioButton" name="radioButtonTriggerWindow">
                      <property name="toolTip">
                       <string>The trigger occurs when the signal leaves a voltage range</string>
                      </property>
@@ -1772,7 +1772,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_38">
              <item>
-              <widget class="QPushButton" name="autoButton">
+              <widget class="QPushButton" name="pushButtonAuto">
                <property name="minimumSize">
                 <size>
                  <width>80</width>
@@ -1788,7 +1788,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="stopButton">
+              <widget class="QPushButton" name="pushButtonStartStop">
                <property name="minimumSize">
                 <size>
                  <width>80</width>
@@ -1806,21 +1806,21 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="Meter">
+       <widget class="QWidget" name="tabMeter">
         <attribute name="title">
          <string>Meter</string>
         </attribute>
         <layout class="QHBoxLayout" name="horizontalLayout_25">
          <item>
-          <widget class="QTabWidget" name="mmTabWidget">
+          <widget class="QTabWidget" name="tabWidgetMeter">
            <property name="currentIndex">
             <number>0</number>
            </property>
-           <widget class="QWidget" name="tab_3">
+           <widget class="QWidget" name="tabMeterVPP">
             <attribute name="title">
              <string>VPP</string>
             </attribute>
-            <widget class="QWidget" name="verticalLayoutWidget_3">
+            <widget class="QWidget" name="widgetMeterVPP">
              <property name="geometry">
               <rect>
                <x>20</x>
@@ -1834,11 +1834,11 @@
                <number>30</number>
               </property>
               <item>
-               <widget class="QGroupBox" name="groupBox_17">
+               <widget class="QGroupBox" name="groupBoxVPPCH1">
                 <property name="title">
                  <string>Channel 1</string>
                 </property>
-                <widget class="QLabel" name="vppChannel1">
+                <widget class="QLabel" name="labelVPPCH1">
                  <property name="geometry">
                   <rect>
                    <x>10</x>
@@ -1862,11 +1862,11 @@
                </widget>
               </item>
               <item>
-               <widget class="QGroupBox" name="groupBox_18">
+               <widget class="QGroupBox" name="groupBoxVPPCH2">
                 <property name="title">
                  <string>Channel 2</string>
                 </property>
-                <widget class="QLabel" name="vppChannel2">
+                <widget class="QLabel" name="labelVPPCH2">
                  <property name="geometry">
                   <rect>
                    <x>10</x>
@@ -1892,11 +1892,11 @@
              </layout>
             </widget>
            </widget>
-           <widget class="QWidget" name="tab_2">
+           <widget class="QWidget" name="tabMeterVDC">
             <attribute name="title">
              <string>VDC</string>
             </attribute>
-            <widget class="QWidget" name="verticalLayoutWidget_2">
+            <widget class="QWidget" name="widgetMeterVDC">
              <property name="geometry">
               <rect>
                <x>20</x>
@@ -1910,11 +1910,11 @@
                <number>30</number>
               </property>
               <item>
-               <widget class="QGroupBox" name="groupBox_15">
+               <widget class="QGroupBox" name="groupBoxVDCCH1">
                 <property name="title">
                  <string>Channel 1</string>
                 </property>
-                <widget class="QLabel" name="vdcChannel1">
+                <widget class="QLabel" name="labelVDCCH1">
                  <property name="geometry">
                   <rect>
                    <x>10</x>
@@ -1938,11 +1938,11 @@
                </widget>
               </item>
               <item>
-               <widget class="QGroupBox" name="groupBox_16">
+               <widget class="QGroupBox" name="groupBoxVDCCH2">
                 <property name="title">
                  <string>Channel 2</string>
                 </property>
-                <widget class="QLabel" name="vdcChannel2">
+                <widget class="QLabel" name="labelVDCCH2">
                  <property name="geometry">
                   <rect>
                    <x>10</x>
@@ -1968,7 +1968,7 @@
              </layout>
             </widget>
            </widget>
-           <widget class="QWidget" name="tab_4">
+           <widget class="QWidget" name="tabMeterFrequency">
             <attribute name="title">
              <string>Frequency Counter</string>
             </attribute>
@@ -1976,7 +1976,7 @@
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_74">
                <item>
-                <widget class="QGroupBox" name="verticalGroupBox_4">
+                <widget class="QGroupBox" name="groupBoxFrequencyCH1">
                  <property name="title">
                   <string>CH1</string>
                  </property>
@@ -1985,7 +1985,7 @@
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_50" stretch="1">
                   <item>
-                   <widget class="FittedLabel" name="labelFreqCH1">
+                   <widget class="FittedLabel" name="labelFrequencyCH1">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -2009,7 +2009,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QGroupBox" name="verticalGroupBox">
+                <widget class="QGroupBox" name="groupBoxFrequencyCH2">
                  <property name="title">
                   <string>CH2</string>
                  </property>
@@ -2018,7 +2018,7 @@
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_39" stretch="1">
                   <item>
-                   <widget class="FittedLabel" name="labelFreqCH2">
+                   <widget class="FittedLabel" name="labelFrequencyCH2">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -2044,13 +2044,13 @@
               </layout>
              </item>
              <item>
-              <widget class="QGroupBox" name="groupBox_19">
+              <widget class="QGroupBox" name="groupBoxCounter">
                <property name="title">
                 <string/>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_108">
                 <item>
-                 <widget class="QGroupBox" name="groupBox_9">
+                 <widget class="QGroupBox" name="groupBoxCounterSource">
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
@@ -2064,7 +2064,7 @@
                    <item>
                     <layout class="QVBoxLayout" name="verticalLayout_109">
                      <item>
-                      <widget class="QLabel" name="label_34">
+                      <widget class="QLabel" name="labelCounterSourceEXT">
                        <property name="text">
                         <string>EXT</string>
                        </property>
@@ -2074,7 +2074,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QRadioButton" name="fcR10">
+                      <widget class="QRadioButton" name="radioButtonCounterSourceEXT">
                        <property name="sizePolicy">
                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                          <horstretch>0</horstretch>
@@ -2094,7 +2094,7 @@
                    <item>
                     <layout class="QVBoxLayout" name="verticalLayout_110">
                      <item>
-                      <widget class="QLabel" name="label_35">
+                      <widget class="QLabel" name="labelCounterSource7">
                        <property name="text">
                         <string>7</string>
                        </property>
@@ -2104,7 +2104,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QRadioButton" name="fcR7">
+                      <widget class="QRadioButton" name="radioButtonCounterSource7">
                        <property name="sizePolicy">
                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                          <horstretch>0</horstretch>
@@ -2121,7 +2121,7 @@
                    <item>
                     <layout class="QVBoxLayout" name="verticalLayout_111">
                      <item>
-                      <widget class="QLabel" name="label_36">
+                      <widget class="QLabel" name="labelCounterSource6">
                        <property name="text">
                         <string>6</string>
                        </property>
@@ -2131,7 +2131,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QRadioButton" name="fcR6">
+                      <widget class="QRadioButton" name="radioButtonCounterSource6">
                        <property name="sizePolicy">
                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                          <horstretch>0</horstretch>
@@ -2148,7 +2148,7 @@
                    <item>
                     <layout class="QVBoxLayout" name="verticalLayout_112">
                      <item>
-                      <widget class="QLabel" name="label_39">
+                      <widget class="QLabel" name="labelCounterSource5">
                        <property name="text">
                         <string>5</string>
                        </property>
@@ -2158,7 +2158,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QRadioButton" name="fcR5">
+                      <widget class="QRadioButton" name="radioButtonCounterSource5">
                        <property name="sizePolicy">
                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                          <horstretch>0</horstretch>
@@ -2175,7 +2175,7 @@
                    <item>
                     <layout class="QVBoxLayout" name="verticalLayout_113">
                      <item>
-                      <widget class="QLabel" name="label_48">
+                      <widget class="QLabel" name="labelCounterSource4">
                        <property name="text">
                         <string>4</string>
                        </property>
@@ -2185,7 +2185,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QRadioButton" name="fcR4">
+                      <widget class="QRadioButton" name="radioButtonCounterSource4">
                        <property name="sizePolicy">
                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                          <horstretch>0</horstretch>
@@ -2202,7 +2202,7 @@
                    <item>
                     <layout class="QVBoxLayout" name="verticalLayout_114">
                      <item>
-                      <widget class="QLabel" name="label_49">
+                      <widget class="QLabel" name="labelCounterSource3">
                        <property name="text">
                         <string>3</string>
                        </property>
@@ -2212,7 +2212,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QRadioButton" name="fcR3">
+                      <widget class="QRadioButton" name="radioButtonCounterSource3">
                        <property name="sizePolicy">
                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                          <horstretch>0</horstretch>
@@ -2229,7 +2229,7 @@
                    <item>
                     <layout class="QVBoxLayout" name="verticalLayout_115">
                      <item>
-                      <widget class="QLabel" name="label_69">
+                      <widget class="QLabel" name="labelCounterSource2">
                        <property name="text">
                         <string>2</string>
                        </property>
@@ -2239,7 +2239,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QRadioButton" name="fcR2">
+                      <widget class="QRadioButton" name="radioButtonCounterSource2">
                        <property name="sizePolicy">
                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                          <horstretch>0</horstretch>
@@ -2256,7 +2256,7 @@
                    <item>
                     <layout class="QVBoxLayout" name="verticalLayout_116">
                      <item>
-                      <widget class="QLabel" name="label_71">
+                      <widget class="QLabel" name="labelCounterSource1">
                        <property name="text">
                         <string>1</string>
                        </property>
@@ -2266,7 +2266,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QRadioButton" name="fcR1">
+                      <widget class="QRadioButton" name="radioButtonCounterSource1">
                        <property name="sizePolicy">
                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                          <horstretch>0</horstretch>
@@ -2283,7 +2283,7 @@
                    <item>
                     <layout class="QVBoxLayout" name="verticalLayout_117">
                      <item>
-                      <widget class="QLabel" name="label_73">
+                      <widget class="QLabel" name="labelCounterSource0">
                        <property name="text">
                         <string>0</string>
                        </property>
@@ -2293,7 +2293,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QRadioButton" name="fcR0">
+                      <widget class="QRadioButton" name="radioButtonCounterSource0">
                        <property name="sizePolicy">
                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                          <horstretch>0</horstretch>
@@ -2311,7 +2311,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLabel" name="frequencyValue">
+                 <widget class="QLabel" name="labelCounterValue">
                   <property name="font">
                    <font>
                     <pointsize>45</pointsize>
@@ -2329,13 +2329,13 @@
               </widget>
              </item>
              <item>
-              <widget class="QGroupBox" name="groupBox_20">
+              <widget class="QGroupBox" name="groupBoxCounterType">
                <property name="title">
                 <string>Type</string>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_5">
                 <item>
-                 <widget class="QRadioButton" name="radioFreq">
+                 <widget class="QRadioButton" name="radioButtonCounterFrequency">
                   <property name="text">
                    <string>Measure Frequency</string>
                   </property>
@@ -2345,7 +2345,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QRadioButton" name="radioPulse">
+                 <widget class="QRadioButton" name="radioButtonCounterPulses">
                   <property name="text">
                    <string>Count Pulses</string>
                   </property>
@@ -2373,7 +2373,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="awgTab">
+       <widget class="QWidget" name="tabAWG">
         <attribute name="title">
          <string>Waveform Generator</string>
         </attribute>
@@ -2384,7 +2384,7 @@
             <number>6</number>
            </property>
            <item>
-            <widget class="QGroupBox" name="groupBox_6">
+            <widget class="QGroupBox" name="groupBoxAWGWaveform">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -2406,7 +2406,7 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_41">
                   <item>
-                   <widget class="QRadioButton" name="radioButtonSine">
+                   <widget class="QRadioButton" name="radioButtonAWGSine">
                     <property name="text">
                      <string/>
                     </property>
@@ -2423,7 +2423,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QRadioButton" name="radioButtonTriangle">
+                   <widget class="QRadioButton" name="radioButtonAWGTriangle">
                     <property name="text">
                      <string/>
                     </property>
@@ -2444,7 +2444,7 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_42">
                   <item>
-                   <widget class="QRadioButton" name="radioButtonSquare">
+                   <widget class="QRadioButton" name="radioButtonAWGSquare">
                     <property name="text">
                      <string/>
                     </property>
@@ -2461,7 +2461,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QRadioButton" name="radioButtonExpo">
+                   <widget class="QRadioButton" name="radioButtonAWGExpo">
                     <property name="text">
                      <string/>
                     </property>
@@ -2482,7 +2482,7 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_43">
                   <item>
-                   <widget class="QRadioButton" name="radioButtonNoise">
+                   <widget class="QRadioButton" name="radioButtonAWGNoise">
                     <property name="text">
                      <string/>
                     </property>
@@ -2499,7 +2499,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QRadioButton" name="radioButtonCustom">
+                   <widget class="QRadioButton" name="radioButtonAWGCustom">
                     <property name="text">
                      <string>Custom</string>
                     </property>
@@ -2518,7 +2518,7 @@
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_36">
                 <item>
-                 <widget class="QPushButton" name="saveAWGButton">
+                 <widget class="QPushButton" name="pushButtonAWGSaveCustom">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -2534,7 +2534,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="openCSVButton">
+                 <widget class="QPushButton" name="pushButtonAWGOpenCSV">
                   <property name="toolTip">
                    <string>Data must be integer, in the range of [-127,127]. The buffer size is 256.</string>
                   </property>
@@ -2549,7 +2549,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QTextEdit" name="textEditCSV">
+            <widget class="QTextEdit" name="textEditAWGCSV">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                <horstretch>0</horstretch>
@@ -2570,7 +2570,7 @@
           </layout>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox_7">
+          <widget class="QGroupBox" name="groupBoxAWGFrequency">
            <property name="title">
             <string>Frequency Range</string>
            </property>
@@ -2584,28 +2584,28 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_45">
               <item>
-               <widget class="QRadioButton" name="radioButton0_1">
+               <widget class="QRadioButton" name="radioButtonAWGRange100mHz">
                 <property name="text">
                  <string>0.1</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="radioButton1">
+               <widget class="QRadioButton" name="radioButtonAWGRange1Hz">
                 <property name="text">
                  <string>1</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="radioButton10">
+               <widget class="QRadioButton" name="radioButtonAWGRange10Hz">
                 <property name="text">
                  <string>10</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="radioButton100">
+               <widget class="QRadioButton" name="radioButtonAWGRange100Hz">
                 <property name="text">
                  <string>100</string>
                 </property>
@@ -2615,7 +2615,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="radioButton1K">
+               <widget class="QRadioButton" name="radioButtonAWGRange1kHz">
                 <property name="text">
                  <string>1K</string>
                 </property>
@@ -2625,14 +2625,14 @@
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="radioButton10K">
+               <widget class="QRadioButton" name="radioButtonAWGRange10kHz">
                 <property name="text">
                  <string>10K</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="radioButton100K">
+               <widget class="QRadioButton" name="radioButtonAWGRange100kHz">
                 <property name="text">
                  <string>100K</string>
                 </property>
@@ -2641,7 +2641,7 @@
              </layout>
             </item>
             <item>
-             <widget class="QSlider" name="frequencySlider">
+             <widget class="QSlider" name="sliderAWGFrequency">
               <property name="minimum">
                <number>10</number>
               </property>
@@ -2667,7 +2667,7 @@
               <item>
                <layout class="QVBoxLayout" name="verticalLayout_62">
                 <item>
-                 <widget class="QLabel" name="label_41">
+                 <widget class="QLabel" name="labelAWGFrequency">
                   <property name="text">
                    <string>Desired Frequency</string>
                   </property>
@@ -2680,7 +2680,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QDoubleSpinBox" name="doubleSpinBoxDesiredFreq">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBoxAWGFrequency">
                   <property name="minimum">
                    <double>0.010000000000000</double>
                   </property>
@@ -2700,7 +2700,7 @@
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_49">
                 <item>
-                 <widget class="QLabel" name="label_40">
+                 <widget class="QLabel" name="labelAWGActualFrequency">
                   <property name="text">
                    <string>Actual
 Frequency</string>
@@ -2717,7 +2717,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="actualFreqText">
+                 <widget class="QLineEdit" name="lineEditAWGActualFrequency">
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
@@ -2736,7 +2736,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLabel" name="labelHertz">
+                 <widget class="QLabel" name="labelAWGActualFrequencyUnit">
                   <property name="font">
                    <font>
                     <pointsize>26</pointsize>
@@ -2769,7 +2769,7 @@ Frequency</string>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_46">
              <item>
-              <widget class="QLabel" name="label_42">
+              <widget class="QLabel" name="labelAWGAmplitude">
                <property name="minimumSize">
                 <size>
                  <width>52</width>
@@ -2791,7 +2791,7 @@ Frequency</string>
               </widget>
              </item>
              <item>
-              <widget class="QDoubleSpinBox" name="doubleSpinBoxAmp">
+              <widget class="QDoubleSpinBox" name="doubleSpinBoxAWGAmplitude">
                <property name="minimumSize">
                 <size>
                  <width>55</width>
@@ -2813,7 +2813,7 @@ Frequency</string>
               </widget>
              </item>
              <item>
-              <widget class="QSlider" name="amplitudeSlider">
+              <widget class="QSlider" name="sliderAWGAmplitude">
                <property name="maximum">
                 <number>128</number>
                </property>
@@ -2842,7 +2842,7 @@ Frequency</string>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_47">
              <item>
-              <widget class="QLabel" name="label_43">
+              <widget class="QLabel" name="labelAWGDutyCycle">
                <property name="minimumSize">
                 <size>
                  <width>52</width>
@@ -2861,7 +2861,7 @@ Frequency</string>
               </widget>
              </item>
              <item>
-              <widget class="QDoubleSpinBox" name="doubleSpinBoxDuty">
+              <widget class="QDoubleSpinBox" name="doubleSpinBoxAWGDutyCycle">
                <property name="decimals">
                 <number>3</number>
                </property>
@@ -2877,7 +2877,7 @@ Frequency</string>
               </widget>
              </item>
              <item>
-              <widget class="QSlider" name="dutyCycleSlider">
+              <widget class="QSlider" name="sliderAWGDutyCycle">
                <property name="minimum">
                 <number>1</number>
                </property>
@@ -2906,7 +2906,7 @@ Frequency</string>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_48">
              <item>
-              <widget class="QLabel" name="label_44">
+              <widget class="QLabel" name="labelAWGOffset">
                <property name="minimumSize">
                 <size>
                  <width>52</width>
@@ -2931,7 +2931,7 @@ Frequency</string>
               </widget>
              </item>
              <item>
-              <widget class="QDoubleSpinBox" name="doubleSpinBoxOffset">
+              <widget class="QDoubleSpinBox" name="doubleSpinBoxAWGOffset">
                <property name="minimumSize">
                 <size>
                  <width>55</width>
@@ -2953,7 +2953,7 @@ Frequency</string>
               </widget>
              </item>
              <item>
-              <widget class="QSlider" name="offsetSlider">
+              <widget class="QSlider" name="sliderAWGOffset">
                <property name="minimum">
                 <number>-127</number>
                </property>
@@ -2979,7 +2979,7 @@ Frequency</string>
           </layout>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox_8">
+          <widget class="QGroupBox" name="groupBoxAWGSweep">
            <property name="title">
             <string>AWG Sweep</string>
            </property>
@@ -2996,7 +2996,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="checkBoxDirection">
+                 <widget class="QCheckBox" name="checkBoxSweepDirection">
                   <property name="text">
                    <string>Direction</string>
                   </property>
@@ -3014,7 +3014,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="checkBoxPingPong">
+                 <widget class="QCheckBox" name="checkBoxSweepPingPong">
                   <property name="text">
                    <string>Ping Pong</string>
                   </property>
@@ -3032,7 +3032,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="checkBoxAccelerate">
+                 <widget class="QCheckBox" name="checkBoxSweepAccelerate">
                   <property name="text">
                    <string>Accelerate</string>
                   </property>
@@ -3050,7 +3050,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="checkBoxAccelDirection">
+                 <widget class="QCheckBox" name="checkBoxSweepAccelDirection">
                   <property name="text">
                    <string>Acceleration Direction</string>
                   </property>
@@ -3067,7 +3067,7 @@ Frequency</string>
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_55">
                   <item>
-                   <widget class="QLabel" name="label_45">
+                   <widget class="QLabel" name="labelSweepSpeed">
                     <property name="text">
                      <string>Speed</string>
                     </property>
@@ -3080,12 +3080,12 @@ Frequency</string>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="sweepSpeedText"/>
+                   <widget class="QLineEdit" name="lineEditSweepSpeed"/>
                   </item>
                  </layout>
                 </item>
                 <item>
-                 <widget class="QSlider" name="sweepSpeedSlider">
+                 <widget class="QSlider" name="sliderSweepSpeed">
                   <property name="toolTip">
                    <string>Sweep speed</string>
                   </property>
@@ -3122,24 +3122,24 @@ Frequency</string>
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_53">
                   <item>
-                   <widget class="QLabel" name="label_46">
+                   <widget class="QLabel" name="labelSweepStart">
                     <property name="text">
                      <string>1:</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="startFreqText"/>
+                   <widget class="QLineEdit" name="lineEditSweepStart"/>
                   </item>
                   <item>
-                   <widget class="QLabel" name="labelUnitStart">
+                   <widget class="QLabel" name="labelSweepStartUnit">
                     <property name="text">
                      <string>Hz</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QSlider" name="sweepStartFreqSlider">
+                   <widget class="QSlider" name="sliderSweepStart">
                     <property name="toolTip">
                      <string>Sweep start frequency</string>
                     </property>
@@ -3171,24 +3171,24 @@ Frequency</string>
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_54">
                   <item>
-                   <widget class="QLabel" name="label_47">
+                   <widget class="QLabel" name="labelSweepEnd">
                     <property name="text">
                      <string>2:</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="endFreqText"/>
+                   <widget class="QLineEdit" name="lineEditSweepEnd"/>
                   </item>
                   <item>
-                   <widget class="QLabel" name="labelUnitEnd">
+                   <widget class="QLabel" name="labelSweepEndUnit">
                     <property name="text">
                      <string>Hz</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QSlider" name="sweepEndFreqSlider">
+                   <widget class="QSlider" name="sliderSweepEnd">
                     <property name="toolTip">
                      <string>Sweep end frequency</string>
                     </property>
@@ -3223,7 +3223,7 @@ Frequency</string>
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="protocolSnifferTab">
+       <widget class="QWidget" name="tabSniffer">
         <attribute name="title">
          <string>Protocol Sniffer</string>
         </attribute>
@@ -3234,7 +3234,7 @@ Frequency</string>
             <number>6</number>
            </property>
            <item>
-            <widget class="QGroupBox" name="modeGroupBox">
+            <widget class="QGroupBox" name="groupBoxSnifferMode">
              <property name="title">
               <string>Mode</string>
              </property>
@@ -3246,7 +3246,7 @@ Frequency</string>
                <number>2</number>
               </property>
               <item>
-               <widget class="QRadioButton" name="radioButtonSniffNormal">
+               <widget class="QRadioButton" name="radioButtonSnifferNormal">
                 <property name="toolTip">
                  <string>Continuous operation</string>
                 </property>
@@ -3256,7 +3256,7 @@ Frequency</string>
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="radioButtonSniffSingle">
+               <widget class="QRadioButton" name="radioButtonSnifferSingle">
                 <property name="toolTip">
                  <string>The sniffer will stop when the buffer is filled</string>
                 </property>
@@ -3271,7 +3271,7 @@ Frequency</string>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_61">
              <item>
-              <widget class="QCheckBox" name="checkBoxCircular">
+              <widget class="QCheckBox" name="checkBoxSnifferCircular">
                <property name="toolTip">
                 <string>New data will be placed at the end, older data will be shifted towards the beginning</string>
                </property>
@@ -3281,7 +3281,7 @@ Frequency</string>
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="checkBoxASCII">
+              <widget class="QCheckBox" name="checkBoxSnifferASCII">
                <property name="text">
                 <string>ASCII</string>
                </property>
@@ -3290,7 +3290,7 @@ Frequency</string>
             </layout>
            </item>
            <item>
-            <widget class="QPushButton" name="pauseSnifferButton">
+            <widget class="QPushButton" name="pushButtonSnifferPause">
              <property name="enabled">
               <bool>false</bool>
              </property>
@@ -3306,7 +3306,7 @@ Frequency</string>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="startSnifferButton">
+            <widget class="QPushButton" name="pushButtonSnifferStart">
              <property name="minimumSize">
               <size>
                <width>80</width>
@@ -3321,11 +3321,11 @@ Frequency</string>
           </layout>
          </item>
          <item>
-          <widget class="QTabWidget" name="protocolTabWidget">
+          <widget class="QTabWidget" name="tabWidgetSniffer">
            <property name="currentIndex">
             <number>0</number>
            </property>
-           <widget class="QWidget" name="spiTab">
+           <widget class="QWidget" name="tabSPI">
             <attribute name="title">
              <string>SPI</string>
             </attribute>
@@ -3337,7 +3337,7 @@ Frequency</string>
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_65">
                    <item>
-                    <widget class="QLabel" name="label_57">
+                    <widget class="QLabel" name="labelSPISS">
                      <property name="font">
                       <font>
                        <pointsize>10</pointsize>
@@ -3350,7 +3350,7 @@ Frequency</string>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_58">
+                    <widget class="QLabel" name="labelSPIMOSI">
                      <property name="font">
                       <font>
                        <pointsize>10</pointsize>
@@ -3363,7 +3363,7 @@ Frequency</string>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_61">
+                    <widget class="QLabel" name="labelSPIMISO">
                      <property name="font">
                       <font>
                        <pointsize>10</pointsize>
@@ -3376,7 +3376,7 @@ Frequency</string>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_62">
+                    <widget class="QLabel" name="labelSPISCK">
                      <property name="font">
                       <font>
                        <pointsize>10</pointsize>
@@ -3393,7 +3393,7 @@ Frequency</string>
                 </layout>
                </item>
                <item>
-                <widget class="QCheckBox" name="checkBoxInvertSS">
+                <widget class="QCheckBox" name="checkBoxSPIInvertSS">
                  <property name="layoutDirection">
                   <enum>Qt::LayoutDirection::RightToLeft</enum>
                  </property>
@@ -3405,7 +3405,7 @@ Frequency</string>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_72">
                  <item>
-                  <widget class="QLabel" name="label_59">
+                  <widget class="QLabel" name="labelSPICPOL">
                    <property name="text">
                     <string>CPOL</string>
                    </property>
@@ -3415,7 +3415,7 @@ Frequency</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QComboBox" name="comboBoxCPOL">
+                  <widget class="QComboBox" name="comboBoxSPICPOL">
                    <item>
                     <property name="text">
                      <string>0</string>
@@ -3433,7 +3433,7 @@ Frequency</string>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_73">
                  <item>
-                  <widget class="QLabel" name="label_60">
+                  <widget class="QLabel" name="labelSPICPHA">
                    <property name="text">
                     <string>CPHA</string>
                    </property>
@@ -3443,7 +3443,7 @@ Frequency</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QComboBox" name="comboBoxCPHA">
+                  <widget class="QComboBox" name="comboBoxSPICPHA">
                    <item>
                     <property name="text">
                      <string>0</string>
@@ -3463,7 +3463,7 @@ Frequency</string>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_75">
                <item>
-                <widget class="QPlainTextEdit" name="mosiTextEdit">
+                <widget class="QPlainTextEdit" name="plainTextEditSPIMOSI">
                  <property name="font">
                   <font>
                    <family>Courier</family>
@@ -3476,7 +3476,7 @@ Frequency</string>
                 </widget>
                </item>
                <item>
-                <widget class="QPlainTextEdit" name="misoTextEdit">
+                <widget class="QPlainTextEdit" name="plainTextEditSPIMISO">
                  <property name="font">
                   <font>
                    <family>Courier</family>
@@ -3492,7 +3492,7 @@ Frequency</string>
              </item>
             </layout>
            </widget>
-           <widget class="QWidget" name="i2cTab">
+           <widget class="QWidget" name="tabI2C">
             <attribute name="title">
              <string>I2C</string>
             </attribute>
@@ -3502,7 +3502,7 @@ Frequency</string>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_63">
                  <item>
-                  <widget class="QLabel" name="label_50">
+                  <widget class="QLabel" name="labelI2CSDA">
                    <property name="minimumSize">
                     <size>
                      <width>0</width>
@@ -3527,7 +3527,7 @@ Frequency</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="label_51">
+                  <widget class="QLabel" name="labelI2CSCL">
                    <property name="font">
                     <font>
                      <pointsize>10</pointsize>
@@ -3563,7 +3563,7 @@ Frequency</string>
               </layout>
              </item>
              <item>
-              <widget class="QTextEdit" name="i2cTextEdit">
+              <widget class="QTextEdit" name="textEditI2C">
                <property name="font">
                 <font>
                  <family>Courier</family>
@@ -3580,7 +3580,7 @@ Frequency</string>
              </item>
             </layout>
            </widget>
-           <widget class="QWidget" name="uartTab">
+           <widget class="QWidget" name="tabUART">
             <attribute name="title">
              <string>UART</string>
             </attribute>
@@ -3593,7 +3593,7 @@ Frequency</string>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_60">
                  <item>
-                  <widget class="QLabel" name="label_52">
+                  <widget class="QLabel" name="labelUARTRX">
                    <property name="font">
                     <font>
                      <pointsize>10</pointsize>
@@ -3606,7 +3606,7 @@ Frequency</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="label_53">
+                  <widget class="QLabel" name="labelUARTTX">
                    <property name="font">
                     <font>
                      <pointsize>10</pointsize>
@@ -3623,7 +3623,7 @@ Frequency</string>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_66">
                  <item>
-                  <widget class="QLabel" name="label_54">
+                  <widget class="QLabel" name="labelUARTBaud">
                    <property name="text">
                     <string>Baud Rate</string>
                    </property>
@@ -3633,7 +3633,7 @@ Frequency</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QComboBox" name="comboBoxBaud">
+                  <widget class="QComboBox" name="comboBoxUARTBaud">
                    <item>
                     <property name="text">
                      <string>1200</string>
@@ -3681,7 +3681,7 @@ Frequency</string>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_22">
                  <item>
-                  <widget class="QLabel" name="label_89">
+                  <widget class="QLabel" name="labelUARTDataBits">
                    <property name="text">
                     <string>Data Bits:</string>
                    </property>
@@ -3691,7 +3691,7 @@ Frequency</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="spinBoxDataBits">
+                  <widget class="QSpinBox" name="spinBoxUARTDataBits">
                    <property name="minimum">
                     <number>5</number>
                    </property>
@@ -3708,7 +3708,7 @@ Frequency</string>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_67">
                  <item>
-                  <widget class="QLabel" name="label_55">
+                  <widget class="QLabel" name="labelUARTParity">
                    <property name="text">
                     <string>Parity</string>
                    </property>
@@ -3718,7 +3718,7 @@ Frequency</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QComboBox" name="comboBoxParity">
+                  <widget class="QComboBox" name="comboBoxUARTParity">
                    <item>
                     <property name="text">
                      <string>None</string>
@@ -3741,7 +3741,7 @@ Frequency</string>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_68">
                  <item>
-                  <widget class="QLabel" name="label_56">
+                  <widget class="QLabel" name="labelUARTStopBits">
                    <property name="text">
                     <string>Stop Bits:</string>
                    </property>
@@ -3751,7 +3751,7 @@ Frequency</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QComboBox" name="comboBoxStopBits">
+                  <widget class="QComboBox" name="comboBoxUARTStopBits">
                    <item>
                     <property name="text">
                      <string>1</string>
@@ -3771,7 +3771,7 @@ Frequency</string>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_70">
                <item>
-                <widget class="QTextEdit" name="rxTextEdit">
+                <widget class="QTextEdit" name="textEditUARTRX">
                  <property name="font">
                   <font>
                    <family>Courier</family>
@@ -3784,7 +3784,7 @@ Frequency</string>
                 </widget>
                </item>
                <item>
-                <widget class="QPlainTextEdit" name="txTextEdit">
+                <widget class="QPlainTextEdit" name="plainTextEditUARTTX">
                  <property name="font">
                   <font>
                    <family>Courier</family>
@@ -3804,13 +3804,13 @@ Frequency</string>
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="optionsTab">
+       <widget class="QWidget" name="tabOptions">
         <attribute name="title">
          <string>Options</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_81" stretch="0,0,0,0">
          <item>
-          <widget class="QGroupBox" name="groupBox_10">
+          <widget class="QGroupBox" name="groupBoxFile">
            <property name="title">
             <string>File</string>
            </property>
@@ -3818,7 +3818,7 @@ Frequency</string>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_77">
               <item>
-               <widget class="QPushButton" name="loadWave">
+               <widget class="QPushButton" name="pushButtonLoadWave">
                 <property name="toolTip">
                  <string>Loads a previously saved waveform</string>
                 </property>
@@ -3828,7 +3828,7 @@ Frequency</string>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="saveWave">
+               <widget class="QPushButton" name="pushButtonSaveWave">
                 <property name="toolTip">
                  <string>Saves a waveform. A destination folder will be selected once</string>
                 </property>
@@ -3838,7 +3838,7 @@ Frequency</string>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="clearWaveButton">
+               <widget class="QPushButton" name="pushButtonClearWave">
                 <property name="toolTip">
                  <string>Clears the display of the loaded waveform and returns to normal operation</string>
                 </property>
@@ -3848,7 +3848,7 @@ Frequency</string>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="screenShotButton">
+               <widget class="QPushButton" name="pushButtonScreenshot">
                 <property name="toolTip">
                  <string>Saves a PNG image of the graph area. A destination folder will be selected once</string>
                 </property>
@@ -3860,7 +3860,7 @@ Frequency</string>
              </layout>
             </item>
             <item>
-             <widget class="QLabel" name="notifLabel">
+             <widget class="QLabel" name="labelFileStatus">
               <property name="font">
                <font>
                 <pointsize>8</pointsize>
@@ -3882,7 +3882,7 @@ Frequency</string>
              </widget>
             </item>
             <item>
-             <widget class="Line" name="line">
+             <widget class="Line" name="lineFile">
               <property name="orientation">
                <enum>Qt::Orientation::Horizontal</enum>
               </property>
@@ -3891,7 +3891,7 @@ Frequency</string>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_37">
               <item>
-               <widget class="QPushButton" name="pushButton_4">
+               <widget class="QPushButton" name="pushButtonRecord">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -3911,7 +3911,7 @@ Frequency</string>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="playButton">
+               <widget class="QPushButton" name="pushButtonPlay">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -3924,7 +3924,7 @@ Frequency</string>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_13">
+               <widget class="QLabel" name="labelRecordStatus">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
                   <horstretch>0</horstretch>
@@ -3957,7 +3957,7 @@ Frequency</string>
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox_11">
+          <widget class="QGroupBox" name="groupBoxDisplay">
            <property name="title">
             <string>Display</string>
            </property>
@@ -3967,7 +3967,7 @@ Frequency</string>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_81">
                 <item>
-                 <widget class="QLabel" name="label_63">
+                 <widget class="QLabel" name="labelIntensity">
                   <property name="minimumSize">
                    <size>
                     <width>40</width>
@@ -3989,7 +3989,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLabel" name="label_64">
+                 <widget class="QLabel" name="labelIconIntensityLow">
                   <property name="text">
                    <string/>
                   </property>
@@ -3999,7 +3999,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QSlider" name="intensitySlider">
+                 <widget class="QSlider" name="sliderIntensity">
                   <property name="minimum">
                    <number>0</number>
                   </property>
@@ -4033,7 +4033,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLabel" name="label_67">
+                 <widget class="QLabel" name="labelIconIntensityHigh">
                   <property name="text">
                    <string/>
                   </property>
@@ -4047,7 +4047,7 @@ Frequency</string>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_82">
                 <item>
-                 <widget class="QLabel" name="label_65">
+                 <widget class="QLabel" name="labelDecay">
                   <property name="minimumSize">
                    <size>
                     <width>40</width>
@@ -4069,7 +4069,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLabel" name="label_66">
+                 <widget class="QLabel" name="labelIconDecayShort">
                   <property name="text">
                    <string/>
                   </property>
@@ -4079,7 +4079,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QSlider" name="decaySlider">
+                 <widget class="QSlider" name="sliderDecay">
                   <property name="maximum">
                    <number>8</number>
                   </property>
@@ -4098,7 +4098,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLabel" name="label_68">
+                 <widget class="QLabel" name="labelIconDecayLong">
                   <property name="text">
                    <string/>
                   </property>
@@ -4116,7 +4116,7 @@ Frequency</string>
               <item>
                <layout class="QVBoxLayout" name="verticalLayout_83">
                 <item>
-                 <widget class="QCheckBox" name="checkBox_21">
+                 <widget class="QCheckBox" name="checkBoxColorGradient">
                   <property name="enabled">
                    <bool>false</bool>
                   </property>
@@ -4167,7 +4167,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="checkBoxInvert">
+                 <widget class="QCheckBox" name="checkBoxDisplayInvert">
                   <property name="toolTip">
                    <string>When enabled, the display’s pixels on the device are inverted (the display will have a white background). No effect on the software interface.</string>
                   </property>
@@ -4177,7 +4177,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="checkBoxFlip">
+                 <widget class="QCheckBox" name="checkBoxDisplayFlip">
                   <property name="toolTip">
                    <string>The device’s display orientation is flipped. No effect on the software interface</string>
                   </property>
@@ -4196,7 +4196,7 @@ Frequency</string>
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_84">
                   <item>
-                   <widget class="QLabel" name="label_70">
+                   <widget class="QLabel" name="labelAverage">
                     <property name="text">
                      <string>Average</string>
                     </property>
@@ -4266,7 +4266,7 @@ Frequency</string>
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_86">
                   <item>
-                   <widget class="QLabel" name="label_77">
+                   <widget class="QLabel" name="labelTheme">
                     <property name="text">
                      <string>Theme</string>
                     </property>
@@ -4308,7 +4308,7 @@ Frequency</string>
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_7">
                   <item>
-                   <widget class="QLabel" name="label_8">
+                   <widget class="QLabel" name="labelGrid">
                     <property name="text">
                      <string>Grid</string>
                     </property>
@@ -4360,7 +4360,7 @@ Frequency</string>
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox_12">
+          <widget class="QGroupBox" name="groupBoxConnection">
            <property name="title">
             <string>Connection</string>
            </property>
@@ -4371,7 +4371,7 @@ Frequency</string>
                <number>2</number>
               </property>
               <item>
-               <widget class="QCheckBox" name="checkBox_24">
+               <widget class="QCheckBox" name="checkBoxConnectAtStartup">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
@@ -4381,7 +4381,7 @@ Frequency</string>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="infoLabel">
+               <widget class="QLabel" name="labelConnectionInfo">
                 <property name="text">
                  <string/>
                 </property>
@@ -4391,21 +4391,21 @@ Frequency</string>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="connectButton">
+               <widget class="QPushButton" name="pushButtonConnect">
                 <property name="text">
                  <string>Connect</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="rescanButton">
+               <widget class="QPushButton" name="pushButtonRescan">
                 <property name="text">
                  <string>Re-scan</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="radioButton">
+               <widget class="QRadioButton" name="radioButtonSerialPort">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -4415,7 +4415,7 @@ Frequency</string>
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="radioButton_2">
+               <widget class="QRadioButton" name="radioButtonUSB">
                 <property name="text">
                  <string>Usb</string>
                 </property>
@@ -4437,7 +4437,7 @@ Frequency</string>
                  <number>10</number>
                 </property>
                 <item>
-                 <widget class="QLabel" name="label_72">
+                 <widget class="QLabel" name="labelCOMPort">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -4450,7 +4450,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QComboBox" name="comboBox_9">
+                 <widget class="QComboBox" name="comboBoxCOMPort">
                   <property name="enabled">
                    <bool>false</bool>
                   </property>
@@ -4476,7 +4476,7 @@ Frequency</string>
                  <number>2</number>
                 </property>
                 <item>
-                 <widget class="QLabel" name="connectIcon">
+                 <widget class="QLabel" name="labelConnectionIcon">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -4495,7 +4495,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLabel" name="connectLabel">
+                 <widget class="QLabel" name="labelConnectionStatus">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -4529,7 +4529,7 @@ Frequency</string>
                <number>4</number>
               </property>
               <item>
-               <widget class="QLabel" name="label_BMP">
+               <widget class="QLabel" name="labelDeviceScreenshot">
                 <property name="minimumSize">
                  <size>
                   <width>128</width>
@@ -4545,7 +4545,7 @@ Frequency</string>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="pushTakeBMP">
+               <widget class="QPushButton" name="pushButtonDeviceScreenshot">
                 <property name="text">
                  <string>Display Screenshot</string>
                 </property>
@@ -4557,7 +4557,7 @@ Frequency</string>
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox_13">
+          <widget class="QGroupBox" name="groupBoxFirmware">
            <property name="title">
             <string>Device Firmware</string>
            </property>
@@ -4573,7 +4573,7 @@ Frequency</string>
                  <number>6</number>
                 </property>
                 <item>
-                 <widget class="QLabel" name="label_75">
+                 <widget class="QLabel" name="labelFirmwareCurrent">
                   <property name="text">
                    <string>Current Version</string>
                   </property>
@@ -4583,7 +4583,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="currentFirwareVersion">
+                 <widget class="QLineEdit" name="lineEditFirmwareCurrent">
                   <property name="enabled">
                    <bool>true</bool>
                   </property>
@@ -4612,7 +4612,7 @@ Frequency</string>
                  <enum>QLayout::SizeConstraint::SetNoConstraint</enum>
                 </property>
                 <item>
-                 <widget class="QLabel" name="label_76">
+                 <widget class="QLabel" name="labelFirmwareLatest">
                   <property name="text">
                    <string>Latest Version</string>
                   </property>
@@ -4622,7 +4622,7 @@ Frequency</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="latestFirmWareVersion">
+                 <widget class="QLineEdit" name="lineEditFirmwareLatest">
                   <property name="enabled">
                    <bool>true</bool>
                   </property>
@@ -4659,7 +4659,7 @@ Frequency</string>
                <number>50</number>
               </property>
               <item>
-               <widget class="QPushButton" name="upgradeFirmware">
+               <widget class="QPushButton" name="pushButtonUpgradeFirmware">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -4681,7 +4681,7 @@ Frequency</string>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="restoreSettingButton">
+               <widget class="QPushButton" name="pushButtonRestoreSettings">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -4717,7 +4717,7 @@ Frequency</string>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_83" stretch="0,1">
            <item>
-            <widget class="QLabel" name="label_82">
+            <widget class="QLabel" name="labelAboutLogo">
              <property name="text">
               <string/>
              </property>
@@ -4727,7 +4727,7 @@ Frequency</string>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_2">
+            <widget class="QLabel" name="labelAboutVersion">
              <property name="font">
               <font>
                <pointsize>14</pointsize>
@@ -4749,7 +4749,7 @@ Frequency</string>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_26">
            <item>
-            <widget class="QLabel" name="label_80">
+            <widget class="QLabel" name="labelAboutWatchImage">
              <property name="maximumSize">
               <size>
                <width>100</width>
@@ -4768,7 +4768,7 @@ Frequency</string>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_79">
+            <widget class="QLabel" name="labelAboutWatchLink">
              <property name="font">
               <font>
                <pointsize>20</pointsize>
@@ -4796,7 +4796,7 @@ Frequency</string>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_78">
            <item>
-            <widget class="QLabel" name="label_81">
+            <widget class="QLabel" name="labelAboutXprotolabImage">
              <property name="maximumSize">
               <size>
                <width>100</width>
@@ -4815,7 +4815,7 @@ Frequency</string>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_78">
+            <widget class="QLabel" name="labelAboutXprotolabLink">
              <property name="font">
               <font>
                <pointsize>20</pointsize>
@@ -4843,7 +4843,7 @@ Frequency</string>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_85">
            <item>
-            <widget class="QLabel" name="label_84">
+            <widget class="QLabel" name="labelAboutXprotolabPortableImage">
              <property name="maximumSize">
               <size>
                <width>100</width>
@@ -4862,7 +4862,7 @@ Frequency</string>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_74">
+            <widget class="QLabel" name="labelAboutXprotolabPortableLink">
              <property name="font">
               <font>
                <pointsize>20</pointsize>
@@ -4890,7 +4890,7 @@ Frequency</string>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_87">
            <item>
-            <widget class="QLabel" name="label_83">
+            <widget class="QLabel" name="labelAboutXminilabImage">
              <property name="maximumSize">
               <size>
                <width>100</width>
@@ -4909,7 +4909,7 @@ Frequency</string>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_31">
+            <widget class="QLabel" name="labelAboutXminilabLink">
              <property name="font">
               <font>
                <pointsize>20</pointsize>
@@ -4937,7 +4937,7 @@ Frequency</string>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_97">
            <item>
-            <widget class="QLabel" name="label_85">
+            <widget class="QLabel" name="labelAboutXminilabPortableImage">
              <property name="maximumSize">
               <size>
                <width>100</width>
@@ -4956,7 +4956,7 @@ Frequency</string>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_19">
+            <widget class="QLabel" name="labelAboutXminilabPortableLink">
              <property name="font">
               <font>
                <pointsize>20</pointsize>
@@ -4984,7 +4984,7 @@ Frequency</string>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_59">
            <item>
-            <widget class="QLabel" name="label_87">
+            <widget class="QLabel" name="labelAboutXprotolabPlainImage">
              <property name="maximumSize">
               <size>
                <width>100</width>
@@ -5003,7 +5003,7 @@ Frequency</string>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_88">
+            <widget class="QLabel" name="labelAboutXprotolabPlainLink">
              <property name="font">
               <font>
                <pointsize>20</pointsize>
@@ -5029,7 +5029,7 @@ Frequency</string>
           </layout>
          </item>
          <item>
-          <widget class="QLabel" name="label_86">
+          <widget class="QLabel" name="labelAboutWebsite">
            <property name="font">
             <font>
              <pointsize>20</pointsize>
@@ -5053,7 +5053,7 @@ Frequency</string>
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="label_4">
+          <widget class="QLabel" name="labelAboutCopyright">
            <property name="text">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copyright © 2013-2026 Gabotronics.com&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
@@ -5069,7 +5069,7 @@ Frequency</string>
     </item>
    </layout>
   </widget>
-  <action name="actionSave_Wave">
+  <action name="actionSaveWave">
    <property name="icon">
     <iconset resource="xprotolabinterface.qrc">
      <normaloff>:/Bitmaps/Bitmaps/ico-save.png</normaloff>:/Bitmaps/Bitmaps/ico-save.png</iconset>
@@ -5078,7 +5078,7 @@ Frequency</string>
     <string>Save Wave</string>
    </property>
   </action>
-  <action name="actionLoad_Wave">
+  <action name="actionLoadWave">
    <property name="text">
     <string>Load Wave</string>
    </property>

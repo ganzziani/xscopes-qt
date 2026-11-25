@@ -6,6 +6,6 @@ QTabBar::tab{
     margin-left: 1px;
 }
 
-QLabel#label_19 {
+QLabel#labelAboutXminilabPortableLink {
     font-size: 30px;
 }

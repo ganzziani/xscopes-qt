@@ -191,19 +191,19 @@ QGroupBox {
     background-color: #00FFFFFF;
 }
 
-QWidget#osciloscopeTab {
+QWidget#tabOscilloscope {
     background-color: #FFFFFF;
 }
 
-QWidget#awgTab {
+QWidget#tabAWG {
     background-color: #FFFFFF;
 }
 
-QWidget#protocolSnifferTab {
+QWidget#tabSniffer {
     background-color: #FFFFFF;
 }
 
-QWidget#optionsTab {
+QWidget#tabOptions {
     background-color: #FFFFFF;
 }
 
@@ -211,23 +211,23 @@ QWidget#tab {
     background-color: #FFFFFF;
 }
 
-QLabel#vdcChannel1 {
+QLabel#labelVDCCH1 {
     font-size: 50px;
 }
 
-QLabel#vdcChannel2 {
+QLabel#labelVDCCH2 {
     font-size: 50px;
 }
 
-QLabel#vppChannel1 {
+QLabel#labelVPPCH1 {
     font-size: 50px;
 }
 
-QLabel#vppChannel2 {
+QLabel#labelVPPCH2 {
     font-size: 50px;
 }
 
-QLabel#frequencyValue {
+QLabel#labelCounterValue {
     font-size: 50px;
 }
 
