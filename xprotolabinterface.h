@@ -103,6 +103,7 @@ enum Selected {
     isNone
 };
 
+// comboBoxTriggerMode's items, in order, and the trigger marker icons
 enum Trigger {
     Rising,
     Falling,
@@ -110,6 +111,14 @@ enum Trigger {
     Positive,
     Negative,
     Window
+};
+
+// comboBoxTriggerType's items, in order
+enum TriggerType {
+    TriggerAuto,
+    TriggerFree,
+    TriggerNormal,
+    TriggerSingle
 };
 
 enum Theme {
@@ -212,8 +221,7 @@ private:
     int mapRange(int value, int oldMax, int oldMin, int newMax, int newMin);
     double mapRangeF(double value, double oldMax, double oldMin, double newMax, double newMin);
     void logToFile(QString);
-    void checkIfInvertIcon();
-    void invertTriggerIcon();
+    void updateTriggerIcon();
     int checkValue(int value);
     int checkValue(int value, int min, int max);
     Selected markerAt(const QPointF &pos) const;
@@ -277,16 +285,8 @@ private slots:
     void on_checkBoxCHD5_clicked();
     void on_checkBoxCHD6_clicked();
     void on_checkBoxCHD7_clicked();
-    void on_radioButtonTriggerRising_clicked();
-    void on_radioButtonTriggerFalling_clicked();
-    void on_radioButtonTriggerDual_clicked();
-    void on_radioButtonTriggerPositiveSlope_clicked();
-    void on_radioButtonTriggerNegativeSlope_clicked();
-    void on_radioButtonTriggerWindow_clicked();
-    void on_radioButtonTriggerFree_clicked();
-    void on_radioButtonTriggerNormal_clicked();
-    void on_radioButtonTriggerAuto_clicked();
-    void on_radioButtonTriggerSingle_clicked();
+    void on_comboBoxTriggerMode_activated(int);
+    void on_comboBoxTriggerType_activated(int);
     void on_checkBoxSnifferCircular_clicked();
     void on_checkBoxRollMode_clicked();
     void on_checkBoxFFTLogY_clicked();
@@ -474,7 +474,6 @@ private:
     QString defaultDir;
     QStringList triggerIconPathsG, triggerIconPathsR;
     QList<QPoint> triggerIconHotspots;
-    int trigIcon;
     CustomTheme customThemeDialog;
     Bootloader DialogBootloader;
 

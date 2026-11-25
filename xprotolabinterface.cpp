@@ -2,6 +2,7 @@
 #include "ui_xprotolabinterface.h"
 #include <QActionGroup>
 #include <QScopeGuard>
+#include <QStandardItemModel>
 #include <stdio.h>
 #include <string.h>
 
@@ -93,7 +94,6 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     captureRef = false;
     saveWave = false;
     displayLoadedWave = false;
-    trigIcon = 0;
     persistenceIndex = 0;
     persistenceItem = nullptr;
     bitTriggerSource = false;
@@ -2082,38 +2082,25 @@ void XprotolabInterface::readDeviceSettings() {
     // GPIO5 Trigger
     data = usbDevice.inBuffer[5];   // Trigger
     logToFile("GPIO5 Trigger: " + QString::number(data));
-    if((data & (byte)(1 << 0)) != 0)
-        ui->radioButtonTriggerNormal->setChecked(true);
-    else if((data & (byte)(1 << 1)) != 0)
-        ui->radioButtonTriggerSingle->setChecked(true);
+    // Single sets bits 0 and 1, so test it before Normal (bit 0 alone)
+    if((data & (byte)(1 << 1)) != 0)
+        ui->comboBoxTriggerType->setCurrentIndex(TriggerSingle);
+    else if((data & (byte)(1 << 0)) != 0)
+        ui->comboBoxTriggerType->setCurrentIndex(TriggerNormal);
     else if((data & (byte)(1 << 2)) != 0)
-        ui->radioButtonTriggerAuto->setChecked(true);
+        ui->comboBoxTriggerType->setCurrentIndex(TriggerAuto);
     else
-        ui->radioButtonTriggerFree->setChecked(true);
+        ui->comboBoxTriggerType->setCurrentIndex(TriggerFree);
     ui->checkBoxSnifferCircular->setChecked((data & (byte)(1 << 4)) != 0);
-    if((data & (byte)(1 << 7)) != 0) { // edge
-        if((data & (byte)(1 << 3)) != 0) {
-            ui->radioButtonTriggerFalling->setChecked(true);
-            trigIcon = Falling;
-        } else {
-            ui->radioButtonTriggerRising->setChecked(true);
-            trigIcon = Rising;
-        }
-    } else if((data & (byte)(1 << 5)) != 0) { // slope
-        if((data & (byte)(1 << 3)) != 0) {
-            ui->radioButtonTriggerNegativeSlope->setChecked(true);
-            trigIcon = Negative;
-        } else {
-            ui->radioButtonTriggerPositiveSlope->setChecked(true);
-            trigIcon = Positive;
-        }
-    } else if((data & (byte)(1 << 6)) != 0) {
-        ui->radioButtonTriggerWindow->setChecked(true);
-        trigIcon = Window;
-    } else {
-        ui->radioButtonTriggerDual->setChecked(true);
-        trigIcon = Dual;
-    }
+    const bool down = (data & (byte)(1 << 3)) != 0;     // trigger direction
+    if((data & (byte)(1 << 7)) != 0)                    // edge
+        ui->comboBoxTriggerMode->setCurrentIndex(down ? Falling : Rising);
+    else if((data & (byte)(1 << 5)) != 0)               // slope
+        ui->comboBoxTriggerMode->setCurrentIndex(down ? Negative : Positive);
+    else if((data & (byte)(1 << 6)) != 0)               // window
+        ui->comboBoxTriggerMode->setCurrentIndex(Window);
+    else
+        ui->comboBoxTriggerMode->setCurrentIndex(Dual);
     // GPIO6 Mcursors
     data = usbDevice.inBuffer[6];
     logToFile("GPIO6 Mcursors: " + QString::number(data));
@@ -2504,10 +2491,9 @@ void XprotolabInterface::readDeviceSettings() {
     triggerLevel = tlevel;
     triggerWin1Level = tlevelWin1;
     triggerWin2Level = tlevelWin2;
-    setTriggerIcon(trigIcon);
+    updateTriggerIcon();
     logToFile("------------------------------------------");
     QTimer::singleShot(100, this, SLOT(updateTriggerPos()));
-    checkIfInvertIcon();
     updateTriggerPos();
     m_repaint = true;
 }
@@ -2609,8 +2595,7 @@ void XprotolabInterface::on_checkBoxCH1Invert_clicked() {
     updateTriggerPos();
     updateCh1Label();
     updateCh2Label();
-    if(ui->comboBoxTriggerSource->currentIndex() == 0)
-        invertTriggerIcon();
+    updateTriggerIcon();
 }
 
 void XprotolabInterface::on_groupBoxCH1_clicked() {
@@ -2670,8 +2655,7 @@ void XprotolabInterface::on_checkBoxCH2Invert_clicked() {
     updateTriggerPos();
     updateCh1Label();
     updateCh2Label();
-    if(ui->comboBoxTriggerSource->currentIndex() == 1)
-        invertTriggerIcon();
+    updateTriggerIcon();
 }
 
 void XprotolabInterface::on_groupBoxCH2_clicked() {
@@ -2813,81 +2797,42 @@ void XprotolabInterface::on_checkBoxCHD7_clicked() {
 // GPIO5 Trigger bits
 void XprotolabInterface::sendTriggerControls() {
     byte field = 0;
-    if(ui->radioButtonTriggerNormal->isChecked()) {
+    switch(ui->comboBoxTriggerType->currentIndex()) {
+    case TriggerNormal:
         field += (1 << 0);   // Trigger
-    } else if(ui->radioButtonTriggerSingle->isChecked()) {
+        break;
+    case TriggerSingle:
         field += (1 << 0);
-        field += (1 << 1);
-    } else if(ui->radioButtonTriggerAuto->isChecked()) {
-        field += (1 << 2);
+        field += (1 << 1);   // Single
+        break;
+    case TriggerAuto:
+        field += (1 << 2);   // Auto trigger
+        break;
+    default:                 // Free: no trigger bits
+        break;
     }
-    if(ui->radioButtonTriggerFalling->isChecked() || ui->radioButtonTriggerNegativeSlope->isChecked())
+    const int mode = ui->comboBoxTriggerMode->currentIndex();
+    if(mode == Falling || mode == Negative)
         field += (1 << 3);   // Trigger direction
     if(ui->checkBoxSnifferCircular->isChecked())
         field += (1 << 4);   // Sniffer circular buffer
-    if(ui->radioButtonTriggerPositiveSlope->isChecked() || ui->radioButtonTriggerNegativeSlope->isChecked())
+    if(mode == Positive || mode == Negative)
         field += (1 << 5);   // Slope
-    if(ui->radioButtonTriggerWindow->isChecked())
+    if(mode == Window)
         field += (1 << 6);   // Window
-    if(ui->radioButtonTriggerRising->isChecked() || ui->radioButtonTriggerFalling->isChecked())
-        field += (1 << 7);   // Edge
+    if(mode == Rising || mode == Falling)
+        field += (1 << 7);   // Edge; neither edge, slope nor window is Dual
     usbDevice.controlWriteTransfer(5, field);
 }
 
-void XprotolabInterface::on_radioButtonTriggerRising_clicked() {
+void XprotolabInterface::on_comboBoxTriggerMode_activated(int) {
     sendTriggerControls();
-    setTriggerIcon(Rising);
-    checkIfInvertIcon();
+    updateTriggerIcon();
 }
 
-void XprotolabInterface::on_radioButtonTriggerFalling_clicked() {
+void XprotolabInterface::on_comboBoxTriggerType_activated(int) {
     sendTriggerControls();
-    setTriggerIcon(Falling);
-    checkIfInvertIcon();
-}
-
-void XprotolabInterface::on_radioButtonTriggerDual_clicked() {
-    sendTriggerControls();
-    setTriggerIcon(Dual);
-}
-
-void XprotolabInterface::on_radioButtonTriggerPositiveSlope_clicked() {
-    sendTriggerControls();
-    setTriggerIcon(Positive);
-    checkIfInvertIcon();
-}
-
-void XprotolabInterface::on_radioButtonTriggerNegativeSlope_clicked() {
-    sendTriggerControls();
-    setTriggerIcon(Negative);
-    checkIfInvertIcon();
-}
-
-void XprotolabInterface::on_radioButtonTriggerWindow_clicked() {
-    sendTriggerControls();
-    setTriggerIcon(Window);
-}
-
-void XprotolabInterface::on_radioButtonTriggerFree_clicked() {
-    sendTriggerControls();
-    triggerPixmap->setVisible(false);
-}
-
-void XprotolabInterface::on_radioButtonTriggerNormal_clicked() {
-    sendTriggerControls();
-    triggerPixmap->setVisible(true);
-    m_repaint = true;
-}
-
-void XprotolabInterface::on_radioButtonTriggerAuto_clicked() {
-    sendTriggerControls();
-    triggerPixmap->setVisible(true);
-    m_repaint = true;
-}
-
-void XprotolabInterface::on_radioButtonTriggerSingle_clicked() {
-    sendTriggerControls();
-    triggerPixmap->setVisible(true);
+    updateTriggerIcon();        // Free hides the trigger markers, the others show them
     m_repaint = true;
 }
 
@@ -3447,22 +3392,18 @@ void XprotolabInterface::on_comboBoxTriggerSource_currentIndexChanged(int index)
     } else if(index == 1 && lastTriggerSource == 0) {
         lastTriggerSource = 1;
     }
-    if(index > 1) {
-        if(ui->radioButtonTriggerWindow->isChecked() || ui->radioButtonTriggerNegativeSlope->isChecked() || ui->radioButtonTriggerPositiveSlope->isChecked()) {
-            ui->radioButtonTriggerRising->setChecked(true);
-            on_radioButtonTriggerRising_clicked();
-        }
-        ui->radioButtonTriggerWindow->setEnabled(false);
-        ui->radioButtonTriggerPositiveSlope->setEnabled(false);
-        ui->radioButtonTriggerNegativeSlope->setEnabled(false);
-    } else {
-        ui->radioButtonTriggerWindow->setEnabled(true);
-        ui->radioButtonTriggerPositiveSlope->setEnabled(true);
-        ui->radioButtonTriggerNegativeSlope->setEnabled(true);
+    // A logic bit has no level or slope: only its edges can trigger
+    const int mode = ui->comboBoxTriggerMode->currentIndex();
+    if(index > 1 && (mode == Positive || mode == Negative || mode == Window)) {
+        ui->comboBoxTriggerMode->setCurrentIndex(Rising);
+        sendTriggerControls();
     }
+    auto *modes = qobject_cast<QStandardItemModel *>(ui->comboBoxTriggerMode->model());
+    for(int m : {Positive, Negative, Window})
+        modes->item(m)->setEnabled(index <= 1);
     if(!initializing)
         placeTriggerMarkers();
-    setTriggerIcon(trigIcon);
+    updateTriggerIcon();
 }
 
 // M 25 Trigger Level
@@ -4535,14 +4476,29 @@ void XprotolabInterface::enableSnifferControls(bool value) {
     ui->groupBoxSnifferMode->setEnabled(value);
 }
 
+// The trigger marker for the mode in comboBoxTriggerMode. An inverted source channel is
+// drawn upside down, so its edges and slopes show the other way round.
+void XprotolabInterface::updateTriggerIcon() {
+    int icon = ui->comboBoxTriggerMode->currentIndex();
+    if(triggerSourceInverted()) {
+        switch(icon) {
+        case Rising:   icon = Falling;  break;
+        case Falling:  icon = Rising;   break;
+        case Positive: icon = Negative; break;
+        case Negative: icon = Positive; break;
+        default:       break;           // Dual is symmetric, Window flips its own markers
+        }
+    }
+    setTriggerIcon(icon);
+}
+
 void XprotolabInterface::setTriggerIcon(int iconNum) {
-    trigIcon = iconNum;
-    if(ui->radioButtonTriggerFree->isChecked()) {
+    if(ui->comboBoxTriggerType->currentIndex() == TriggerFree) {
         triggerWin1Pixmap->setVisible(false);
         triggerWin2Pixmap->setVisible(false);
         triggerPixmap->setVisible(false);
         return;
-    } else if(ui->radioButtonTriggerWindow->isChecked()) {
+    } else if(ui->comboBoxTriggerMode->currentIndex() == Window) {
         triggerWin1Pixmap->setVisible(true);
         triggerWin2Pixmap->setVisible(true);
         triggerPixmap->setVisible(false);
@@ -4713,33 +4669,6 @@ void XprotolabInterface::updateCh2Label() {
     }
     tmp_text += " = " + gains[ui->sliderCH2Gain->value()].display + "/div";
     ui->labelCH2Scale->setText(tmp_text);
-}
-
-void XprotolabInterface::checkIfInvertIcon() {
-    bool invert = false;
-    if(ui->comboBoxTriggerSource->currentIndex() == 0 && ui->checkBoxCH1Invert->isChecked()) {
-        invert = true;
-    } else if(ui->comboBoxTriggerSource->currentIndex() == 1 && ui->checkBoxCH2Invert->isChecked()) {
-        invert = true;
-    }
-    if(invert) {
-        invertTriggerIcon();
-    }
-}
-void XprotolabInterface::invertTriggerIcon() {
-    if(trigIcon == Window)
-        setTriggerIcon(Window);     // picks each marker's direction from the invert state
-    if(trigIcon == Dual || trigIcon == Window)
-        return;
-    else if(trigIcon == Rising)
-        setTriggerIcon(Falling);
-    else if(trigIcon == Falling)
-        setTriggerIcon(Rising);
-    else if(trigIcon == Positive)
-        setTriggerIcon(Negative);
-    else if(trigIcon == Negative)
-        setTriggerIcon(Positive);
-    m_repaint = true;
 }
 
 void XprotolabInterface::on_pushButtonRescan_clicked() {

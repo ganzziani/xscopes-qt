@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1020</width>
-    <height>1103</height>
+    <width>800</width>
+    <height>568</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -55,6 +55,21 @@
       </property>
       <widget class="QWidget" name="widgetPlot" native="true">
        <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0">
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>4</number>
+        </property>
         <item>
          <widget class="QCustomPlot" name="customPlot" native="true">
           <property name="sizePolicy">
@@ -65,14 +80,20 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>0</width>
-            <height>400</height>
+            <width>256</width>
+            <height>256</height>
            </size>
           </property>
          </widget>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_111">
+          <property name="leftMargin">
+           <number>8</number>
+          </property>
+          <property name="rightMargin">
+           <number>4</number>
+          </property>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_109">
             <item>
@@ -260,8 +281,14 @@
          <property name="leftMargin">
           <number>0</number>
          </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
          <property name="rightMargin">
           <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>2</number>
          </property>
          <item>
           <widget class="QGroupBox" name="groupBoxHorizontal">
@@ -269,8 +296,17 @@
             <string>Horizontal</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>6</number>
+            </property>
+            <property name="topMargin">
+             <number>2</number>
+            </property>
             <property name="bottomMargin">
-             <number>4</number>
+             <number>2</number>
             </property>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -380,32 +416,28 @@
                 </property>
                </widget>
               </item>
-              <item>
-               <widget class="QPushButton" name="pushButtonCapture">
-                <property name="text">
-                 <string>Capture</string>
-                </property>
-               </widget>
-              </item>
              </layout>
             </item>
            </layout>
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBoxChannels">
-           <property name="title">
-            <string>Channels</string>
-           </property>
+          <widget class="QFrame" name="frameChannels">
            <layout class="QHBoxLayout" name="horizontalLayout_34">
             <property name="spacing">
-             <number>0</number>
+             <number>2</number>
             </property>
             <property name="leftMargin">
              <number>4</number>
             </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
             <property name="rightMargin">
-             <number>4</number>
+             <number>2</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
             </property>
             <item>
              <widget class="QGroupBox" name="groupBoxCH1">
@@ -416,6 +448,12 @@
                <bool>true</bool>
               </property>
               <layout class="QHBoxLayout" name="horizontalLayout_35" stretch="0,1">
+               <property name="topMargin">
+                <number>2</number>
+               </property>
+               <property name="bottomMargin">
+                <number>2</number>
+               </property>
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_74">
                  <item>
@@ -466,6 +504,9 @@
                </item>
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_7">
+                 <property name="spacing">
+                  <number>2</number>
+                 </property>
                  <item>
                   <widget class="QCheckBox" name="checkBoxCH1Average">
                    <property name="toolTip">
@@ -513,9 +554,12 @@
                      <number>2</number>
                     </property>
                     <property name="topMargin">
-                     <number>6</number>
+                     <number>2</number>
                     </property>
                     <property name="rightMargin">
+                     <number>2</number>
+                    </property>
+                    <property name="bottomMargin">
                      <number>2</number>
                     </property>
                     <item>
@@ -544,7 +588,7 @@
                  <item>
                   <widget class="QCheckBox" name="checkBoxRefCH1">
                    <property name="text">
-                    <string>REF</string>
+                    <string>Reference</string>
                    </property>
                   </widget>
                  </item>
@@ -562,6 +606,15 @@
                <bool>true</bool>
               </property>
               <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0,1">
+               <property name="spacing">
+                <number>4</number>
+               </property>
+               <property name="topMargin">
+                <number>2</number>
+               </property>
+               <property name="bottomMargin">
+                <number>2</number>
+               </property>
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_13">
                  <item>
@@ -612,6 +665,9 @@
                </item>
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_14">
+                 <property name="spacing">
+                  <number>2</number>
+                 </property>
                  <item>
                   <widget class="QCheckBox" name="checkBoxCH2Average">
                    <property name="toolTip">
@@ -658,7 +714,13 @@
                     <property name="leftMargin">
                      <number>2</number>
                     </property>
+                    <property name="topMargin">
+                     <number>2</number>
+                    </property>
                     <property name="rightMargin">
+                     <number>2</number>
+                    </property>
+                    <property name="bottomMargin">
                      <number>2</number>
                     </property>
                     <item>
@@ -687,7 +749,7 @@
                  <item>
                   <widget class="QCheckBox" name="checkBoxRefCH2">
                    <property name="text">
-                    <string>REF</string>
+                    <string>Reference</string>
                    </property>
                   </widget>
                  </item>
@@ -711,6 +773,12 @@
                <bool>false</bool>
               </property>
               <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="0,1">
+               <property name="topMargin">
+                <number>2</number>
+               </property>
+               <property name="bottomMargin">
+                <number>2</number>
+               </property>
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_15">
                  <item>
@@ -761,6 +829,9 @@
                </item>
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_18">
+                 <property name="spacing">
+                  <number>2</number>
+                 </property>
                  <item>
                   <widget class="QCheckBox" name="checkBoxCH3Average">
                    <property name="toolTip">
@@ -810,7 +881,13 @@
                     <property name="leftMargin">
                      <number>2</number>
                     </property>
+                    <property name="topMargin">
+                     <number>2</number>
+                    </property>
                     <property name="rightMargin">
+                     <number>2</number>
+                    </property>
+                    <property name="bottomMargin">
                      <number>2</number>
                     </property>
                     <item>
@@ -839,7 +916,7 @@
                  <item>
                   <widget class="QCheckBox" name="checkBoxRefCH3">
                    <property name="text">
-                    <string>REF</string>
+                    <string>Reference</string>
                    </property>
                   </widget>
                  </item>
@@ -863,6 +940,12 @@
                <bool>false</bool>
               </property>
               <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="0,1">
+               <property name="topMargin">
+                <number>2</number>
+               </property>
+               <property name="bottomMargin">
+                <number>2</number>
+               </property>
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_21">
                  <item>
@@ -913,6 +996,9 @@
                </item>
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_25">
+                 <property name="spacing">
+                  <number>2</number>
+                 </property>
                  <item>
                   <widget class="QCheckBox" name="checkBoxCH4Average">
                    <property name="toolTip">
@@ -962,7 +1048,13 @@
                     <property name="leftMargin">
                      <number>2</number>
                     </property>
+                    <property name="topMargin">
+                     <number>2</number>
+                    </property>
                     <property name="rightMargin">
+                     <number>2</number>
+                    </property>
+                    <property name="bottomMargin">
                      <number>2</number>
                     </property>
                     <item>
@@ -991,7 +1083,7 @@
                  <item>
                   <widget class="QCheckBox" name="checkBoxRefCH4">
                    <property name="text">
-                    <string>REF</string>
+                    <string>Reference</string>
                    </property>
                   </widget>
                  </item>
@@ -1004,22 +1096,28 @@
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBoxVertical">
+          <widget class="QFrame" name="frameVertical">
            <property name="maximumSize">
             <size>
              <width>16777215</width>
              <height>16777215</height>
             </size>
            </property>
-           <property name="title">
-            <string>Vertical</string>
-           </property>
            <layout class="QHBoxLayout" name="horizontalLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>4</number>
+            </property>
             <property name="topMargin">
-             <number>3</number>
+             <number>2</number>
+            </property>
+            <property name="rightMargin">
+             <number>2</number>
             </property>
             <property name="bottomMargin">
-             <number>6</number>
+             <number>2</number>
             </property>
             <item>
              <widget class="QGroupBox" name="groupBoxCHD">
@@ -1078,6 +1176,9 @@
                </item>
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_78">
+                 <property name="spacing">
+                  <number>2</number>
+                 </property>
                  <item>
                   <widget class="QCheckBox" name="checkBoxCHD0">
                    <property name="text">
@@ -1206,7 +1307,7 @@
                  <item>
                   <widget class="QCheckBox" name="checkBoxRefCHD">
                    <property name="text">
-                    <string>Ref</string>
+                    <string>Ref.</string>
                    </property>
                   </widget>
                  </item>
@@ -1224,6 +1325,15 @@
                <bool>true</bool>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_5">
+               <property name="spacing">
+                <number>2</number>
+               </property>
+               <property name="topMargin">
+                <number>2</number>
+               </property>
+               <property name="bottomMargin">
+                <number>4</number>
+               </property>
                <item>
                 <widget class="QCheckBox" name="checkBoxFFTCH1">
                  <property name="text">
@@ -1264,6 +1374,15 @@
                   <bool>false</bool>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_38">
+                  <property name="spacing">
+                   <number>2</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
                   <item>
                    <widget class="QRadioButton" name="radioButtonFFTHamming">
                     <property name="text">
@@ -1292,448 +1411,402 @@
              </widget>
             </item>
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout_59">
-              <property name="spacing">
-               <number>6</number>
+             <widget class="QGroupBox" name="groupBox">
+              <property name="title">
+               <string>Trigger</string>
               </property>
-              <property name="sizeConstraint">
-               <enum>QLayout::SizeConstraint::SetMinimumSize</enum>
-              </property>
-              <property name="bottomMargin">
-               <number>0</number>
-              </property>
-              <item>
-               <widget class="QFrame" name="frameTrigger">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true"/>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_54">
-                 <property name="leftMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="topMargin">
-                  <number>3</number>
-                 </property>
-                 <property name="rightMargin">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_6">
-                   <item>
-                    <widget class="QGroupBox" name="groupBoxTriggerSource">
-                     <property name="title">
-                      <string>Trigger Source</string>
+              <layout class="QVBoxLayout" name="verticalLayout_59">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <property name="sizeConstraint">
+                <enum>QLayout::SizeConstraint::SetMinimumSize</enum>
+               </property>
+               <property name="topMargin">
+                <number>1</number>
+               </property>
+               <property name="rightMargin">
+                <number>1</number>
+               </property>
+               <property name="bottomMargin">
+                <number>1</number>
+               </property>
+               <item>
+                <widget class="QFrame" name="frameTriggerSource">
+                 <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0">
+                  <property name="spacing">
+                   <number>3</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>2</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>2</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="label">
+                    <property name="text">
+                     <string>Source:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="comboBoxTriggerSource">
+                    <property name="editable">
+                     <bool>false</bool>
+                    </property>
+                    <property name="maxVisibleItems">
+                     <number>999</number>
+                    </property>
+                    <property name="frame">
+                     <bool>true</bool>
+                    </property>
+                    <item>
+                     <property name="text">
+                      <string>CH1</string>
                      </property>
-                     <layout class="QVBoxLayout" name="verticalLayout_52">
-                      <property name="spacing">
-                       <number>3</number>
-                      </property>
-                      <property name="topMargin">
-                       <number>3</number>
-                      </property>
-                      <property name="bottomMargin">
-                       <number>6</number>
-                      </property>
-                      <item>
-                       <widget class="QComboBox" name="comboBoxTriggerSource">
-                        <property name="editable">
-                         <bool>false</bool>
-                        </property>
-                        <property name="maxVisibleItems">
-                         <number>999</number>
-                        </property>
-                        <property name="frame">
-                         <bool>true</bool>
-                        </property>
-                        <item>
-                         <property name="text">
-                          <string>CH1</string>
-                         </property>
-                        </item>
-                        <item>
-                         <property name="text">
-                          <string>CH2</string>
-                         </property>
-                        </item>
-                        <item>
-                         <property name="text">
-                          <string>Bit 0</string>
-                         </property>
-                        </item>
-                        <item>
-                         <property name="text">
-                          <string>Bit 1</string>
-                         </property>
-                        </item>
-                        <item>
-                         <property name="text">
-                          <string>Bit 2</string>
-                         </property>
-                        </item>
-                        <item>
-                         <property name="text">
-                          <string>Bit 3</string>
-                         </property>
-                        </item>
-                        <item>
-                         <property name="text">
-                          <string>Bit 4</string>
-                         </property>
-                        </item>
-                        <item>
-                         <property name="text">
-                          <string>Bit 5</string>
-                         </property>
-                        </item>
-                        <item>
-                         <property name="text">
-                          <string>Bit 6</string>
-                         </property>
-                        </item>
-                        <item>
-                         <property name="text">
-                          <string>Bit 7</string>
-                         </property>
-                        </item>
-                        <item>
-                         <property name="text">
-                          <string>EXT</string>
-                         </property>
-                        </item>
-                       </widget>
-                      </item>
-                     </layout>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QGroupBox" name="groupBoxTriggerType">
-                     <property name="title">
-                      <string>Trigger Type</string>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>CH2</string>
                      </property>
-                     <layout class="QVBoxLayout" name="verticalLayout_48">
-                      <item>
-                       <widget class="QRadioButton" name="radioButtonTriggerFree">
-                        <property name="toolTip">
-                         <string>Trace continuously ignoring the trigger</string>
-                        </property>
-                        <property name="text">
-                         <string>Free</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QRadioButton" name="radioButtonTriggerNormal">
-                        <property name="toolTip">
-                         <string>Trace only when the trigger event occurs</string>
-                        </property>
-                        <property name="text">
-                         <string>Normal</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QRadioButton" name="radioButtonTriggerAuto">
-                        <property name="toolTip">
-                         <string>Trace when the trigger event occurs, or after the Auto trigger timeout</string>
-                        </property>
-                        <property name="text">
-                         <string>Auto</string>
-                        </property>
-                        <property name="checked">
-                         <bool>true</bool>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QRadioButton" name="radioButtonTriggerSingle">
-                        <property name="toolTip">
-                         <string>Only one trace is displayed when the trigger event occurs</string>
-                        </property>
-                        <property name="text">
-                         <string>Single</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QPushButton" name="pushButtonForceTrigger">
-                        <property name="minimumSize">
-                         <size>
-                          <width>80</width>
-                          <height>30</height>
-                         </size>
-                        </property>
-                        <property name="toolTip">
-                         <string>Forces the trigger</string>
-                        </property>
-                        <property name="text">
-                         <string>Force Trigger</string>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QGroupBox" name="groupBoxTriggerMode">
-                     <property name="title">
-                      <string>Trigger Mode</string>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Bit 0</string>
                      </property>
-                     <layout class="QVBoxLayout" name="verticalLayout_49">
-                      <item>
-                       <widget class="QRadioButton" name="radioButtonTriggerRising">
-                        <property name="toolTip">
-                         <string>The trigger occurs when the signal crosses the trigger level from below to above</string>
-                        </property>
-                        <property name="text">
-                         <string>Rising Edge</string>
-                        </property>
-                        <property name="icon">
-                         <iconset resource="xprotolabinterface.qrc">
-                          <normaloff>:/Bitmaps/Bitmaps/rising.png</normaloff>:/Bitmaps/Bitmaps/rising.png</iconset>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QRadioButton" name="radioButtonTriggerFalling">
-                        <property name="toolTip">
-                         <string>The trigger occurs when the signal crosses the trigger level from above to below</string>
-                        </property>
-                        <property name="text">
-                         <string>Falling Edge</string>
-                        </property>
-                        <property name="icon">
-                         <iconset resource="xprotolabinterface.qrc">
-                          <normaloff>:/Bitmaps/Bitmaps/falling.png</normaloff>:/Bitmaps/Bitmaps/falling.png</iconset>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QRadioButton" name="radioButtonTriggerDual">
-                        <property name="toolTip">
-                         <string>The trigger occurs when the signal crosses the trigger level in any direction</string>
-                        </property>
-                        <property name="text">
-                         <string>Dual Edge</string>
-                        </property>
-                        <property name="icon">
-                         <iconset resource="xprotolabinterface.qrc">
-                          <normaloff>:/Bitmaps/Bitmaps/dual.png</normaloff>:/Bitmaps/Bitmaps/dual.png</iconset>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QRadioButton" name="radioButtonTriggerPositiveSlope">
-                        <property name="toolTip">
-                         <string>The trigger occurs when the difference between two consecutive samples is greater than the trigger value, positive slope</string>
-                        </property>
-                        <property name="text">
-                         <string>Positive Slope</string>
-                        </property>
-                        <property name="icon">
-                         <iconset resource="xprotolabinterface.qrc">
-                          <normaloff>:/Bitmaps/Bitmaps/positive.png</normaloff>:/Bitmaps/Bitmaps/positive.png</iconset>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QRadioButton" name="radioButtonTriggerNegativeSlope">
-                        <property name="toolTip">
-                         <string>The trigger occurs when the difference between two consecutive samples is greater than the trigger value, negative slope</string>
-                        </property>
-                        <property name="text">
-                         <string>Negative Slope</string>
-                        </property>
-                        <property name="icon">
-                         <iconset resource="xprotolabinterface.qrc">
-                          <normaloff>:/Bitmaps/Bitmaps/negative.png</normaloff>:/Bitmaps/Bitmaps/negative.png</iconset>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QRadioButton" name="radioButtonTriggerWindow">
-                        <property name="toolTip">
-                         <string>The trigger occurs when the signal leaves a voltage range</string>
-                        </property>
-                        <property name="text">
-                         <string>Window</string>
-                        </property>
-                        <property name="icon">
-                         <iconset resource="xprotolabinterface.qrc">
-                          <normaloff>:/Bitmaps/Bitmaps/window.png</normaloff>:/Bitmaps/Bitmaps/window.png</iconset>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QGroupBox" name="groupBoxTriggerTiming">
-                     <property name="title">
-                      <string>Trigger Timing</string>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Bit 1</string>
                      </property>
-                     <layout class="QVBoxLayout" name="verticalLayout_76">
-                      <item>
-                       <layout class="QHBoxLayout" name="horizontalLayout_32">
-                        <item>
-                         <widget class="QLabel" name="labelTriggerTimeout">
-                          <property name="toolTip">
-                           <string>Trigger Timeout: Delay before generating an automatic trigger, when the trigger Type is set to Auto</string>
-                          </property>
-                          <property name="text">
-                           <string>Timeout</string>
-                          </property>
-                          <property name="scaledContents">
-                           <bool>true</bool>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-                          </property>
-                          <property name="wordWrap">
-                           <bool>true</bool>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QDoubleSpinBox" name="doubleSpinBoxTriggerTimeout">
-                          <property name="minimumSize">
-                           <size>
-                            <width>83</width>
-                            <height>0</height>
-                           </size>
-                          </property>
-                          <property name="prefix">
-                           <string/>
-                          </property>
-                          <property name="suffix">
-                           <string>s</string>
-                          </property>
-                          <property name="decimals">
-                           <number>5</number>
-                          </property>
-                          <property name="minimum">
-                           <double>0.163840000000000</double>
-                          </property>
-                          <property name="maximum">
-                           <double>10.485760000000001</double>
-                          </property>
-                          <property name="singleStep">
-                           <double>0.040960000000000</double>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <layout class="QHBoxLayout" name="horizontalLayout_33">
-                        <item>
-                         <widget class="QLabel" name="labelTriggerHold">
-                          <property name="toolTip">
-                           <string>Time to wait before detecting the next trigger</string>
-                          </property>
-                          <property name="text">
-                           <string>Hold</string>
-                          </property>
-                          <property name="scaledContents">
-                           <bool>true</bool>
-                          </property>
-                          <property name="alignment">
-                           <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-                          </property>
-                          <property name="wordWrap">
-                           <bool>true</bool>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QDoubleSpinBox" name="doubleSpinBoxTriggerHold">
-                          <property name="minimumSize">
-                           <size>
-                            <width>83</width>
-                            <height>0</height>
-                           </size>
-                          </property>
-                          <property name="suffix">
-                           <string> ms</string>
-                          </property>
-                          <property name="decimals">
-                           <number>0</number>
-                          </property>
-                          <property name="maximum">
-                           <double>255.000000000000000</double>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                     </layout>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_53"/>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-             </layout>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Bit 2</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Bit 3</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Bit 4</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Bit 5</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Bit 6</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Bit 7</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>EXT</string>
+                     </property>
+                    </item>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="frameTriggerType">
+                 <layout class="QHBoxLayout" name="horizontalLayout_13">
+                  <property name="spacing">
+                   <number>3</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>2</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>2</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="label_2">
+                    <property name="text">
+                     <string>Type:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="comboBoxTriggerType">
+                    <property name="toolTip">
+                     <string>Auto: trace when the trigger event occurs, or after the Auto trigger timeout
+Free: trace continuously, ignoring the trigger
+Normal: trace only when the trigger event occurs
+Single: show one trace when the trigger event occurs</string>
+                    </property>
+                    <item>
+                     <property name="text">
+                      <string>Auto</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Free</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Normal</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Single</string>
+                     </property>
+                    </item>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="frameTriggerMode">
+                 <layout class="QHBoxLayout" name="horizontalLayout_14">
+                  <property name="spacing">
+                   <number>3</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>2</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>2</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="label_3">
+                    <property name="text">
+                     <string>Mode</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="comboBoxTriggerMode">
+                    <property name="toolTip">
+                     <string>Rising Edge: the signal crosses the trigger level from below to above
+Falling Edge: the signal crosses the trigger level from above to below
+Dual Edge: the signal crosses the trigger level in any direction
+Positive / Negative Slope: the difference between two consecutive samples is greater than the trigger value
+Window: the signal leaves a voltage range</string>
+                    </property>
+                    <item>
+                     <property name="text">
+                      <string>Rising Edge</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Falling Edge</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Dual Edge</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Positive Slope</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Negative Slope</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Window</string>
+                     </property>
+                    </item>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="frame">
+                 <layout class="QHBoxLayout" name="horizontalLayout_32">
+                  <property name="spacing">
+                   <number>6</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="labelTriggerTimeout">
+                    <property name="toolTip">
+                     <string>Trigger Timeout: Delay before generating an automatic trigger, when the trigger Type is set to Auto</string>
+                    </property>
+                    <property name="text">
+                     <string>Trigger Timeout:</string>
+                    </property>
+                    <property name="scaledContents">
+                     <bool>true</bool>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBoxTriggerTimeout">
+                    <property name="minimumSize">
+                     <size>
+                      <width>83</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="prefix">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string>s</string>
+                    </property>
+                    <property name="decimals">
+                     <number>5</number>
+                    </property>
+                    <property name="minimum">
+                     <double>0.163840000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>10.485760000000001</double>
+                    </property>
+                    <property name="singleStep">
+                     <double>0.040960000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="frame">
+                 <layout class="QHBoxLayout" name="horizontalLayout_33">
+                  <property name="spacing">
+                   <number>6</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="labelTriggerHold">
+                    <property name="toolTip">
+                     <string>Time to wait before detecting the next trigger</string>
+                    </property>
+                    <property name="text">
+                     <string>Trigger Hold:</string>
+                    </property>
+                    <property name="scaledContents">
+                     <bool>true</bool>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBoxTriggerHold">
+                    <property name="minimumSize">
+                     <size>
+                      <width>83</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="suffix">
+                     <string> ms</string>
+                    </property>
+                    <property name="decimals">
+                     <number>0</number>
+                    </property>
+                    <property name="maximum">
+                     <double>255.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </widget>
             </item>
            </layout>
           </widget>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_39">
+          <layout class="QHBoxLayout" name="horizontalLayout_39" stretch="1,1,1,1">
+           <property name="spacing">
+            <number>6</number>
+           </property>
            <item>
-            <spacer name="horizontalSpacer_9">
-             <property name="orientation">
-              <enum>Qt::Orientation::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
+            <widget class="QPushButton" name="pushButtonCapture">
+             <property name="minimumSize">
               <size>
-               <width>40</width>
-               <height>20</height>
+               <width>0</width>
+               <height>27</height>
               </size>
              </property>
-            </spacer>
+             <property name="text">
+              <string>Capture Reference</string>
+             </property>
+            </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_38">
-             <item>
-              <widget class="QPushButton" name="pushButtonAuto">
-               <property name="minimumSize">
-                <size>
-                 <width>80</width>
-                 <height>30</height>
-                </size>
-               </property>
-               <property name="toolTip">
-                <string>Scope will try to find the optimum gain and time base for the signals being applied on CH1 and CH2</string>
-               </property>
-               <property name="text">
-                <string>AUTO</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButtonStartStop">
-               <property name="minimumSize">
-                <size>
-                 <width>80</width>
-                 <height>30</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>START</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
+            <widget class="QPushButton" name="pushButtonForceTrigger">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>27</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>Forces the trigger</string>
+             </property>
+             <property name="text">
+              <string>Force Trigger</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButtonAuto">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>27</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>Scope will try to find the optimum gain and time base for the signals being applied on CH1 and CH2</string>
+             </property>
+             <property name="text">
+              <string>AUTO</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButtonStartStop">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>27</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>START</string>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
@@ -1753,153 +1826,191 @@
             <attribute name="title">
              <string>VPP</string>
             </attribute>
-            <widget class="QWidget" name="widgetMeterVPP">
-             <property name="geometry">
-              <rect>
-               <x>20</x>
-               <y>30</y>
-               <width>451</width>
-               <height>251</height>
-              </rect>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_107">
-              <property name="spacing">
-               <number>30</number>
-              </property>
-              <item>
-               <widget class="QGroupBox" name="groupBoxVPPCH1">
-                <property name="title">
-                 <string>Channel 1</string>
-                </property>
-                <widget class="QLabel" name="labelVPPCH1">
-                 <property name="geometry">
-                  <rect>
-                   <x>10</x>
-                   <y>20</y>
-                   <width>431</width>
-                   <height>81</height>
-                  </rect>
+            <layout class="QVBoxLayout" name="verticalLayout_8">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_107">
+               <property name="spacing">
+                <number>6</number>
+               </property>
+               <item>
+                <widget class="QGroupBox" name="groupBoxVPPCH1">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>120</height>
+                  </size>
                  </property>
-                 <property name="font">
-                  <font>
-                   <pointsize>50</pointsize>
-                  </font>
+                 <property name="title">
+                  <string>Channel 1</string>
                  </property>
-                 <property name="text">
-                  <string> 0.000V</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignmentFlag::AlignCenter</set>
-                 </property>
+                 <widget class="QLabel" name="labelVPPCH1">
+                  <property name="geometry">
+                   <rect>
+                    <x>10</x>
+                    <y>20</y>
+                    <width>431</width>
+                    <height>81</height>
+                   </rect>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>50</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string> 0.000V</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                 </widget>
                 </widget>
-               </widget>
-              </item>
-              <item>
-               <widget class="QGroupBox" name="groupBoxVPPCH2">
-                <property name="title">
-                 <string>Channel 2</string>
-                </property>
-                <widget class="QLabel" name="labelVPPCH2">
-                 <property name="geometry">
-                  <rect>
-                   <x>10</x>
-                   <y>20</y>
-                   <width>431</width>
-                   <height>81</height>
-                  </rect>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="groupBoxVPPCH2">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>120</height>
+                  </size>
                  </property>
-                 <property name="font">
-                  <font>
-                   <pointsize>50</pointsize>
-                  </font>
+                 <property name="title">
+                  <string>Channel 2</string>
                  </property>
-                 <property name="text">
-                  <string> 0.000V</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignmentFlag::AlignCenter</set>
-                 </property>
+                 <widget class="QLabel" name="labelVPPCH2">
+                  <property name="geometry">
+                   <rect>
+                    <x>10</x>
+                    <y>20</y>
+                    <width>431</width>
+                    <height>81</height>
+                   </rect>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>50</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string> 0.000V</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                 </widget>
                 </widget>
-               </widget>
-              </item>
-             </layout>
-            </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <spacer name="verticalSpacer">
+               <property name="orientation">
+                <enum>Qt::Orientation::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
            </widget>
            <widget class="QWidget" name="tabMeterVDC">
             <attribute name="title">
              <string>VDC</string>
             </attribute>
-            <widget class="QWidget" name="widgetMeterVDC">
-             <property name="geometry">
-              <rect>
-               <x>20</x>
-               <y>30</y>
-               <width>451</width>
-               <height>251</height>
-              </rect>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_106">
-              <property name="spacing">
-               <number>30</number>
-              </property>
-              <item>
-               <widget class="QGroupBox" name="groupBoxVDCCH1">
-                <property name="title">
-                 <string>Channel 1</string>
-                </property>
-                <widget class="QLabel" name="labelVDCCH1">
-                 <property name="geometry">
-                  <rect>
-                   <x>10</x>
-                   <y>20</y>
-                   <width>431</width>
-                   <height>81</height>
-                  </rect>
+            <layout class="QVBoxLayout" name="verticalLayout_10">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_106">
+               <property name="spacing">
+                <number>6</number>
+               </property>
+               <item>
+                <widget class="QGroupBox" name="groupBoxVDCCH1">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>120</height>
+                  </size>
                  </property>
-                 <property name="font">
-                  <font>
-                   <pointsize>50</pointsize>
-                  </font>
+                 <property name="title">
+                  <string>Channel 1</string>
                  </property>
-                 <property name="text">
-                  <string> 0.000V</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignmentFlag::AlignCenter</set>
-                 </property>
+                 <widget class="QLabel" name="labelVDCCH1">
+                  <property name="geometry">
+                   <rect>
+                    <x>10</x>
+                    <y>20</y>
+                    <width>431</width>
+                    <height>81</height>
+                   </rect>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>50</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string> 0.000V</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                 </widget>
                 </widget>
-               </widget>
-              </item>
-              <item>
-               <widget class="QGroupBox" name="groupBoxVDCCH2">
-                <property name="title">
-                 <string>Channel 2</string>
-                </property>
-                <widget class="QLabel" name="labelVDCCH2">
-                 <property name="geometry">
-                  <rect>
-                   <x>10</x>
-                   <y>20</y>
-                   <width>431</width>
-                   <height>81</height>
-                  </rect>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="groupBoxVDCCH2">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>120</height>
+                  </size>
                  </property>
-                 <property name="font">
-                  <font>
-                   <pointsize>50</pointsize>
-                  </font>
+                 <property name="title">
+                  <string>Channel 2</string>
                  </property>
-                 <property name="text">
-                  <string> 0.000V</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignmentFlag::AlignCenter</set>
-                 </property>
+                 <widget class="QLabel" name="labelVDCCH2">
+                  <property name="geometry">
+                   <rect>
+                    <x>10</x>
+                    <y>20</y>
+                    <width>431</width>
+                    <height>81</height>
+                   </rect>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>50</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string> 0.000V</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                 </widget>
                 </widget>
-               </widget>
-              </item>
-             </layout>
-            </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <spacer name="verticalSpacer_2">
+               <property name="orientation">
+                <enum>Qt::Orientation::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>944</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
            </widget>
            <widget class="QWidget" name="tabMeterFrequency">
             <attribute name="title">
@@ -2324,159 +2435,154 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
-             <property name="minimumSize">
-              <size>
-               <width>315</width>
-               <height>0</height>
-              </size>
-             </property>
              <property name="title">
               <string>Waveform Selection</string>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_51" stretch="1,0">
+             <layout class="QVBoxLayout" name="verticalLayout_51" stretch="0,0,0,0,0">
+              <property name="spacing">
+               <number>2</number>
+              </property>
+              <property name="topMargin">
+               <number>2</number>
+              </property>
+              <property name="bottomMargin">
+               <number>2</number>
+              </property>
               <item>
-               <layout class="QVBoxLayout" name="verticalLayout_58">
+               <layout class="QHBoxLayout" name="horizontalLayout_15">
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_41">
-                  <item>
-                   <widget class="QRadioButton" name="radioButtonAWGSine">
-                    <property name="text">
-                     <string/>
-                    </property>
-                    <property name="icon">
-                     <iconset resource="xprotolabinterface.qrc">
-                      <normaloff>:/Bitmaps/Bitmaps/sine.png</normaloff>:/Bitmaps/Bitmaps/sine.png</iconset>
-                    </property>
-                    <property name="iconSize">
-                     <size>
-                      <width>32</width>
-                      <height>26</height>
-                     </size>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QRadioButton" name="radioButtonAWGTriangle">
-                    <property name="text">
-                     <string/>
-                    </property>
-                    <property name="icon">
-                     <iconset resource="xprotolabinterface.qrc">
-                      <normaloff>:/Bitmaps/Bitmaps/triangle.png</normaloff>:/Bitmaps/Bitmaps/triangle.png</iconset>
-                    </property>
-                    <property name="iconSize">
-                     <size>
-                      <width>32</width>
-                      <height>26</height>
-                     </size>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
+                 <widget class="QRadioButton" name="radioButtonAWGSine">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="xprotolabinterface.qrc">
+                    <normaloff>:/Bitmaps/Bitmaps/sine.png</normaloff>:/Bitmaps/Bitmaps/sine.png</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>32</width>
+                    <height>32</height>
+                   </size>
+                  </property>
+                 </widget>
                 </item>
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_42">
-                  <item>
-                   <widget class="QRadioButton" name="radioButtonAWGSquare">
-                    <property name="text">
-                     <string/>
-                    </property>
-                    <property name="icon">
-                     <iconset resource="xprotolabinterface.qrc">
-                      <normaloff>:/Bitmaps/Bitmaps/square.png</normaloff>:/Bitmaps/Bitmaps/square.png</iconset>
-                    </property>
-                    <property name="iconSize">
-                     <size>
-                      <width>32</width>
-                      <height>26</height>
-                     </size>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QRadioButton" name="radioButtonAWGExpo">
-                    <property name="text">
-                     <string/>
-                    </property>
-                    <property name="icon">
-                     <iconset resource="xprotolabinterface.qrc">
-                      <normaloff>:/Bitmaps/Bitmaps/expo.png</normaloff>:/Bitmaps/Bitmaps/expo.png</iconset>
-                    </property>
-                    <property name="iconSize">
-                     <size>
-                      <width>32</width>
-                      <height>26</height>
-                     </size>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_43">
-                  <item>
-                   <widget class="QRadioButton" name="radioButtonAWGNoise">
-                    <property name="text">
-                     <string/>
-                    </property>
-                    <property name="icon">
-                     <iconset resource="xprotolabinterface.qrc">
-                      <normaloff>:/Bitmaps/Bitmaps/noise.png</normaloff>:/Bitmaps/Bitmaps/noise.png</iconset>
-                    </property>
-                    <property name="iconSize">
-                     <size>
-                      <width>32</width>
-                      <height>26</height>
-                     </size>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QRadioButton" name="radioButtonAWGCustom">
-                    <property name="text">
-                     <string>Custom</string>
-                    </property>
-                    <property name="iconSize">
-                     <size>
-                      <width>32</width>
-                      <height>26</height>
-                     </size>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
+                 <widget class="QRadioButton" name="radioButtonAWGTriangle">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="xprotolabinterface.qrc">
+                    <normaloff>:/Bitmaps/Bitmaps/triangle.png</normaloff>:/Bitmaps/Bitmaps/triangle.png</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>32</width>
+                    <height>32</height>
+                   </size>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_36">
+               <layout class="QHBoxLayout" name="horizontalLayout_16">
                 <item>
-                 <widget class="QPushButton" name="pushButtonAWGSaveCustom">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="toolTip">
-                   <string>Data will be sent to the device and saved to the EEPROM.</string>
-                  </property>
+                 <widget class="QRadioButton" name="radioButtonAWGSquare">
                   <property name="text">
-                   <string>Save as Custom</string>
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="xprotolabinterface.qrc">
+                    <normaloff>:/Bitmaps/Bitmaps/square.png</normaloff>:/Bitmaps/Bitmaps/square.png</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>32</width>
+                    <height>32</height>
+                   </size>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="pushButtonAWGOpenCSV">
-                  <property name="toolTip">
-                   <string>Data must be integer, in the range of [-127,127]. The buffer size is 256.</string>
-                  </property>
+                 <widget class="QRadioButton" name="radioButtonAWGExpo">
                   <property name="text">
-                   <string>Open CSV</string>
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="xprotolabinterface.qrc">
+                    <normaloff>:/Bitmaps/Bitmaps/expo.png</normaloff>:/Bitmaps/Bitmaps/expo.png</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>32</width>
+                    <height>32</height>
+                   </size>
                   </property>
                  </widget>
                 </item>
                </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_17">
+                <item>
+                 <widget class="QRadioButton" name="radioButtonAWGNoise">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="xprotolabinterface.qrc">
+                    <normaloff>:/Bitmaps/Bitmaps/noise.png</normaloff>:/Bitmaps/Bitmaps/noise.png</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>32</width>
+                    <height>32</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="radioButtonAWGCustom">
+                  <property name="text">
+                   <string>Custom</string>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>32</width>
+                    <height>26</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButtonAWGOpenCSV">
+                <property name="toolTip">
+                 <string>Data must be integer, in the range of [-127,127]. The buffer size is 256.</string>
+                </property>
+                <property name="text">
+                 <string>Open CSV</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButtonAWGSaveCustom">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>Data will be sent to the device and saved to the EEPROM.</string>
+                </property>
+                <property name="text">
+                 <string>Save as Custom</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -2488,12 +2594,6 @@
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>180</width>
-               <height>16777215</height>
-              </size>
              </property>
              <property name="tabStopWidth" stdset="0">
               <number>80</number>
@@ -3227,11 +3327,11 @@ Frequency</string>
              <property name="enabled">
               <bool>false</bool>
              </property>
-             <property name="minimumSize">
-              <size>
-               <width>80</width>
-               <height>30</height>
-              </size>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
              <property name="text">
               <string>Pause</string>
@@ -3240,11 +3340,11 @@ Frequency</string>
            </item>
            <item>
             <widget class="QPushButton" name="pushButtonSnifferStart">
-             <property name="minimumSize">
-              <size>
-               <width>80</width>
-               <height>30</height>
-              </size>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
              <property name="text">
               <string>Start</string>
@@ -3748,6 +3848,15 @@ Frequency</string>
             <string>File</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_37">
+            <property name="spacing">
+             <number>4</number>
+            </property>
+            <property name="topMargin">
+             <number>2</number>
+            </property>
+            <property name="bottomMargin">
+             <number>2</number>
+            </property>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_77">
               <item>
@@ -4404,7 +4513,7 @@ Frequency</string>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_93">
               <property name="spacing">
-               <number>10</number>
+               <number>6</number>
               </property>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_91">
@@ -4414,7 +4523,7 @@ Frequency</string>
                 <item>
                  <widget class="QLabel" name="labelFirmwareCurrent">
                   <property name="text">
-                   <string>Current Version</string>
+                   <string>Current Version:</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
@@ -4453,7 +4562,7 @@ Frequency</string>
                 <item>
                  <widget class="QLabel" name="labelFirmwareLatest">
                   <property name="text">
-                   <string>Latest Version</string>
+                   <string>Latest Version:</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
@@ -4489,13 +4598,7 @@ Frequency</string>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_94" stretch="0,0">
               <property name="spacing">
-               <number>10</number>
-              </property>
-              <property name="leftMargin">
-               <number>50</number>
-              </property>
-              <property name="rightMargin">
-               <number>50</number>
+               <number>6</number>
               </property>
               <item>
                <widget class="QPushButton" name="pushButtonUpgradeFirmware">
@@ -4553,6 +4656,9 @@ Frequency</string>
          <string>About</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_119">
+         <property name="spacing">
+          <number>4</number>
+         </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_83" stretch="0,1">
            <item>
