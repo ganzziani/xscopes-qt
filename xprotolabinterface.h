@@ -112,12 +112,6 @@ enum Trigger {
     Window
 };
 
-enum TriggerType {
-    Window1,
-    Window2,
-    Other
-};
-
 enum Theme {
     Dark,
     Light,
@@ -201,12 +195,16 @@ private:
     void setTriggerWin1Level(int);
     void setTriggerWin2Level(int);
     void setTriggerPost();
-    void setTriggerLevelPosition(QPointF, int);
+    bool triggerSourceInverted() const;
+    double triggerLevelToCoord(int level) const;
+    int coordToTriggerLevel(double coord) const;
+    QPointF clampTriggerMarker(QPointF pixel) const;
+    void placeTriggerMarkers();
+    void dragTrigger(const QPointF &pixel);
     void readAppSettings();
     void enableSnifferControls(bool);
     void setTriggerIcon(int);
     void moveTrigger(QPointF);
-    void moveWinTrigger(double, double, double);
     int mapRange(int value, int oldMax, int oldMin, int newMax, int newMin);
     double mapRangeF(double value, double oldMax, double oldMin, double newMax, double newMin);
     void logToFile(QString);
@@ -454,10 +452,13 @@ private:
     QCPItemText *textLabelParallel[8], *textLabelSerial[8];   // logic hex readouts, updateLogicHex()
     QCPItemText *textLabelVoltageA, *textLabelVoltageB, *textLabelFrequency, *textLabelMousePos;
     QString sniffBuffer;
-    int triggerPost, triggerLevel, triggerWin1Level, triggerWin2Level;
+    int triggerPost;
+    // M 25 to 27 as the device has them (0..255, larger is lower on the plot), Window1 >= Window2
+    int triggerLevel, triggerWin1Level, triggerWin2Level;
     int currentSelected;
     QPointF m_dragStart;        // where a 0 V line or pan drag began, in pixels
     int m_dragStartValue;       // the channel or horizontal position at that point
+    QPointF m_dragGrabOffset;   // a dragged trigger marker's hotspot less the press point
     int m_horizontalPosition;   // M 14: first sample shown at the fast time bases (0..MaxHorizontalPosition)
     static constexpr byte MaxHorizontalPosition = 127;
     // Reference traces: all 256 samples of the captured frame, in plot units and in the
@@ -469,7 +470,7 @@ private:
     QString defaultDir;
     QStringList triggerIconPathsG, triggerIconPathsR;
     QList<QPoint> triggerIconHotspots;
-    int trigIcon, offset;
+    int trigIcon;
     CustomTheme customThemeDialog;
     Bootloader DialogBootloader;
 

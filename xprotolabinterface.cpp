@@ -70,7 +70,11 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     readAppSettings();
     checkForAvailableComPorts();
     xmax = 256;
-    offset = rangeMax / 2 - ZERO_POS;
+    // readDeviceSettings() reads the trigger from the device; until then, around the middle
+    triggerPost = 128;
+    triggerLevel = 128;
+    triggerWin1Level = 160;
+    triggerWin2Level = 96;
     hCursorAPos = 200;
     hCursorBPos = 100;
     // readDeviceSettings() replots before it reads these from the device
@@ -1193,11 +1197,6 @@ ENDSCAN:
 
 void XprotolabInterface::moveCursor(QMouseEvent *event) {
     int curPos;
-    int offset;
-    if(ui->comboBoxTriggerSource->currentIndex() == 0)
-        offset = m_ch1Position;
-    else
-        offset = m_ch2Position;
     if(event->type() == QMouseEvent::MouseMove) {
         if(event->buttons() & Qt::LeftButton & (currentSelected != isNone)) {
             if(currentSelected == isHCursorAHead) {
@@ -1324,50 +1323,9 @@ void XprotolabInterface::moveCursor(QMouseEvent *event) {
                 QCPAxis *xAxis = ui->customPlot->xAxis;
                 const double dx = xAxis->pixelToCoord(event->position().x()) - xAxis->pixelToCoord(m_dragStart.x());
                 setHorizontalPosition(m_dragStartValue - qRound(dx / 2));
-            } else if(currentSelected == isTriggerPixmap) {
-                triggerLevel = 511 - ui->customPlot->yAxis->pixelToCoord(event->position().toPoint().y());
-                triggerLevel += offset;
-                triggerPost = ui->customPlot->xAxis->pixelToCoord(event->position().toPoint().x());
-                if(triggerPost > 255)
-                    triggerPost = 255;
-                else if(triggerPost < 0)
-                    triggerPost = 0;
-                triggerPost = triggerPost / 2 + m_horizontalPosition;
-                setTriggerLevelPosition(event->pos(), Other);
-            } else if(currentSelected == isTriggerWin1Pixmap) {
-                triggerWin1Level = 255 - ui->customPlot->yAxis->pixelToCoord(event->position().toPoint().y()) / 2;
-                if(triggerWin1Level > triggerWin2Level - 8) {
-                    triggerWin1Level = triggerWin2Level;
-                    return;
-                }
-                triggerPost = ui->customPlot->xAxis->pixelToCoord(event->position().toPoint().x());
-                if(triggerPost > 255)
-                    triggerPost = 255;
-                else if(triggerPost < 0)
-                    triggerPost = 0;
-                triggerPost = triggerPost / 2 + m_horizontalPosition;
-                if(triggerWin1Level < rangeMax / 4)
-                    triggerWin1Level = rangeMax / 4;
-                else if(triggerWin1Level > rangeMax * 3 / 4)
-                    triggerWin1Level = rangeMax * 3 / 4;
-                setTriggerLevelPosition(event->pos(), Window1);
-            } else if(currentSelected == isTriggerWin2Pixmap) {
-                triggerWin2Level = 255 - ui->customPlot->yAxis->pixelToCoord(event->position().toPoint().y()) / 2;
-                if(triggerWin2Level < triggerWin1Level - 5) {
-                    triggerWin2Level = triggerWin1Level;
-                    return;
-                }
-                triggerPost = ui->customPlot->xAxis->pixelToCoord(event->position().toPoint().x());
-                if(triggerPost > 255)
-                    triggerPost = 255;
-                else if(triggerPost < 0)
-                    triggerPost = 0;
-                triggerPost = triggerPost / 2 + m_horizontalPosition;
-                if(triggerWin2Level < rangeMax / 4)
-                    triggerWin2Level = rangeMax / 4;
-                else if(triggerWin1Level > rangeMax * 3 / 4)
-                    triggerWin2Level = rangeMax * 3 / 4;
-                setTriggerLevelPosition(event->pos(), Window2);
+            } else if(currentSelected == isTriggerPixmap || currentSelected == isTriggerWin1Pixmap ||
+                      currentSelected == isTriggerWin2Pixmap) {
+                dragTrigger(event->position() + m_dragGrabOffset);
             }
             m_repaint = true;
         } else if(!event->buttons()) {
@@ -1398,42 +1356,105 @@ void XprotolabInterface::moveCursor(QMouseEvent *event) {
 }
 
 void XprotolabInterface::moveTrigger(QPointF pos) {
-    if(ui->radioButtonTriggerFree->isChecked())
-        return;
-    int curPosX = pos.rx();
-    int curPosY = pos.ry();
-    if(curPosX < 16)
-        curPosX = 16;
-    else if(curPosX > ui->customPlot->visibleRegion().boundingRect().right() - 16)
-        curPosX = ui->customPlot->visibleRegion().boundingRect().right() - 16;
-    if(curPosY > ui->customPlot->visibleRegion().boundingRect().bottom() - 16)
-        curPosY = ui->customPlot->visibleRegion().boundingRect().bottom() - 16;
-    else if(curPosY < 16)
-        curPosY = 16;
-    if(ui->sliderSampling->value() >= 11)
-        curPosX = 10;
-    triggerPixmap->topLeft->setPixelPosition(QPointF(curPosX, curPosY));
+    triggerPixmap->topLeft->setPixelPosition(clampTriggerMarker(pos));
 }
 
-void XprotolabInterface::moveWinTrigger(double curPosX, double curPosY1, double curPosY2) {
-    if(ui->radioButtonTriggerFree->isChecked())
-        return;
-    if(curPosX < 16)
-        curPosX = 16;
-    else if(curPosX > ui->customPlot->visibleRegion().boundingRect().right() - 16)
-        curPosX = ui->customPlot->visibleRegion().boundingRect().right() - 16;
-    if(curPosY1 > ui->customPlot->visibleRegion().boundingRect().bottom() - 16)
-        curPosY1 = ui->customPlot->visibleRegion().boundingRect().bottom() - 16;
-    else if(curPosY1 < 16)
-        curPosY1 = 16;
-    if(curPosY2 > ui->customPlot->visibleRegion().boundingRect().bottom() - 16)
-        curPosY2 = ui->customPlot->visibleRegion().boundingRect().bottom() - 16;
-    else if(curPosY2 < 16)
-        curPosY2 = 16;
+// Keeps a trigger marker 16 px inside the plot. At the slow time bases the trigger has no
+// place on the time axis, so the marker sits at the left edge.
+QPointF XprotolabInterface::clampTriggerMarker(QPointF pixel) const {
+    const QRect plot = ui->customPlot->rect();
     if(ui->sliderSampling->value() >= 11)
-        curPosX = 10;
-    triggerWin1Pixmap->topLeft->setPixelPosition(QPointF(curPosX, curPosY1));
-    triggerWin2Pixmap->topLeft->setPixelPosition(QPointF(curPosX, curPosY2));
+        pixel.setX(10);
+    else
+        pixel.setX(qMax(16.0, qMin(pixel.x(), plot.right() - 16.0)));
+    pixel.setY(qMax(16.0, qMin(pixel.y(), plot.bottom() - 16.0)));
+    return pixel;
+}
+
+// The trigger levels (M 25 to 27) are in the units of the samples: 0..255, larger values
+// lower on the plot, moved by the source channel's position like its trace. An inverted
+// channel is drawn upside down and so are its levels (the firmware's LCD draws 255 - level).
+bool XprotolabInterface::triggerSourceInverted() const {
+    switch(ui->comboBoxTriggerSource->currentIndex()) {
+    case 0: return ui->checkBoxCH1Invert->isChecked();
+    case 1: return ui->checkBoxCH2Invert->isChecked();
+    default: return false;
+    }
+}
+
+double XprotolabInterface::triggerLevelToCoord(int level) const {
+    const int position = ui->comboBoxTriggerSource->currentIndex() == 1 ? m_ch2Position : m_ch1Position;
+    if(triggerSourceInverted())
+        level = 255 - level;
+    return position + (255 - level) * 2;    // where plotData() draws a sample of that value
+}
+
+int XprotolabInterface::coordToTriggerLevel(double coord) const {
+    const int position = ui->comboBoxTriggerSource->currentIndex() == 1 ? m_ch2Position : m_ch1Position;
+    int level = 255 - qRound((coord - position) / 2);
+    if(triggerSourceInverted())
+        level = 255 - level;
+    return qBound(0, level, 255);
+}
+
+// Puts the trigger markers where the device triggers: sideways at the post trigger (less the
+// horizontal position), up and down at the levels. A logic source has no level: plotData()
+// puts that marker on the bit, so here it only moves sideways.
+void XprotolabInterface::placeTriggerMarkers() {
+    const double x = ui->customPlot->xAxis->coordToPixel((triggerPost - m_horizontalPosition) * 2);
+    if(ui->comboBoxTriggerSource->currentIndex() > 1) {
+        moveTrigger(QPointF(x, triggerPixmap->topLeft->pixelPosition().y()));
+        return;
+    }
+    QCPAxis *yAxis = ui->customPlot->yAxis;
+    moveTrigger(QPointF(x, yAxis->coordToPixel(triggerLevelToCoord(triggerLevel))));
+    triggerWin1Pixmap->topLeft->setPixelPosition(clampTriggerMarker(QPointF(x, yAxis->coordToPixel(triggerLevelToCoord(triggerWin1Level)))));
+    triggerWin2Pixmap->topLeft->setPixelPosition(clampTriggerMarker(QPointF(x, yAxis->coordToPixel(triggerLevelToCoord(triggerWin2Level)))));
+}
+
+// A trigger marker dragged to pixel: sideways sets the post trigger (fast time bases only),
+// up and down its level. The window keeps Window1 >= Window2, as the firmware requires
+// (it sets Window1 = Window2 otherwise): dragging one level past the other swaps the two,
+// so the marker in hand keeps following the pointer.
+void XprotolabInterface::dragTrigger(const QPointF &pixel) {
+    if(ui->sliderSampling->value() < 11) {
+        const int x = qBound(0, (int)ui->customPlot->xAxis->pixelToCoord(pixel.x()), 255);
+        triggerPost = x / 2 + m_horizontalPosition;
+        setTriggerPost();
+    }
+    if(ui->comboBoxTriggerSource->currentIndex() <= 1) {
+        const int level = coordToTriggerLevel(ui->customPlot->yAxis->pixelToCoord(pixel.y()));
+        if(currentSelected == isTriggerPixmap) {
+            const int clamped = qBound(3, level, 252);
+            if(clamped != triggerLevel) {
+                triggerLevel = clamped;
+                setTriggerLevel(triggerLevel);
+            }
+        } else {
+            const bool heldFirst = currentSelected == isTriggerWin1Pixmap;
+            const int other = heldFirst ? triggerWin2Level : triggerWin1Level;
+            const bool nowFirst = level > other || (level == other && heldFirst);
+            if(nowFirst != heldFirst) {
+                MarkerPixmap *from = heldFirst ? triggerWin1Pixmap : triggerWin2Pixmap;
+                MarkerPixmap *to = heldFirst ? triggerWin2Pixmap : triggerWin1Pixmap;
+                to->setPen(from->pen());
+                from->setPen(QPen(Qt::NoPen));
+                currentSelected = nowFirst ? isTriggerWin1Pixmap : isTriggerWin2Pixmap;
+            }
+            const int win1 = qMax(level, other), win2 = qMin(level, other);
+            if(win1 != triggerWin1Level) {
+                triggerWin1Level = win1;
+                setTriggerWin1Level(win1);
+            }
+            if(win2 != triggerWin2Level) {
+                triggerWin2Level = win2;
+                setTriggerWin2Level(win2);
+            }
+        }
+    } else {
+        moveTrigger(pixel);     // plotData() puts it back on the bit
+    }
+    placeTriggerMarkers();
 }
 
 // The draggable marker under pos, or isNone. Hidden markers don't count.
@@ -1570,6 +1591,8 @@ void XprotolabInterface::selectItem(QMouseEvent *event) {
     case isTriggerWin2Pixmap: {
         MarkerPixmap *trigger = currentSelected == isTriggerPixmap ? triggerPixmap :
                                 currentSelected == isTriggerWin1Pixmap ? triggerWin1Pixmap : triggerWin2Pixmap;
+        // Drag the marker by where it was grabbed, so it doesn't jump to the pointer
+        m_dragGrabOffset = trigger->topLeft->pixelPosition() - event->position();
         if(ui->comboBoxTriggerSource->currentIndex() == 0)
             trigger->setPen(QPen(QColor(75, 229, 28)));
         else
@@ -1605,60 +1628,6 @@ void XprotolabInterface::deselectItem(QMouseEvent *event) {
     ch2ZeroHead->setPen(QPen(Qt::NoPen));
     chdZeroHead->setPen(QPen(Qt::NoPen));
     updatePlotCursor(event->position());
-}
-
-void XprotolabInterface::setTriggerLevelPosition(QPointF pos, int type) {
-    if(ui->radioButtonTriggerFree->isChecked())
-        return;
-    initPosScroll = m_horizontalPosition;
-    int curPosX = pos.rx();
-    if(curPosX < 16)
-        curPosX = 16;
-    else if(curPosX > ui->customPlot->visibleRegion().boundingRect().right() - 16)
-        curPosX = ui->customPlot->visibleRegion().boundingRect().right() - 16;
-    int curPosY = pos.ry();
-    if(curPosY > ui->customPlot->visibleRegion().boundingRect().bottom() - 16)
-        curPosY = ui->customPlot->visibleRegion().boundingRect().bottom() - 16;
-    else if(curPosY < 16)
-        curPosY = 16;
-    int tlevel;
-    if(type == Window1) {
-        tlevel = triggerWin1Level / 2;
-        if(tlevel < 0)
-            tlevel = 0;
-        else if(tlevel > 255)
-            tlevel = 255;
-        if(ui->sliderSampling->value() >= 11)
-            curPosX = 10;
-        triggerWin1Pixmap->topLeft->setPixelPosition(QPointF(curPosX, curPosY));
-        triggerWin2Pixmap->topLeft->setPixelPosition(QPointF(curPosX, ui->customPlot->yAxis->coordToPixel(triggerWin2Level) + 7));
-        if(ui->comboBoxTriggerSource->currentIndex() < 2)
-            setTriggerWin1Level(tlevel);
-    } else if(type == Window2) {
-        tlevel = triggerWin2Level / 2;
-        if(tlevel < 0)
-            tlevel = 0;
-        else if(tlevel > 255)
-            tlevel = 255;
-        if(ui->sliderSampling->value() >= 11)
-            curPosX = 10;
-        triggerWin2Pixmap->topLeft->setPixelPosition(QPointF(curPosX, curPosY));
-        triggerWin1Pixmap->topLeft->setPixelPosition(QPointF(curPosX, ui->customPlot->yAxis->coordToPixel(triggerWin1Level) + 7));
-        if(ui->comboBoxTriggerSource->currentIndex() < 2)
-            setTriggerWin2Level(tlevel);
-    } else if(type == Other) {
-        tlevel = triggerLevel / 2;
-        if(tlevel < 3)
-            tlevel = 3;
-        else if(tlevel > 252)
-            tlevel = 252;
-        if(ui->sliderSampling->value() >= 11)
-            curPosX = 10;
-        triggerPixmap->topLeft->setPixelPosition(QPointF(curPosX, curPosY));
-        if(ui->comboBoxTriggerSource->currentIndex() < 2)
-            setTriggerLevel(tlevel);
-    }
-    setTriggerPost();
 }
 
 void XprotolabInterface::setFFTWindow(int type) {
@@ -2511,23 +2480,14 @@ void XprotolabInterface::readDeviceSettings() {
     }
     ch1ZeroPos = rangeMax / 2 + m_ch1Position;
     ch2ZeroPos = rangeMax / 2 + m_ch2Position;
-    int value = 0, hpos;
     triggerPost = 256 - triggerPost;
-    hpos = triggerPost * 2 - (m_horizontalPosition * 2);
-    if(ui->comboBoxTriggerSource->currentIndex() == 0) {
-        value = m_ch1Position;
-    } else if(ui->comboBoxTriggerSource->currentIndex() == 1) {
-        value = m_ch2Position;
-    } else
+    if(ui->comboBoxTriggerSource->currentIndex() > 1)
         bitTriggerSource = true;
     initPosScroll = m_horizontalPosition;
+    triggerLevel = tlevel;
+    triggerWin1Level = tlevelWin1;
+    triggerWin2Level = tlevelWin2;
     setTriggerIcon(trigIcon);
-    triggerLevel = 2 * tlevel;
-    triggerPixmap->topLeft->setCoords(hpos, triggerLevel + value);
-    triggerWin1Level = tlevelWin1 * 2;
-    triggerWin1Pixmap->topLeft->setCoords(hpos, triggerWin1Level + value);
-    triggerWin2Level = tlevelWin2 * 2;
-    triggerWin2Pixmap->topLeft->setCoords(hpos, triggerWin2Level + value);
     logToFile("------------------------------------------");
     QTimer::singleShot(100, this, SLOT(updateTriggerPos()));
     checkIfInvertIcon();
@@ -2554,10 +2514,6 @@ void XprotolabInterface::on_sliderSampling_valueChanged(int value) {
     usbDevice.controlWriteTransfer(0, (byte)value);
     usbDevice.serial.setSamplingValue(value);
     ui->labelTimeScale->setText("Time = " + rateText[ui->sliderSampling->value()]);
-    if(value >= 11)
-        triggerPixmap->topLeft->setPixelPosition(QPointF(10, ui->customPlot->yAxis->coordToPixel(triggerLevel)));
-    else
-        triggerPixmap->topLeft->setPixelPosition(QPointF(ui->customPlot->xAxis->coordToPixel(triggerPost), ui->customPlot->yAxis->coordToPixel(triggerLevel)));
     updateTriggerPos();
 }
 
@@ -3403,13 +3359,8 @@ void XprotolabInterface::setHorizontalPosition(int position) {
         return;
     usbDevice.controlWriteTransfer(14, (byte)(position));
     m_repaint = true;
-    if(ui->sliderSampling->value() < 11) {
-        // The trigger icons follow the waveform sideways and keep their height (the
-        // level formulas used here put the icon at the bottom of the plot)
-        const double x = ui->customPlot->xAxis->coordToPixel((triggerPost - position) * 2);
-        moveTrigger(QPointF(x, triggerPixmap->topLeft->pixelPosition().y()));
-        moveWinTrigger(x, triggerWin1Pixmap->topLeft->pixelPosition().y(), triggerWin2Pixmap->topLeft->pixelPosition().y());
-    }
+    if(ui->sliderSampling->value() < 11)
+        placeTriggerMarkers();      // they follow the waveform sideways
     plotData();
 }
 
@@ -3466,11 +3417,6 @@ void XprotolabInterface::setTriggerPost() {
 
 // M 24 Trigger source
 void XprotolabInterface::on_comboBoxTriggerSource_currentIndexChanged(int index) {
-    int offset = 0;
-    if(ui->comboBoxTriggerSource->currentIndex() == 0)
-        offset = m_ch1Position;
-    else if(ui->comboBoxTriggerSource->currentIndex() == 1)
-        offset = m_ch2Position;
     usbDevice.controlWriteTransfer(24, (byte)(index));
     if(index == 0 && bitTriggerSource) {
         bitTriggerSource = false;
@@ -3496,13 +3442,8 @@ void XprotolabInterface::on_comboBoxTriggerSource_currentIndexChanged(int index)
         ui->radioButtonTriggerPositiveSlope->setEnabled(true);
         ui->radioButtonTriggerNegativeSlope->setEnabled(true);
     }
-    if(!initializing && index < 2) {
-        moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((triggerPost - m_horizontalPosition) * 2),
-                            ui->customPlot->yAxis->coordToPixel(triggerLevel) - offset));
-        moveWinTrigger(ui->customPlot->xAxis->coordToPixel((triggerPost - m_horizontalPosition) * 2),
-                       ui->customPlot->yAxis->coordToPixel(triggerWin1Level),
-                       ui->customPlot->yAxis->coordToPixel(triggerWin2Level)) ;
-    }
+    if(!initializing)
+        placeTriggerMarkers();
     setTriggerIcon(trigIcon);
 }
 
@@ -3606,9 +3547,6 @@ void XprotolabInterface::setChdPosition(int value) {
         chPos = temp;
     usbDevice.controlWriteTransfer(31, chPos);
     initPosScroll = m_horizontalPosition;
-    if((ui->comboBoxTriggerSource->currentIndex() > 1 || ui->comboBoxTriggerSource->currentIndex() < 10) && !initializing) {
-        moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((triggerPost - m_horizontalPosition) * 2), ui->customPlot->yAxis->coordToPixel(triggerLevel)));
-    }
     chdZeroPos = kChdPositionBase + m_chdPosition * kChdPositionStep;
     chdZeroHead->topLeft->setPixelPosition(QPointF(2, ui->customPlot->yAxis->coordToPixel(chdZeroPos)));
     m_repaint = true;
@@ -4538,16 +4476,18 @@ void XprotolabInterface::setTriggerIcon(int iconNum) {
         triggerWin1Pixmap->setVisible(true);
         triggerWin2Pixmap->setVisible(true);
         triggerPixmap->setVisible(false);
-        if(ui->comboBoxTriggerSource->currentIndex() == 0) {
-            triggerWin1Pixmap->setPixmap(QPixmap(triggerIconPathsG[iconNum + 1]));
-            triggerWin2Pixmap->setPixmap(QPixmap(triggerIconPathsG[iconNum]));
-            triggerWin1Pixmap->setHotspot(triggerIconHotspots[iconNum + 1]);
-            triggerWin2Pixmap->setHotspot(triggerIconHotspots[iconNum]);
-        } else if(ui->comboBoxTriggerSource->currentIndex() == 1) {
-            triggerWin1Pixmap->setPixmap(QPixmap(triggerIconPathsR[iconNum + 1]));
-            triggerWin2Pixmap->setPixmap(QPixmap(triggerIconPathsR[iconNum]));
-            triggerWin1Pixmap->setHotspot(triggerIconHotspots[iconNum + 1]);
-            triggerWin2Pixmap->setHotspot(triggerIconHotspots[iconNum]);
+        if(ui->comboBoxTriggerSource->currentIndex() <= 1) {
+            // Each marker points out of the window, as on the device's LCD: window2*.png
+            // (down) at the lower level, window1*.png (up) at the upper one. Window1 is
+            // the lower level unless the channel is drawn upside down.
+            const QStringList &paths = ui->comboBoxTriggerSource->currentIndex() == 0 ? triggerIconPathsG : triggerIconPathsR;
+            const int down = iconNum + 1, up = iconNum;
+            const int win1 = triggerSourceInverted() ? up : down;
+            const int win2 = triggerSourceInverted() ? down : up;
+            triggerWin1Pixmap->setPixmap(QPixmap(paths[win1]));
+            triggerWin2Pixmap->setPixmap(QPixmap(paths[win2]));
+            triggerWin1Pixmap->setHotspot(triggerIconHotspots[win1]);
+            triggerWin2Pixmap->setHotspot(triggerIconHotspots[win2]);
         } else {
             triggerWin1Pixmap->setVisible(false);
             triggerWin2Pixmap->setVisible(false);
@@ -4653,31 +4593,10 @@ void XprotolabInterface::on_doubleSpinBoxAWGFrequency_editingFinished() {
 }
 
 void XprotolabInterface::updateTriggerPos() {
-    int value = 0;
-    if(ui->comboBoxTriggerSource->currentIndex() == 0)
-        value = m_ch1Position;
-    else if(ui->comboBoxTriggerSource->currentIndex() == 1)
-        value = m_ch2Position;
-    if(!initializing) {
-        if(ui->comboBoxTriggerSource->currentIndex() == 0) {
-            if(!ui->checkBoxCH1Invert->isChecked()) {
-                moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((2 * triggerPost) - (m_horizontalPosition * 2)), ui->customPlot->yAxis->coordToPixel(512 - triggerLevel + value))) ;
-            } else {
-                int tmp_pos = triggerPixmap->topLeft->coords().y() - ch1ZeroPos;
-                triggerPixmap->topLeft->setCoords(QPointF(triggerPixmap->topLeft->coords().x(), ch1ZeroPos - tmp_pos));
-            }
-            moveWinTrigger(ui->customPlot->xAxis->coordToPixel((2 * triggerPost) - (m_horizontalPosition * 2)), ui->customPlot->yAxis->coordToPixel(triggerWin1Level - value), ui->customPlot->yAxis->coordToPixel(512 - triggerWin1Level + value));
-        } else if(ui->comboBoxTriggerSource->currentIndex() == 1) {
-            if(!ui->checkBoxCH2Invert->isChecked()) {
-                moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((2 * triggerPost) - (m_horizontalPosition * 2)), ui->customPlot->yAxis->coordToPixel(triggerLevel + value)));
-            } else {
-                int tmp_pos = triggerPixmap->topLeft->coords().y() - ch2ZeroPos;
-                triggerPixmap->topLeft->setCoords(QPointF(triggerPixmap->topLeft->coords().x(), ch2ZeroPos - tmp_pos));
-            }
-            moveWinTrigger(ui->customPlot->xAxis->coordToPixel((2 * triggerPost) - (m_horizontalPosition * 2)), ui->customPlot->yAxis->coordToPixel(triggerWin2Level + value), ui->customPlot->yAxis->coordToPixel(512 - triggerWin2Level + value));
-        }
-    }
+    if(!initializing)
+        placeTriggerMarkers();
 }
+
 void XprotolabInterface::updateCh1Label() {
     QString tmp_text = "";
     if(ui->checkBoxCH1Invert->isChecked())
@@ -4738,6 +4657,8 @@ void XprotolabInterface::checkIfInvertIcon() {
     }
 }
 void XprotolabInterface::invertTriggerIcon() {
+    if(trigIcon == Window)
+        setTriggerIcon(Window);     // picks each marker's direction from the invert state
     if(trigIcon == Dual || trigIcon == Window)
         return;
     else if(trigIcon == Rising)
