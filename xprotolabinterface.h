@@ -205,6 +205,10 @@ private:
     void enableSnifferControls(bool);
     void setTriggerIcon(int);
     void moveTrigger(QPointF);
+    double logicLowLevel(int bitIndex) const;
+    QVector<QPair<double, double>> logicLowRuns(int bitIndex, const QVector<double> &key,
+                                                const QVector<double> &values) const;
+    static QPen thickLowPen(const QPen &tracePen);
     int mapRange(int value, int oldMax, int oldMin, int newMax, int newMin);
     double mapRangeF(double value, double oldMax, double oldMin, double newMax, double newMin);
     void logToFile(QString);
@@ -477,7 +481,7 @@ private:
     /************** Graphs **************/
     QCPGraph *ch1BarGraph, *ch2BarGraph;
     QCPGraph *ch1Graph, *ch2Graph, *ch1RefGraph, *ch2RefGraph, *ch1PGraphs[TG], *ch2PGraphs[TG];
-    QCPGraph *chdGraph[8], *chdRefGraph[8];
+    QCPGraph *chdGraph[8], *chdLowGraph[8], *chdRefGraph[8];
     PersistenceItem *persistenceItem;
 
     /************** Graph Pens **********/

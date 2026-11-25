@@ -249,6 +249,7 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         for(int i = 0; i < 8; i++) {
             chdPen[i] = QPen(QColor(255 - i * 10, 4 + i * 10, 4), 1.5);
             chdGraph[i]->setPen(chdPen[i]);
+            chdLowGraph[i]->setPen(thickLowPen(chdPen[i]));
             chdRefPen[i] = QPen(CustomColors::referenceOf(chdPen[i].color()), 1.5);
             chdRefGraph[i]->setPen(chdRefPen[i]);
         }
@@ -298,6 +299,7 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         for(int i = 0; i < 8; i++) {
             chdPen[i] = QPen(QColor(4 + i * 20, i, 255 - i * 5), 1.5);
             chdGraph[i]->setPen(chdPen[i]);
+            chdLowGraph[i]->setPen(thickLowPen(chdPen[i]));
             chdRefPen[i] = QPen(CustomColors::referenceOf(chdPen[i].color()), 1.5);
             chdRefGraph[i]->setPen(chdRefPen[i]);
         }
@@ -347,6 +349,7 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         for(int i = 0; i < 8; i++) {
             chdPen[i] = QPen(customColors->bit[i], 1.5);
             chdGraph[i]->setPen(chdPen[i]);
+            chdLowGraph[i]->setPen(thickLowPen(chdPen[i]));
             chdRefPen[i] = QPen(customColors->bitref[i], 1.5);
             chdRefGraph[i]->setPen(chdRefPen[i]);
         }
@@ -403,6 +406,9 @@ void XprotolabInterface::setupGraphs(QCustomPlot *customPlot) {
         chdGraph[i] = customPlot->addGraph();
         chdGraph[i]->setLineStyle(QCPGraph::lsStepCenter);
         chdGraph[i]->setSelectable(QCP::stNone);
+        chdLowGraph[i] = customPlot->addGraph();    // "Thick 0": the low runs, over the trace
+        chdLowGraph[i]->setLineStyle(QCPGraph::lsLine);
+        chdLowGraph[i]->setSelectable(QCP::stNone);
         chdRefGraph[i] = customPlot->addGraph();
         chdRefGraph[i]->setLineStyle(QCPGraph::lsStepCenter);
     }
@@ -809,7 +815,7 @@ void XprotolabInterface::plotData() {
                     moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((triggerPost - m_horizontalPosition) * 2), ui->customPlot->yAxis->coordToPixel(pos)));
             } else {
                 pos = chdOffset - 10 - ui->sliderCHDSize->value();
-                bit[m].push_back(chdOffset - 10);
+                bit[m].push_back(logicLowLevel(m));
                 pos = chdOffset + ui->sliderCHDSize->value();
                 textLabelBit[m]->position->setCoords(246, pos - 5);
                 if(m + 2 == ui->comboBoxTriggerSource->currentIndex() && ui->groupBoxCHD->isChecked())
@@ -958,8 +964,10 @@ ENDSCAN:
         ch2Graph->data()->clear();
         ch1RefGraph->data()->clear();
         ch2RefGraph->data()->clear();
-        for(int k = 0; k < 8; k++)
+        for(int k = 0; k < 8; k++) {
             chdRefGraph[k]->data()->clear();
+            chdLowGraph[k]->data()->clear();
+        }
         updateLogicHex({}, {});     // no time axis, no readouts
         ch1Graph->setData(key, ch2Buffer);
         ch1Graph->rescaleValueAxis(true);
@@ -984,10 +992,21 @@ ENDSCAN:
         }
         for(int k = 0; k < 8; k++) {
             chdGraph[k]->data()->clear();
+            chdLowGraph[k]->data()->clear();
             textLabelBit[k]->setVisible(false);
             if(ui->groupBoxCHD->isChecked() && bitChecked[k]) {
                 chdGraph[k]->setData(key, bit[k]);
                 textLabelBit[k]->setVisible(true);
+                if(ui->checkBoxCHDThick0->isChecked()) {
+                    // Two points per run and a NaN after it, which breaks the line
+                    QVector<double> runKeys, runValues;
+                    const double low = logicLowLevel(k);
+                    for(const auto &run : logicLowRuns(k, key, bit[k])) {
+                        runKeys << run.first << run.second << run.second;
+                        runValues << low << low << qQNaN();
+                    }
+                    chdLowGraph[k]->setData(runKeys, runValues, true);
+                }
             }
             if(showChdRef && bitChecked[k]) {
                 chdRefGraph[k]->setData(key, bitRefBuff[k]);
@@ -4400,8 +4419,51 @@ void XprotolabInterface::drawPersistenceFrame(const QVector<double> &key,
                 prev = cur;
             }
             painter.drawPolyline(poly);
+            if(ui->checkBoxCHDThick0->isChecked()) {
+                painter.setPen(thickLowPen(pen));
+                const double y = ui->customPlot->yAxis->coordToPixel(logicLowLevel(k)) - origin.y();
+                for(const auto &run : logicLowRuns(k, key, bit[k]))
+                    painter.drawLine(QPointF(ui->customPlot->xAxis->coordToPixel(run.first) - origin.x(), y),
+                                     QPointF(ui->customPlot->xAxis->coordToPixel(run.second) - origin.x(), y));
+            }
         }
     }
+}
+
+// The plot height of a logic bit's low level. plotData() draws its high level the Size
+// slider above the bit's offset, and its low 10 units below it.
+double XprotolabInterface::logicLowLevel(int bitIndex) const {
+    return 20 + bitIndex * 20 + m_chdPosition * kChdPositionStep - 10;
+}
+
+// "Thick 0" (CHDctrl bit 3): a logic low is drawn thicker, as on the device's LCD. These
+// are the runs of a bit at its low level, as (from, to) keys. The step trace changes level
+// halfway between samples, so a run reaches from the edge before its first sample to the
+// edge after its last one, or to the ends of the trace.
+QVector<QPair<double, double>> XprotolabInterface::logicLowRuns(int bitIndex, const QVector<double> &key,
+                                                                const QVector<double> &values) const {
+    QVector<QPair<double, double>> runs;
+    const double low = logicLowLevel(bitIndex);
+    const int n = qMin(key.size(), values.size());
+    for(int i = 0; i < n; i++) {
+        if(qAbs(values[i] - low) > 0.5)
+            continue;
+        const int first = i;
+        while(i + 1 < n && qAbs(values[i + 1] - low) <= 0.5)
+            i++;
+        const double from = first == 0 ? key[0] : (key[first - 1] + key[first]) / 2;
+        const double to = i == n - 1 ? key[n - 1] : (key[i] + key[i + 1]) / 2;
+        runs.append({from, to});
+    }
+    return runs;
+}
+
+// The pen for a logic bit's low runs: its trace's color, three times as wide, with flat
+// ends so a run stops at the trace's edges.
+QPen XprotolabInterface::thickLowPen(const QPen &tracePen) {
+    QPen pen(tracePen.color(), tracePen.widthF() * 3);
+    pen.setCapStyle(Qt::FlatCap);
+    return pen;
 }
 
 void XprotolabInterface::on_sliderIntensity_valueChanged(int value) {
