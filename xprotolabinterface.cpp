@@ -214,6 +214,16 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot) {
     // have to erase or compose anything underneath it. Without this each frame is composited
     // together with the surrounding widgets.
     customPlot->setAttribute(Qt::WA_OpaquePaintEvent);
+    // A trace drawn as one antialiased polyline with a pen wider than 1 px is stroked by Qt into a
+    // single self-overlapping outline and filled: for a steep 256-point trace on a 4K plot at
+    // 150 % scaling one replot took ~400 ms (20 ms/div, 1.2 kHz sine on CH1). Segment by
+    // segment it takes ~5 ms. The pens keep Qt's square caps: the raster engine draws such thick
+    // lines on its fast path (round caps go through the general stroker), and the square ends
+    // overlap enough to close the joints.
+    customPlot->setPlottingHint(QCP::phFastPolylines, true);
+    // The overlay layer only holds the selection rect, which this plot does not use. Buffered,
+    // it cost a full-size buffer to clear on every replot and to blend on every paint.
+    customPlot->layer("overlay")->setMode(QCPLayer::lmLogical);
 }
 
 void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
