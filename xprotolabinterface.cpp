@@ -218,10 +218,11 @@ void XprotolabInterface::setupGrid(QCustomPlot *customPlot) {
 
 void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
     if(theme == Dark) {
+        m_palette = ChannelPalette::dark();
         /************** Graph Pens **********/
-        ch1Pen = QPen(QColor(75, 229, 28), 2);
+        ch1Pen = QPen(m_palette.ch1, 2);
         ch1Graph->setPen(ch1Pen);
-        ch2Pen = QPen(Qt::red, 2);
+        ch2Pen = QPen(m_palette.ch2, 2);
         ch2Graph->setPen(ch2Pen);
         QString styleSheet;
         styleSheet = "QLabel { background-color : " + ch1Pen.color().name() + "; }";
@@ -233,15 +234,15 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         ch2RefPen = QPen(CustomColors::referenceOf(ch2Pen.color()), 2);
         ch2RefGraph->setPen(ch2RefPen);
         for(int i = 0; i < 8; i++) {
-            chdPen[i] = QPen(QColor(255 - i * 10, 4 + i * 10, 4), 1.5);
+            chdPen[i] = QPen(m_palette.logic, 1.5);
             chdGraph[i]->setPen(chdPen[i]);
             chdLowGraph[i]->setPen(thickLowPen(chdPen[i]));
             chdRefPen[i] = QPen(CustomColors::referenceOf(chdPen[i].color()), 1.5);
             chdRefGraph[i]->setPen(chdRefPen[i]);
         }
-        ch1BarPen = QPen(QColor("#4be51c"), 2);
+        ch1BarPen = QPen(m_palette.ch1, 2);
         ch1BarGraph->setPen(ch1BarPen);
-        ch2BarPen = QPen(Qt::red, 2);
+        ch2BarPen = QPen(m_palette.ch2, 2);
         ch2BarGraph->setPen(ch2BarPen);
         axesPen = QPen(Qt::white, 1);
         ui->customPlot->xAxis->setTickPen(axesPen);
@@ -257,17 +258,18 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         ui->customPlot->xAxis2->setBasePen(axesPen);
         ui->customPlot->yAxis2->setBasePen(axesPen);
         ui->customPlot->setBackground(QBrush(Qt::black));
-        textLabelDeltaTime->setColor("#4be51c");
-        textLabelFrequency->setColor("#4be51c");
-        textLabelDeltaVoltage->setColor("#4be51c");
-        textLabelVoltageB->setColor("#4be51c");
-        textLabelVoltageA->setColor("#4be51c");
+        textLabelDeltaTime->setColor(m_palette.cursor);
+        textLabelFrequency->setColor(m_palette.cursor);
+        textLabelDeltaVoltage->setColor(m_palette.cursor);
+        textLabelVoltageB->setColor(m_palette.cursor);
+        textLabelVoltageA->setColor(m_palette.cursor);
         textLabelMousePos->setColor("#9c9c9c");
     } else if(theme == Light) {
+        m_palette = ChannelPalette::light();
         /************** Graph Pens **********/
-        ch1Pen = QPen(QColor("#2a50fd"), 2);
+        ch1Pen = QPen(m_palette.ch1, 2);
         ch1Graph->setPen(ch1Pen);
-        ch2Pen = QPen(Qt::red, 2);
+        ch2Pen = QPen(m_palette.ch2, 2);
         ch2Graph->setPen(ch2Pen);
         QString styleSheet;
         styleSheet = "QLabel { background-color : " + ch1Pen.color().name() + "; }";
@@ -279,15 +281,15 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         ch2RefPen = QPen(CustomColors::referenceOf(ch2Pen.color()), 2);
         ch2RefGraph->setPen(ch2RefPen);
         for(int i = 0; i < 8; i++) {
-            chdPen[i] = QPen(QColor(4 + i * 20, i, 255 - i * 5), 1.5);
+            chdPen[i] = QPen(m_palette.logic, 1.5);
             chdGraph[i]->setPen(chdPen[i]);
             chdLowGraph[i]->setPen(thickLowPen(chdPen[i]));
             chdRefPen[i] = QPen(CustomColors::referenceOf(chdPen[i].color()), 1.5);
             chdRefGraph[i]->setPen(chdRefPen[i]);
         }
-        ch1BarPen = QPen(QColor("#2a50fd"), 2);
+        ch1BarPen = QPen(m_palette.ch1, 2);
         ch1BarGraph->setPen(ch1BarPen);
-        ch2BarPen = QPen(Qt::red, 2);
+        ch2BarPen = QPen(m_palette.ch2, 2);
         ch2BarGraph->setPen(ch2BarPen);
         axesPen = QPen(Qt::black, 1);
         ui->customPlot->xAxis->setTickPen(axesPen);
@@ -303,13 +305,17 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         ui->customPlot->xAxis2->setBasePen(axesPen);
         ui->customPlot->yAxis2->setBasePen(axesPen);
         ui->customPlot->setBackground(QBrush(Qt::white));
-        textLabelDeltaTime->setColor(Qt::red);
-        textLabelFrequency->setColor(Qt::red);
-        textLabelDeltaVoltage->setColor(Qt::red);
-        textLabelVoltageB->setColor(Qt::red);
-        textLabelVoltageA->setColor(Qt::red);
+        textLabelDeltaTime->setColor(m_palette.cursor);
+        textLabelFrequency->setColor(m_palette.cursor);
+        textLabelDeltaVoltage->setColor(m_palette.cursor);
+        textLabelVoltageB->setColor(m_palette.cursor);
+        textLabelVoltageA->setColor(m_palette.cursor);
         textLabelMousePos->setColor(Qt::red);
     } else if(theme == Custom) {
+        m_palette = ChannelPalette::dark();
+        m_palette.ch1 = customColors->ch1;
+        m_palette.ch2 = customColors->ch2;
+        m_palette.logic = customColors->bit[0];
         /************** Graph Pens **********/
         ch1Pen = QPen(customColors->ch1, 2);
         ch1Graph->setPen(ch1Pen);
@@ -357,10 +363,67 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         textLabelMousePos->setColor(customColors->label);
     }
     m_appliedTheme = theme;
+    applyChannelColors();
+    updateTriggerIcon();
     applyGridPen();
     clearPersistenceImage();
     updatePersistencePens();
     ui->customPlot->replot(QCustomPlot::rpRefreshHint);
+}
+
+// The channel and cursor colors of the theme (m_palette) on everything outside the traces:
+// cursor lines, heads and tracers, the zero markers, the logic labels and the channel
+// group boxes' borders. The marker bitmaps are recolored from the files.
+void XprotolabInterface::applyChannelColors() {
+    const QPen cursorPen(m_palette.cursor, 1, Qt::DotLine);
+    for(QCPItemStraightLine *line : {hCursorA, hCursorB, vCursorA, vCursorB})
+        line->setPen(cursorPen);
+    const QString bitmaps = ":/Bitmaps/Bitmaps/";
+    hCursorAHead->setPixmap(tintedPixmap(bitmaps + "hcursorA.png", m_palette.cursor));
+    hCursorBHead->setPixmap(tintedPixmap(bitmaps + "hcursorB.png", m_palette.cursor));
+    vCursorAHead->setPixmap(tintedPixmap(bitmaps + "vcursorA.png", m_palette.cursor));
+    vCursorBHead->setPixmap(tintedPixmap(bitmaps + "vcursorB.png", m_palette.cursor));
+    for(QCPItemTracer *tracer : {phaseTracerAA, phaseTracerAB, phaseTracerBA, phaseTracerBB}) {
+        tracer->setPen(QPen(m_palette.cursor));
+        tracer->setBrush(m_palette.cursor);
+    }
+    ch1Zero->setPen(QPen(m_palette.ch1, 1, Qt::DotLine));
+    ch2Zero->setPen(QPen(m_palette.ch2, 1, Qt::DotLine));
+    ch1ZeroHead->setPixmap(tintedPixmap(bitmaps + "chan1-zero.png", m_palette.ch1));
+    ch2ZeroHead->setPixmap(tintedPixmap(bitmaps + "chan2-zero.png", m_palette.ch2));
+    chdZeroHead->setPixmap(tintedPixmap(bitmaps + "chand-zero.png", m_palette.logic));
+    for(int i = 0; i < 8; i++)
+        for(QCPItemText *label : {textLabelBit[i], textLabelParallel[i], textLabelSerial[i]})
+            label->setColor(m_palette.logic);
+    setGroupBoxColor(ui->groupBoxCH1, m_palette.ch1);
+    setGroupBoxColor(ui->groupBoxCH2, m_palette.ch2);
+    setGroupBoxColor(ui->groupBoxCH3, m_palette.ch3);
+    setGroupBoxColor(ui->groupBoxCH4, m_palette.ch4);
+    setGroupBoxColor(ui->groupBoxCHD, m_palette.logic);
+}
+
+// A channel's group box framed in the channel's color (fainter while disabled). A style
+// sheet border replaces the native frame, so the title is placed on it the same way.
+void XprotolabInterface::setGroupBoxColor(QGroupBox *box, const QColor &color) {
+    box->setStyleSheet(QString(
+        "QGroupBox#%1 { border: 1px solid %2; border-radius: 4px; margin-top: 7px; padding-top: 4px; }"
+        "QGroupBox#%1:disabled { border-color: rgba(%3, %4, %5, 90); }"
+        "QGroupBox#%1::title { subcontrol-origin: margin; subcontrol-position: top left;"
+        " left: 7px; padding: 0 3px; }")
+        .arg(box->objectName(), color.name())
+        .arg(color.red()).arg(color.green()).arg(color.blue()));
+}
+
+// The trigger marker's color: its source channel's (EXT has no trace: the axes' color)
+QColor XprotolabInterface::triggerSourceColor() const {
+    const int source = ui->comboBoxTriggerSource->currentIndex();
+    if(source == 0)
+        return m_palette.ch1;
+    if(source == 1)
+        return m_palette.ch2;
+    if(source <= 9)
+        return m_palette.logic;
+    return axesPen.color();
 }
 
 void XprotolabInterface::setupGraphs(QCustomPlot *customPlot) {
@@ -1477,25 +1540,25 @@ void XprotolabInterface::selectItem(QMouseEvent *event) {
     currentSelected = dragTargetAt(event->position());
     switch(currentSelected) {
     case isHCursorAHead:
-        hCursorAHead->setPen(QPen(QColor("#1692e5")));
+        hCursorAHead->setPen(QPen(m_palette.cursor));
         break;
     case isHCursorBHead:
-        hCursorBHead->setPen(QPen(QColor("#1692e5")));
+        hCursorBHead->setPen(QPen(m_palette.cursor));
         break;
     case isVCursorAHead:
-        vCursorAHead->setPen(QPen(QColor("#e04e4e")));
+        vCursorAHead->setPen(QPen(m_palette.cursor));
         break;
     case isVCursorBHead:
-        vCursorBHead->setPen(QPen(QColor("#e04e4e")));
+        vCursorBHead->setPen(QPen(m_palette.cursor));
         break;
     case isCH1Zero:
-        ch1ZeroHead->setPen(QPen(QColor("#f9a94c")));
+        ch1ZeroHead->setPen(QPen(m_palette.ch1));
         break;
     case isCH2Zero:
-        ch2ZeroHead->setPen(QPen(QColor("#f9a94c")));
+        ch2ZeroHead->setPen(QPen(m_palette.ch2));
         break;
     case isCHDZero:
-        chdZeroHead->setPen(QPen(QColor("#f9a94c")));
+        chdZeroHead->setPen(QPen(m_palette.logic));
         break;
     case isTriggerPixmap:
     case isTriggerWin1Pixmap:
@@ -1504,10 +1567,7 @@ void XprotolabInterface::selectItem(QMouseEvent *event) {
                                 currentSelected == isTriggerWin1Pixmap ? triggerWin1Pixmap : triggerWin2Pixmap;
         // Drag the marker by where it was grabbed, so it doesn't jump to the pointer
         m_dragGrabOffset = trigger->topLeft->pixelPosition() - event->position();
-        if(ui->comboBoxTriggerSource->currentIndex() == 0)
-            trigger->setPen(QPen(QColor(75, 229, 28)));
-        else
-            trigger->setPen(QPen(QColor("#ff0000")));
+        trigger->setPen(QPen(triggerSourceColor()));
         break;
     }
     case isCH1Level:
@@ -3664,8 +3724,8 @@ void XprotolabInterface::setupValues() {
     // Gain with x1 probe
     gains = {{5.12f, "V", "5.12V"}, {2.56f, "V", "2.56V"}, {1.28f, "V", "1.28V"}, {0.64f, "V", "0.64V"}, {0.32f, "V", "0.32V"}, {0.16f, "V", "0.16V"}, {80.0f, "mV", "80mV"}, {0.0f, "", "----"}};
     QString tempP = ":/Bitmaps/Bitmaps/";
-    triggerIconPathsG << tempP + "risingg.png" << tempP + "fallingg.png" << tempP + "dualg.png" << tempP + "positiveg.png" << tempP + "negativeg.png" << tempP + "window1g.png" << tempP + "window2g.png";
-    triggerIconPathsR << tempP + "risingr.png" << tempP + "fallingr.png" << tempP + "dualr.png" << tempP + "positiver.png" << tempP + "negativer.png" << tempP + "window1r.png" << tempP + "window2r.png";
+    // Drawn in one color, which tintedPixmap() replaces with the source channel's
+    triggerIconPaths << tempP + "risingg.png" << tempP + "fallingg.png" << tempP + "dualg.png" << tempP + "positiveg.png" << tempP + "negativeg.png" << tempP + "window1g.png" << tempP + "window2g.png";
     // Hotspot of each icon: the stem column and the dashed level row. The slope icons have neither, so use their center.
     triggerIconHotspots << QPoint(8, 8) << QPoint(8, 5) << QPoint(8, 7) << QPoint(9, 7) << QPoint(9, 7) << QPoint(8, 8) << QPoint(8, 5);
 }
@@ -4245,12 +4305,11 @@ void XprotolabInterface::setTriggerIcon(int iconNum) {
             // Each marker points out of the window, as on the device's LCD: window2*.png
             // (down) at the lower level, window1*.png (up) at the upper one. Window1 is
             // the lower level unless the channel is drawn upside down.
-            const QStringList &paths = ui->comboBoxTriggerSource->currentIndex() == 0 ? triggerIconPathsG : triggerIconPathsR;
             const int down = iconNum + 1, up = iconNum;
             const int win1 = triggerSourceInverted() ? up : down;
             const int win2 = triggerSourceInverted() ? down : up;
-            triggerWin1Pixmap->setPixmap(QPixmap(paths[win1]));
-            triggerWin2Pixmap->setPixmap(QPixmap(paths[win2]));
+            triggerWin1Pixmap->setPixmap(tintedPixmap(triggerIconPaths[win1], triggerSourceColor()));
+            triggerWin2Pixmap->setPixmap(tintedPixmap(triggerIconPaths[win2], triggerSourceColor()));
             triggerWin1Pixmap->setHotspot(triggerIconHotspots[win1]);
             triggerWin2Pixmap->setHotspot(triggerIconHotspots[win2]);
         } else {
@@ -4262,10 +4321,7 @@ void XprotolabInterface::setTriggerIcon(int iconNum) {
         triggerWin1Pixmap->setVisible(false);
         triggerWin2Pixmap->setVisible(false);
         triggerPixmap->setVisible(true);
-        if(ui->comboBoxTriggerSource->currentIndex() == 0)
-            triggerPixmap->setPixmap(QPixmap(triggerIconPathsG[iconNum]));
-        else
-            triggerPixmap->setPixmap(QPixmap(triggerIconPathsR[iconNum]));
+        triggerPixmap->setPixmap(tintedPixmap(triggerIconPaths[iconNum], triggerSourceColor()));
         triggerPixmap->setHotspot(triggerIconHotspots[iconNum]);
     }
     m_repaint = true;

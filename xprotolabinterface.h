@@ -35,6 +35,7 @@
 #include <QSettings>
 #include <QElapsedTimer>
 #include <QGraphicsEffect>
+#include <QGroupBox>
 #include "customtheme.h"
 #include "bootloader.h"
 #include "qcustomplot.h"
@@ -483,7 +484,7 @@ private:
     QVector<double> bitRef[8];
     bool initializing;
     QString defaultDir;
-    QStringList triggerIconPathsG, triggerIconPathsR;
+    QStringList triggerIconPaths;
     QList<QPoint> triggerIconHotspots;
     CustomTheme customThemeDialog;
     Bootloader DialogBootloader;
@@ -516,6 +517,10 @@ private:
     QTimer m_playTimer;
     bool m_repaint;
     bool m_scopeRunning = true; // the acquisition's state, as pushButtonStartStop shows it
+    ChannelPalette m_palette;   // the theme's channel and cursor colors (setTheme())
+    void applyChannelColors();
+    void setGroupBoxColor(QGroupBox *box, const QColor &color);
+    QColor triggerSourceColor() const;
     void setScopeRunning(bool running);
     // Frame throttle: what the plot shows, and when it last repainted a device
     // frame. Only a payload that changed these bytes is worth a repaint.

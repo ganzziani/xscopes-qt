@@ -1,4 +1,29 @@
 #include "customcolors.h"
+#include <QImage>
+
+QPixmap tintedPixmap(const QString &path, const QColor &color) {
+    QImage image = QImage(path).convertToFormat(QImage::Format_ARGB32);
+    const auto brightness = [](QRgb p) { return qMax(qRed(p), qMax(qGreen(p), qBlue(p))); };
+    const auto colored = [&](QRgb p) {
+        return qAlpha(p) > 0 && brightness(p) - qMin(qRed(p), qMin(qGreen(p), qBlue(p))) > 48;
+    };
+    int brightest = 1;
+    for(int y = 0; y < image.height(); y++)
+        for(int x = 0; x < image.width(); x++)
+            if(colored(image.pixel(x, y)))
+                brightest = qMax(brightest, brightness(image.pixel(x, y)));
+    for(int y = 0; y < image.height(); y++) {
+        for(int x = 0; x < image.width(); x++) {
+            const QRgb p = image.pixel(x, y);
+            if(!colored(p))
+                continue;
+            const double f = double(brightness(p)) / brightest;
+            image.setPixel(x, y, qRgba(qRound(color.red() * f), qRound(color.green() * f),
+                                       qRound(color.blue() * f), qAlpha(p)));
+        }
+    }
+    return QPixmap::fromImage(image);
+}
 
 CustomColors::CustomColors() {
     m_buttonsMap.clear();

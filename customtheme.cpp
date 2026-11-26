@@ -92,19 +92,21 @@ QString CustomTheme::idealForegroundColor(QColor color) {
 }
 
 void CustomTheme::loadDefaultTheme() {
-    customColors.ch1 = QColor(75, 229, 28);
-    customColors.ch2 = QColor(Qt::red);
+    // The Dark theme's colors (ChannelPalette::dark())
+    const ChannelPalette palette = ChannelPalette::dark();
+    customColors.ch1 = palette.ch1;
+    customColors.ch2 = palette.ch2;
     customColors.ch1ref = CustomColors::referenceOf(customColors.ch1);
     customColors.ch2ref = CustomColors::referenceOf(customColors.ch2);
     for(int i = 0; i < 8; i++) {
-        customColors.bit[i] = QColor(255 - i * 10, 4 + i * 10, 4);
+        customColors.bit[i] = palette.logic;
         customColors.bitref[i] = CustomColors::referenceOf(customColors.bit[i]);
     }
-    customColors.ch1fft = QColor(75, 229, 28);
-    customColors.ch2fft = QColor(Qt::red);
+    customColors.ch1fft = palette.ch1;
+    customColors.ch2fft = palette.ch2;
     customColors.axes = QColor(Qt::white);
     customColors.grid = QColor(140, 140, 140);
-    customColors.label = QColor("#4be51c");
+    customColors.label = palette.cursor;
     customColors.background = QBrush(Qt::black);
     colorizeButtons();
 }
