@@ -20,7 +20,15 @@ public:
     // device that was not read - keeps the current selection. Remembers the device for
     // the next run of the dialog.
     void selectDevice(int deviceCode);
+    // Whether the device's application was started from this dialog since the last call
+    // (Start Application, the end of Do Everything, or closing the window), so the caller
+    // can connect to it again.
+    bool takeApplicationStarted();
     Ui::bootloader *ui;
+protected:
+    // Closing the window: refused while an operation runs; otherwise the application is
+    // started when the bootloader is on USB and the flash holds a complete program.
+    void done(int r) override;
 private slots:
     void applyDevice();             // everything that follows the Device Select group
     void on_pushSelectFlashFile_clicked();
@@ -66,6 +74,10 @@ private:
     static bool BlankEeprom(const QByteArray &intelHex);
     void storeFiles();              // remembers the file fields for m_fileDevice
     int m_fileDevice = -1;          // device code the file fields belong to
+    // An erase or a flash programming started and no flash programming has succeeded since:
+    // the application may be missing or partly written, so closing does not start it
+    bool m_flashIncomplete = false;
+    bool m_appStarted = false;      // see takeApplicationStarted()
     QString readBackFile;           // where the running read saves its result
     QStringList m_readBacks;        // read-backs saved this session, never remembered as defaults
     bool doEverything;

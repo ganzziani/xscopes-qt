@@ -278,8 +278,11 @@ bool Bootloader::StartReadEE(const QString &file) {
 }
 
 bool Bootloader::StartErase() {
-    return RunDfu(QString("Erasing memory of ") + ui->lineTarget->text(),
-                  QStringList() << ui->lineTarget->text() << "erase");
+    if(!RunDfu(QString("Erasing memory of ") + ui->lineTarget->text(),
+               QStringList() << ui->lineTarget->text() << "erase"))
+        return false;
+    m_flashIncomplete = true;
+    return true;
 }
 
 bool Bootloader::StartFlash() {
@@ -290,9 +293,12 @@ bool Bootloader::StartFlash() {
     if(memory && end > memory->application)
         Log(tr("The flash file also holds a bootloader: that part is skipped, the device keeps "
                "its own bootloader."));
-    return RunDfu(QString("Programming Flash to ") + ui->lineTarget->text(),
-                  QStringList() << ui->lineTarget->text() << "flash" << ui->lineFlash->text()
-                                << "--ignore-outside" << "--suppress-bootloader-mem");
+    if(!RunDfu(QString("Programming Flash to ") + ui->lineTarget->text(),
+               QStringList() << ui->lineTarget->text() << "flash" << ui->lineFlash->text()
+                             << "--ignore-outside" << "--suppress-bootloader-mem"))
+        return false;
+    m_flashIncomplete = true;
+    return true;
 }
 
 bool Bootloader::StartEEPROM() {
@@ -376,6 +382,30 @@ void Bootloader::on_pushDoEverything_clicked() {
     doEverything = true;
     if(!(preserve ? StartReadEE(readBack) : StartErase()))
         StopEverything(tr("it could not start"));
+}
+
+bool Bootloader::takeApplicationStarted() {
+    const bool started = m_appStarted;
+    m_appStarted = false;
+    return started;
+}
+
+void Bootloader::done(int r) {
+    if(doEverything || dfu->isRunning()) {
+        Log(tr("Wait for the running operation to finish before closing this window"));
+        return;
+    }
+    // Leave the device running its application, as Start Application would, when its
+    // bootloader is there to take the command
+    const quint16 pid = DfuProgrammer::targetProductId(ui->lineTarget->text());
+    if(pid && DfuProgrammer::probe(0x03EB, pid) == DfuProgrammer::ProbeOpens) {
+        if(m_flashIncomplete)
+            Log(tr("The flash was erased or not completely programmed: the device stays in the "
+                   "bootloader. Program the flash, then press Start Application."));
+        else if(StartLaunch())
+            m_appStarted = true;    // the launch finishes after the window has closed
+    }
+    QDialog::done(r);
 }
 
 void Bootloader::StopEverything(const QString &reason) {
@@ -591,6 +621,12 @@ void Bootloader::OperationDone(int result, const QByteArray &standardOutput) {
         }
     } else if(!standardOutput.isEmpty()) {
         Log(QString::fromLocal8Bit(standardOutput));
+    }
+    if(result == 0 && arguments.contains("flash") && !isEeprom)
+        m_flashIncomplete = false;      // a complete program is in the flash again
+    if(result == 0 && arguments.contains("launch")) {
+        m_appStarted = true;
+        m_flashIncomplete = false;
     }
     if(result != 0) {
         Log(QString("dfu-programmer: %1").arg(DfuProgrammer::resultText(result)));

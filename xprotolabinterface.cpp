@@ -4964,5 +4964,13 @@ void XprotolabInterface::on_pushButtonUpgradeFirmware_clicked() {
         setInfoText(tr("Device restarted in bootloader mode"));
     }
     DialogBootloader.exec();
+    // The dialog started the device's application: connect to it once it is back on USB
+    // (it enumerates ~0.5 s after the launch)
+    if(DialogBootloader.takeApplicationStarted() && ui->radioButtonUSB->isChecked()) {
+        QTimer::singleShot(1500, this, [this]() {
+            if(!usbDevice.isDeviceConnected)
+                on_pushButtonConnect_clicked();
+        });
+    }
 }
 
