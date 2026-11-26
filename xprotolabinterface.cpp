@@ -966,15 +966,23 @@ void XprotolabInterface::plotData() {
         if(ui->groupBoxFFT->isChecked()) {
             double magnitude = 0.0, magnitude2 = 0.0;
             double real1, real2, imag;
+            // In roll mode the buffer is circular: the sample at the write index (chData[769])
+            // is the oldest, and the newest sits right before it, where the waveform jumps
+            // unless a whole number of cycles fits. Read in buffer order, that jump moved
+            // through the window once per 256 samples, and the peak widened and narrowed with
+            // where the window weighted it. Read oldest first, as the trace is drawn.
+            const int start = (ui->sliderSampling->value() >= 11 && ui->checkBoxRollMode->isChecked())
+                              ? usbDevice.chData[769] : 0;
             for(int j = 0; j < 256; j++) {
+                const int n = (start + j) & 0xFF;
                 if(!ui->checkBoxFFTIQ->isChecked()) {
-                    real1 = (double)usbDevice.chData[j] * fftWindow[j];
-                    real2 = (double)usbDevice.chData[j + 256] * fftWindow[j];
+                    real1 = (double)usbDevice.chData[n] * fftWindow[j];
+                    real2 = (double)usbDevice.chData[n + 256] * fftWindow[j];
                     pSignal1[j] = complex(real1, real1);
                     pSignal2[j] = complex(real2, real2);
                 } else {
-                    real1 = (double)usbDevice.chData[j] * fftWindow[j];
-                    imag = (double)usbDevice.chData[j + 256] * fftWindow[j];
+                    real1 = (double)usbDevice.chData[n] * fftWindow[j];
+                    imag = (double)usbDevice.chData[n + 256] * fftWindow[j];
                     pSignal1[j] = complex(real1, imag);
                 }
             }
