@@ -53,6 +53,9 @@ private:
     bool StartEEPROM();
     bool StartLaunch();
     void StopEverything(const QString &reason);
+    // dfu-programmer found no device it could use: logs whether the bootloader is on USB at
+    // all, or is there on a driver the application cannot use, and what to do about it
+    void ExplainNoDevice();
     // An Intel HEX file that fits memorySize bytes (0: any size); the reason in error if not
     // (end: one past the highest address with data)
     bool CheckIntelHex(const QString &path, quint32 memorySize, QString *error, quint32 *end = nullptr);

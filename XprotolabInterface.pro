@@ -87,6 +87,8 @@ greaterThan(QT_MAJOR_VERSION, 4):QT += printsupport
 
 win32: PRE_TARGETDEPS += $$PWD/libs/win/libusb-1.0.lib
 win32: LIBS += -L$$PWD/libs/win -llibusb-1.0
+# SetupAPI: which driver Windows bound to a DFU bootloader (dfuprogrammerqt.cpp)
+win32: LIBS += -lsetupapi
 
 # Runtime files that must sit next to the exe (copied at build time). dfu-programmer is linked
 # into the application, so libusb is the only library that has to be deployed.

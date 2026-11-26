@@ -383,6 +383,73 @@ void Bootloader::StopEverything(const QString &reason) {
     Log(tr("Firmware update stopped: %1.").arg(reason));
 }
 
+void Bootloader::ExplainNoDevice() {
+    const QString target = arguments.value(0);
+    const quint16 vid = 0x03EB;
+    const quint16 pid = DfuProgrammer::targetProductId(target);
+    if(!pid)
+        return;
+    const bool watch = pid == 0x2FEC;
+    // As Zadig shows it in its USB ID field
+    const QString usbId = QString("%1 %2").arg(vid, 4, 16, QLatin1Char('0'))
+                                          .arg(pid, 4, 16, QLatin1Char('0')).toUpper();
+    QString detail;
+    switch(DfuProgrammer::probe(vid, pid, &detail)) {
+    case DfuProgrammer::ProbeNotFound: {
+        Log(tr("No %1 bootloader is on USB (USB ID %2).").arg(target, usbId));
+        // The other device's bootloader, with the wrong device selected in the dialog
+        const QString other = watch ? "atxmega32a4u" : "atxmega256a3u";
+        if(DfuProgrammer::probe(vid, DfuProgrammer::targetProductId(other)) != DfuProgrammer::ProbeNotFound)
+            Log(tr("An %1 bootloader is on USB instead: select that device above.").arg(other));
+        else if(watch)
+            Log(tr("Watch: it switches to the bootloader by itself when the update starts; if it "
+                   "did not, start the update again."));
+        else
+            Log(tr("XScopes: the bootloader cannot be started from the application (Atmel's "
+                   "bootloader only enters DFU on the hardware condition), so hold K1 and "
+                   "power-cycle the instrument, then press the button again."));
+        break;
+    }
+    case DfuProgrammer::ProbeNoDriver:
+#ifdef Q_OS_WIN
+        if(detail.isEmpty())
+            Log(tr("The bootloader is on USB (USB ID %1), but Windows did not set up a driver "
+                   "for it.").arg(usbId));
+        else
+            Log(tr("The bootloader is on USB (USB ID %1), but Windows gave it the %2 driver, "
+                   "which this application cannot use (Windows Update installs Atmel's libusb0 "
+                   "driver for it).").arg(usbId, detail));
+        Log(tr("Install WinUSB for it with Zadig (https://zadig.akeo.ie/) while the bootloader "
+               "is running: in Options, check List All Devices; pick the device whose USB ID is "
+               "%1; choose WinUSB and press Replace Driver (or Install Driver). Then press the "
+               "button here again.").arg(usbId));
+        Log(tr("Windows keeps that driver per USB port: on another port, or if this stops "
+               "working on this one, run Zadig again."));
+#else
+        Log(tr("The bootloader is on USB (USB ID %1), but libusb cannot use it: %2")
+                .arg(usbId, detail));
+#endif
+        break;
+    case DfuProgrammer::ProbeNoAccess:
+#ifdef Q_OS_WIN
+        Log(tr("The bootloader is on USB (USB ID %1), but another program has it open: close "
+               "other firmware tools and press the button again.").arg(usbId));
+#else
+        Log(tr("The bootloader is on USB (USB ID %1), but there is no permission to open it "
+               "(%2). On Linux, install extra/linux/64-xscope.rules in /etc/udev/rules.d and "
+               "plug the device in again.").arg(usbId, detail));
+#endif
+        break;
+    case DfuProgrammer::ProbeOpens:
+        Log(tr("The bootloader is on USB (USB ID %1) and opens, but did not answer as a DFU "
+               "device. Restart the bootloader and press the button again.").arg(usbId));
+        break;
+    case DfuProgrammer::ProbeOtherError:
+        Log(tr("The bootloader (USB ID %1) cannot be opened: %2").arg(usbId, detail));
+        break;
+    }
+}
+
 void Bootloader::HEXDownloaded(QNetworkReply::NetworkError error, QString ErrorString) {
     SaveDownload(HEXDownloader, error, ErrorString, false);
 }
@@ -527,14 +594,8 @@ void Bootloader::OperationDone(int result, const QByteArray &standardOutput) {
     }
     if(result != 0) {
         Log(QString("dfu-programmer: %1").arg(DfuProgrammer::resultText(result)));
-        if(result == 3) {   // DEVICE_ACCESS_ERROR: no bootloader to talk to, or no driver for it
-            Log(tr("The DFU bootloader device is not available."));
-            Log(tr("XScopes: it cannot be started from the application (Atmel's bootloader only "
-                   "enters DFU on the hardware condition), so hold K1 and power-cycle the "
-                   "instrument, then press the button again."));
-            Log(tr("Watch: it switches over by itself; if it did not, check that it has a WinUSB "
-                   "driver (Zadig / libwdi), or on Linux that the udev rule covers 03EB:2FEC/2FE4."));
-        }
+        if(result == 3)     // DEVICE_ACCESS_ERROR: no bootloader to talk to, or no driver for it
+            ExplainNoDevice();
     }
     if(!doEverything)
         return;

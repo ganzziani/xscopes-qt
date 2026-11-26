@@ -12,6 +12,14 @@
 #include <cstring>
 #include <vector>
 
+#ifdef Q_OS_WIN
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>    // before libusb.h, see the note there
+#include <setupapi.h>
+#endif
+#include "libusb.h"
 #include "third_party/dfu-programmer/arguments.h"
 #include "third_party/dfu-programmer/libdfu.h"
 extern int debug;   // defined in libdfu.cpp (C++ linkage), gates DEBUG()/TRACE() output
@@ -105,6 +113,110 @@ QString DfuProgrammer::resultText(int result) {
                           "(use --ignore-outside for files that cover the bootloader)");
     }
     return tr("Unknown error %1").arg(result);
+}
+
+quint16 DfuProgrammer::targetProductId(const QString &target) {
+    // The two targets the dialog offers, as in dfu-programmer's target_map (arguments.cpp)
+    if(target == QLatin1String("atxmega32a4u"))
+        return 0x2FE4;
+    if(target == QLatin1String("atxmega256a3u"))
+        return 0x2FEC;
+    return 0;
+}
+
+#ifdef Q_OS_WIN
+// Whether a USB device vid:pid is present, and in service the driver Windows bound to it
+// ("WinUSB", "libusb0", ..., empty when it has none). libusb cannot say: it
+// reports LIBUSB_ERROR_ACCESS both for a libusb0 device (when libusbK.dll is not in System32)
+// and for a WinUSB device that another program holds.
+static bool windowsDriver(quint16 vid, quint16 pid, QString *service) {
+    const QString wanted = QString("USB\\VID_%1&PID_%2").arg(vid, 4, 16, QLatin1Char('0'))
+                                                        .arg(pid, 4, 16, QLatin1Char('0'));
+    bool present = false;
+    service->clear();
+    HDEVINFO set = SetupDiGetClassDevsW(nullptr, L"USB", nullptr, DIGCF_PRESENT | DIGCF_ALLCLASSES);
+    if(set == INVALID_HANDLE_VALUE)
+        return false;
+    SP_DEVINFO_DATA info;
+    info.cbSize = sizeof(info);
+    for(DWORD i = 0; SetupDiEnumDeviceInfo(set, i, &info); i++) {
+        wchar_t ids[1024] = {0};
+        if(!SetupDiGetDeviceRegistryPropertyW(set, &info, SPDRP_HARDWAREID, nullptr,
+                                              (PBYTE)ids, sizeof(ids) - 2 * sizeof(wchar_t), nullptr))
+            continue;
+        bool match = false;     // a REG_MULTI_SZ: "USB\VID_03EB&PID_2FE4&REV_0002", "USB\VID_03EB&PID_2FE4"
+        for(const wchar_t *id = ids; *id; id += wcslen(id) + 1)
+            if(QString::fromWCharArray(id).compare(wanted, Qt::CaseInsensitive) == 0)
+                match = true;
+        if(!match)
+            continue;
+        wchar_t name[256] = {0};
+        present = true;
+        service->clear();       // no SPDRP_SERVICE: no driver
+        if(SetupDiGetDeviceRegistryPropertyW(set, &info, SPDRP_SERVICE, nullptr, (PBYTE)name,
+                                             sizeof(name) - sizeof(wchar_t), nullptr))
+            *service = QString::fromWCharArray(name);
+        if(service->compare(QLatin1String("WinUSB"), Qt::CaseInsensitive) == 0)
+            break;      // a usable one wins over a second unit on the wrong driver
+    }
+    SetupDiDestroyDeviceInfoList(set);
+    return present;
+}
+#endif
+
+DfuProgrammer::ProbeResult DfuProgrammer::probe(quint16 vid, quint16 pid, QString *detail) {
+    // A context of its own: the scope connection keeps its own, and this one is gone on return
+    libusb_context *context = nullptr;
+    int status = libusb_init(&context);
+    if(status != LIBUSB_SUCCESS) {
+        if(detail)
+            *detail = QString::fromLatin1(libusb_error_name(status));
+        return ProbeOtherError;
+    }
+    ProbeResult result = ProbeNotFound;
+    libusb_device **list = nullptr;
+    const ssize_t count = libusb_get_device_list(context, &list);
+    for(ssize_t i = 0; i < count; i++) {
+        libusb_device_descriptor descriptor;
+        if(libusb_get_device_descriptor(list[i], &descriptor) != LIBUSB_SUCCESS)
+            continue;
+        if(descriptor.idVendor != vid || descriptor.idProduct != pid)
+            continue;
+        libusb_device_handle *handle = nullptr;
+        status = libusb_open(list[i], &handle);
+        ProbeResult found;
+        if(status == LIBUSB_SUCCESS) {
+            libusb_close(handle);
+            found = ProbeOpens;
+        } else if(status == LIBUSB_ERROR_NOT_SUPPORTED) {
+            found = ProbeNoDriver;
+        } else if(status == LIBUSB_ERROR_ACCESS || status == LIBUSB_ERROR_BUSY) {
+            found = ProbeNoAccess;
+        } else {
+            found = ProbeOtherError;
+        }
+        if(detail)
+            *detail = status == LIBUSB_SUCCESS ? QString() : QString::fromLatin1(libusb_error_name(status));
+        result = found;
+        if(found == ProbeOpens)
+            break;      // a usable one wins over a second unit on the wrong driver
+    }
+    if(count >= 0)
+        libusb_free_device_list(list, 1);
+    libusb_exit(context);
+#ifdef Q_OS_WIN
+    // On Windows the driver decides it: anything that is not WinUSB is the user's to change
+    if(result == ProbeNoDriver || result == ProbeNoAccess || result == ProbeOtherError) {
+        QString service;
+        if(windowsDriver(vid, pid, &service) &&
+           service.compare(QLatin1String("WinUSB"), Qt::CaseInsensitive) != 0) {
+            result = ProbeNoDriver;
+            if(detail)
+                *detail = service;      // "" = no driver at all
+        }
+    }
+#endif
+    return result;
 }
 
 bool DfuProgrammer::start(const QStringList &args) {

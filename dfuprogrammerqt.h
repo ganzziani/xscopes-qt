@@ -27,6 +27,16 @@ public:
     QByteArray standardOutput() const;
     // Human readable text for dfu-programmer's enum return_codes_enum.
     static QString resultText(int result);
+    // Whether a DFU device vid:pid is on USB and whether libusb can open it, to tell the user
+    // why dfu-programmer could not use it. On Windows a bootloader that got Atmel's libusb0
+    // driver (Windows Update ships it) or no driver is listed but does not open; ProbeNoDriver
+    // then comes from the driver Windows bound (detail: its service name, "" for none), since
+    // libusb's error does not tell it apart from a device another program holds.
+    // detail is libusb's error name otherwise. Quick, safe to call on the GUI thread.
+    enum ProbeResult { ProbeNotFound, ProbeOpens, ProbeNoDriver, ProbeNoAccess, ProbeOtherError };
+    static ProbeResult probe(quint16 vid, quint16 pid, QString *detail = nullptr);
+    // USB product ID of a dfu-programmer target name, 0 if unknown (the vendor is 0x03EB)
+    static quint16 targetProductId(const QString &target);
 signals:
     void log(const QString &line);      // one line of the tool's stderr output
     void finished(int result);          // 0 = SUCCESS, see resultText()

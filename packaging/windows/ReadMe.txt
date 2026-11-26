@@ -28,8 +28,16 @@ Press "UPGRADE FIRMWARE" in the Options tab; no other tool is needed. The XScope
 bootloader starts only when you hold the K1 button while powering the device on; the
 Oscilloscope Watch starts it on request. The update window tells you what to do.
 
-If the bootloader cannot be found, set it up with Zadig (WinUSB) the same way. Atmel's
-FLIP driver does not work with this application.
+If the update window says that Windows gave the bootloader a driver this application cannot
+use, install WinUSB for it with Zadig (https://zadig.akeo.ie/). That is usually Atmel's
+libusb0 driver, which Windows Update installs by itself. With the bootloader running:
+
+  1. In Zadig's Options menu, check "List All Devices".
+  2. Pick the device whose USB ID is 03EB 2FE4 (XScopes/Xprotolab) or 03EB 2FEC (Watch).
+  3. Choose WinUSB and press "Replace Driver" (or "Install Driver").
+
+Windows keeps this driver per USB port: on another port, or if the update stops working on
+the same port later, run Zadig again.
 
 Uninstalling
 ------------
