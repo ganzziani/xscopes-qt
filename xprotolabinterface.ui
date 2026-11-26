@@ -1804,7 +1804,7 @@ Window: the signal leaves a voltage range</string>
               </size>
              </property>
              <property name="text">
-              <string>START</string>
+              <string>STOPPED</string>
              </property>
             </widget>
            </item>

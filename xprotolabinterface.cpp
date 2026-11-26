@@ -713,6 +713,9 @@ void XprotolabInterface::plotData() {
     }
     m_shownFrame = frame;
     m_shownIndex = writeIndex;
+    // A Single capture is complete: the firmware stops right after sending it
+    if(newFrame && m_scopeRunning && ui->comboBoxTriggerType->currentIndex() == TriggerSingle)
+        QTimer::singleShot(0, this, &XprotolabInterface::refreshRunState);
     m_repaintClock.start();
     QVector<double> key;
     double ch1, ch2, minV = 0, maxV = 0, aTrack, bTrack;
@@ -1884,6 +1887,7 @@ void XprotolabInterface::disconnectDevice(bool mode) {
     ui->labelConnectionStatus->setText(tr("Not Connected"));
     this->setWindowTitle("Gabotronics Xscope Interface - Not Connected");
     ui->labelConnectionIcon->setPixmap(QPixmap(":/Bitmaps/Bitmaps/led-off.png"));
+    setScopeRunning(m_scopeRunning);    // the state is unknown now: no tint
     ui->radioButtonSerialPort->setDisabled(false);
     ui->radioButtonUSB->setDisabled(false);
     if(!usbDevice.wayOfConnecting)
@@ -2082,8 +2086,8 @@ void XprotolabInterface::readDeviceSettings() {
     ui->pushButtonSnifferPause->setText(tr("Pause"));
     enableSnifferControls(!sniffing);
     mode = sniffing ? SNIFFER : OSCILLOSCOPE;
-    // MStatus.stop is the scope's Start/Stop state; the button names the action it offers
-    ui->pushButtonStartStop->setText((data & (byte)(1 << 4)) != 0 ? tr("START") : tr("STOP"));
+    // MStatus.stop is the scope's run state, which the button shows
+    setScopeRunning((data & (byte)(1 << 4)) == 0);
     if(ui->tabWidgetMain->currentWidget() == ui->tabMeter) {
         if((data & (byte)(1 << 6)) == 0 && (data & (byte)(1 << 7)) == 0) {
             ui->tabWidgetMeter->setCurrentIndex(2);
@@ -3103,6 +3107,9 @@ void XprotolabInterface::sendMStatusControls() {
     else if(mode != OSCILLOSCOPE)
         field += (1 << 5);
     usbDevice.controlWriteTransfer(11, field);
+    // The firmware clears MStatus.stop on its way into the sniffer, and leaving it this
+    // write clears it: the scope runs afterwards either way
+    setScopeRunning(true);
 }
 
 void XprotolabInterface::sendMStatusControlsForMM() {
@@ -3116,6 +3123,7 @@ void XprotolabInterface::sendMStatusControlsForMM() {
     else if(ui->radioButtonCounterPulses->isChecked())
         field += (1 << 6) + (1 << 7);
     usbDevice.controlWriteTransfer(11, field);
+    setScopeRunning(true);      // the write clears MStatus.stop
 }
 
 void XprotolabInterface::on_pushButtonSnifferStart_clicked() {
@@ -3129,13 +3137,33 @@ void XprotolabInterface::on_pushButtonSnifferStart_clicked() {
 void XprotolabInterface::on_pushButtonStartStop_clicked() {
     if(!usbDevice.isDeviceConnected)
         return;
-    if(ui->pushButtonStartStop->text() == tr("START")) {
-        usbDevice.startScope();
-        ui->pushButtonStartStop->setText(tr("STOP"));
-    } else {
+    if(m_scopeRunning)
         usbDevice.stopScope();
-        ui->pushButtonStartStop->setText(tr("START"));
+    else
+        usbDevice.startScope();
+    setScopeRunning(!m_scopeRunning);
+}
+
+// The button shows the acquisition's state - RUNNING, tinted green, or STOPPED, tinted red
+// (the runState rules in the stylesheets) - and a click switches it. Not connected, the state
+// is unknown and the tint goes away.
+void XprotolabInterface::setScopeRunning(bool running) {
+    m_scopeRunning = running;
+    QPushButton *button = ui->pushButtonStartStop;
+    button->setText(running ? tr("RUNNING") : tr("STOPPED"));
+    button->setToolTip(running ? tr("Acquiring. Click to stop") : tr("Stopped. Click to start"));
+    const char *state = !usbDevice.isDeviceConnected ? "" : running ? "running" : "stopped";
+    if(button->property("runState").toString() != QLatin1String(state)) {
+        button->setProperty("runState", state);
+        button->style()->unpolish(button);
+        button->style()->polish(button);
     }
+}
+
+// The device stops by itself after a Single capture: read its state back
+void XprotolabInterface::refreshRunState() {
+    if(usbDevice.isDeviceConnected && usbDevice.controlReadTransfer('u', 0, 14))
+        setScopeRunning((usbDevice.inBuffer[11] & (byte)(1 << 4)) == 0);
 }
 
 void XprotolabInterface::on_pushButtonForceTrigger_clicked() {
@@ -3428,6 +3456,7 @@ void XprotolabInterface::on_tabWidgetSniffer_currentChanged(int index) {
     ui->pushButtonSnifferPause->setText(tr("Pause"));
     field += (1 << 5);
     usbDevice.controlWriteTransfer(11, field);
+    setScopeRunning(true);      // the write clears MStatus.stop
     ui->pushButtonSnifferStart->setText("START");
     setDecodeProtocol(index);
 }

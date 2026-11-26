@@ -257,6 +257,7 @@ private slots:
     void on_pushButtonConnect_clicked();
     void onDeviceDisconnected();
     void on_pushButtonStartStop_clicked();
+    void refreshRunState();     // reads MStatus.stop back (after a Single capture)
     void on_radioButtonAWGExpo_clicked();
     void on_radioButtonAWGTriangle_clicked();
     void on_radioButtonAWGSquare_clicked();
@@ -514,6 +515,8 @@ private:
     int m_playSrateBefore = -1;         // the time base to put back when playback ends
     QTimer m_playTimer;
     bool m_repaint;
+    bool m_scopeRunning = true; // the acquisition's state, as pushButtonStartStop shows it
+    void setScopeRunning(bool running);
     // Frame throttle: what the plot shows, and when it last repainted a device
     // frame. Only a payload that changed these bytes is worth a repaint.
     int m_shownFrame;       // chData[768], the device's frame counter

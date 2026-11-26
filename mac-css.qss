@@ -52,6 +52,32 @@ QPushButton:pressed {
     border-width: 0px;
 }
 
+/* The scope's run state button (XprotolabInterface::setScopeRunning()): the same gradient
+   as btn-172-up/down.png, tinted. Before :disabled, which wins when the button is disabled. */
+QPushButton[runState="running"] {
+    border-image: none;
+    border: 1px solid #8cb88c;
+    border-radius: 3px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f4fff4, stop:1 #cdeccd);
+}
+
+QPushButton[runState="running"]:pressed {
+    border-color: #5f8f5f;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #cdeccd, stop:1 #f4fff4);
+}
+
+QPushButton[runState="stopped"] {
+    border-image: none;
+    border: 1px solid #c49494;
+    border-radius: 3px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #fff4f4, stop:1 #f3cfcf);
+}
+
+QPushButton[runState="stopped"]:pressed {
+    border-color: #946262;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f3cfcf, stop:1 #fff4f4);
+}
+
 QPushButton:disabled {
     border-image: url(":/Bitmaps/Bitmaps/btn-172-disable.png");
     min-width: 80px;
