@@ -4952,8 +4952,11 @@ void XprotolabInterface::on_pushButtonUpgradeFirmware_clicked() {
     // the serial port) is cleared by disconnectDevice().
     DialogBootloader.selectDevice(usbDevice.deviceCode);
     // Hand the device over to its DFU bootloader first, so the user does not have to
-    // power-cycle it into DFU mode by hand.
-    if(usbDevice.isDeviceConnected && usbDevice.wayOfConnecting) {
+    // power-cycle it into DFU mode by hand. XScopes firmware that cannot do it keeps the
+    // connection: its bootloader starts only with K1 held at power-up.
+    if(usbDevice.isDeviceConnected && usbDevice.wayOfConnecting && !usbDevice.canRequestBootloader()) {
+        setInfoText(tr("This firmware cannot start the bootloader by itself: hold K1 while powering the device on"));
+    } else if(usbDevice.isDeviceConnected && usbDevice.wayOfConnecting) {
         usbDevice.requestBootloader();
         // The scope handle is gone now: do not try to upload the settings on the way out
         usbDevice.isDeviceRemoved = true;

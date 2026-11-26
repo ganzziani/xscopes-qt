@@ -24,9 +24,10 @@ To use a serial port instead, choose "Serial port" and the port in the Options t
 Firmware updates
 ----------------
 
-Press "UPGRADE FIRMWARE" in the Options tab; no other tool is needed. The XScopes/Xprotolab
-bootloader starts only when you hold the K1 button while powering the device on; the
-Oscilloscope Watch starts it on request. The update window tells you what to do.
+Press "UPGRADE FIRMWARE" in the Options tab; no other tool is needed. While the device is
+connected, it starts its bootloader by itself. XScopes/Xprotolab units with older firmware
+cannot: hold the K1 button while powering the device on instead. The update window tells you
+what to do.
 
 If the update window says that Windows gave the bootloader a driver this application cannot
 use, install WinUSB for it with Zadig (https://zadig.akeo.ie/). That is usually Atmel's

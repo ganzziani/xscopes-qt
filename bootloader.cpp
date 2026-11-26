@@ -405,9 +405,9 @@ void Bootloader::ExplainNoDevice() {
             Log(tr("Watch: it switches to the bootloader by itself when the update starts; if it "
                    "did not, start the update again."));
         else
-            Log(tr("XScopes: the bootloader cannot be started from the application (Atmel's "
-                   "bootloader only enters DFU on the hardware condition), so hold K1 and "
-                   "power-cycle the instrument, then press the button again."));
+            Log(tr("XScopes: hold K1 while powering the instrument on, then press the button again. "
+                   "(Current firmware starts the bootloader when UPGRADE FIRMWARE is pressed while "
+                   "the instrument is connected; older firmware cannot.)"));
         break;
     }
     case DfuProgrammer::ProbeNoDriver:

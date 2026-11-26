@@ -24,6 +24,7 @@ LibUsbDevice::LibUsbDevice(QObject *parent) :
     hasHotPlugSupport = false;
     deviceFound = nullptr;
     deviceCode = 0;
+    descriptorRev = 0;
     streamPaused = false;
     readPending = false;
     latestLength = 0;
@@ -44,6 +45,7 @@ void LibUsbDevice::reset() {
     hasHotPlugSupport = false;
     deviceFound = nullptr;
     deviceCode = 0;
+    descriptorRev = 0;
     QMutexLocker lock(&streamMutex);
     streamPaused = false;
     readPending = false;
@@ -203,6 +205,7 @@ void LibUsbDevice::openDevice(QString nameOfPort) {
         // device, its high nibble the family (sniffer.h reads the payload size
         // from it).
         deviceCode = deviceDesc.bcdDevice & 0xFF;
+        descriptorRev = deviceDesc.bcdDevice >> 8;
         isDeviceConnected = true;
     } else {
         isDeviceConnected = serial.connectToPort(nameOfPort);

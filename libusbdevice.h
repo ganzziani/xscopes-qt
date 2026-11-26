@@ -78,6 +78,16 @@ public:
     // serial port is in use or the descriptor was not read. The sniffer stream's
     // geometry differs between the families (sniffer.h).
     int deviceCode;
+    // bcdDevice high byte (DESCRIPTOR_REV in the firmware's Descriptors.c), 0 like deviceCode.
+    // 2 and up: the XScopes firmware starts its DFU bootloader on requestBootloader().
+    int descriptorRev;
+    // Whether requestBootloader() may be sent. The XScopes' 0xBB froze the device off USB
+    // until a power cycle before descriptor revision 2; the Watch (0x20) always handled it.
+    // Released firmware of both families reports device code 0 and cannot be told apart, so
+    // it still gets the request (an old XScopes needs K1 and a power cycle either way).
+    bool canRequestBootloader() const {
+        return deviceCode == 0 || deviceCode == 0x20 || descriptorRev >= 2;
+    }
     int snifferPayloadSize() const {
         return snifferPayloadSizeForDeviceCode(deviceCode);
     }
