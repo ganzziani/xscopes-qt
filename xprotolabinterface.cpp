@@ -224,11 +224,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         ch1Graph->setPen(ch1Pen);
         ch2Pen = QPen(m_palette.ch2, 2);
         ch2Graph->setPen(ch2Pen);
-        QString styleSheet;
-        styleSheet = "QLabel { background-color : " + ch1Pen.color().name() + "; }";
-        ui->labelCH1Color->setStyleSheet(styleSheet);
-        styleSheet = "QLabel { background-color : " + ch2Pen.color().name() + "; }";
-        ui->labelCH2Color->setStyleSheet(styleSheet);
         ch1RefPen = QPen(CustomColors::referenceOf(ch1Pen.color()), 2);
         ch1RefGraph->setPen(ch1RefPen);
         ch2RefPen = QPen(CustomColors::referenceOf(ch2Pen.color()), 2);
@@ -271,11 +266,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         ch1Graph->setPen(ch1Pen);
         ch2Pen = QPen(m_palette.ch2, 2);
         ch2Graph->setPen(ch2Pen);
-        QString styleSheet;
-        styleSheet = "QLabel { background-color : " + ch1Pen.color().name() + "; }";
-        ui->labelCH1Color->setStyleSheet(styleSheet);
-        styleSheet = "QLabel { background-color : " + ch2Pen.color().name() + "; }";
-        ui->labelCH2Color->setStyleSheet(styleSheet);
         ch1RefPen = QPen(CustomColors::referenceOf(ch1Pen.color()), 2);
         ch1RefGraph->setPen(ch1RefPen);
         ch2RefPen = QPen(CustomColors::referenceOf(ch2Pen.color()), 2);
@@ -321,11 +311,6 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
         ch1Graph->setPen(ch1Pen);
         ch2Pen = QPen(customColors->ch2, 2);
         ch2Graph->setPen(ch2Pen);
-        QString styleSheet;
-        styleSheet = "QLabel { background-color : " + ch1Pen.color().name() + "; }";
-        ui->labelCH1Color->setStyleSheet(styleSheet);
-        styleSheet = "QLabel { background-color : " + ch2Pen.color().name() + "; }";
-        ui->labelCH2Color->setStyleSheet(styleSheet);
         ch1RefPen = QPen(customColors->ch1ref, 2);
         ch1RefGraph->setPen(ch1RefPen);
         ch2RefPen = QPen(customColors->ch2ref, 2);
@@ -372,8 +357,8 @@ void XprotolabInterface::setTheme(int theme, CustomColors *customColors) {
 }
 
 // The channel and cursor colors of the theme (m_palette) on everything outside the traces:
-// cursor lines, heads and tracers, the zero markers, the logic labels and the channel
-// group boxes' borders. The marker bitmaps are recolored from the files.
+// cursor lines, heads and tracers, the zero markers, the logic labels, the color squares
+// under the plot and the channel group boxes' borders. The marker bitmaps are recolored from the files.
 void XprotolabInterface::applyChannelColors() {
     const QPen cursorPen(m_palette.cursor, 1, Qt::DotLine);
     for(QCPItemStraightLine *line : {hCursorA, hCursorB, vCursorA, vCursorB})
@@ -395,6 +380,11 @@ void XprotolabInterface::applyChannelColors() {
     for(int i = 0; i < 8; i++)
         for(QCPItemText *label : {textLabelBit[i], textLabelParallel[i], textLabelSerial[i]})
             label->setColor(m_palette.logic);
+    // The color squares next to each channel's scale, under the plot
+    const QPair<QLabel *, QColor> squares[] = {{ui->labelCH1Color, m_palette.ch1}, {ui->labelCH2Color, m_palette.ch2},
+                                               {ui->labelCH3Color, m_palette.ch3}, {ui->labelCH4Color, m_palette.ch4}};
+    for(const auto &square : squares)
+        square.first->setStyleSheet("QLabel { background-color : " + square.second.name() + "; }");
     setGroupBoxColor(ui->groupBoxCH1, m_palette.ch1);
     setGroupBoxColor(ui->groupBoxCH2, m_palette.ch2);
     setGroupBoxColor(ui->groupBoxCH3, m_palette.ch3);
