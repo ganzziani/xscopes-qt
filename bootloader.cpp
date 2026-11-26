@@ -82,10 +82,6 @@ Bootloader::Bootloader(QWidget *parent) :
             this, SLOT(EEPDownloaded(QNetworkReply::NetworkError, QString)));
     QSettings settings;
     workingDir = settings.value("workingDir").toString();
-    // A read-back has to go somewhere the user can find it and that is writable even when the
-    // application lives in Program Files, so fall back to Documents instead of the CWD.
-    if(!QDir(workingDir).exists())
-        workingDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
     // One file pair for every device, from before the files were remembered per device
     settings.remove("lastHEXFile");
     settings.remove("lastEEPFile");
@@ -242,9 +238,36 @@ void Bootloader::on_pushSelectEEPROMFile_clicked() {
         ui->lineEEPROM->setText(fileName);
 }
 
+// Where a read-back goes is the user's choice, asked before the read: nothing is written to a
+// folder they did not pick. The dialog starts in the folder of the last read-back (else of the
+// last file picked), with a name that says which device and when. Empty if cancelled.
+QString Bootloader::AskReadBackFile(bool eeprom) {
+    QSettings settings;
+    QString dir = settings.value("readBackDir").toString();
+    if(dir.isEmpty() || !QDir(dir).exists())
+        dir = workingDir;
+    if(dir.isEmpty() || !QDir(dir).exists())    // only where the dialog opens, nothing is written
+        dir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    QString device = ui->lineTarget->text();
+    const QVector<DeviceRow> rows = deviceRows(ui);
+    for(int i = 0; i < rows.size(); i++)
+        if(rows[i].button->isChecked())
+            device = rows[i].button->text();
+    const QString name = QString("%1 %2 %3.%4").arg(device, eeprom ? "EEPROM" : "flash",
+            QDateTime::currentDateTime().toString("yyyy-MM-dd hhmmss"), eeprom ? "eep" : "hex");
+    const QString file = QFileDialog::getSaveFileName(this,
+            eeprom ? tr("Save the EEPROM read-back (the device's calibration)") : tr("Save the flash read-back"),
+            QDir(dir).filePath(name),
+            eeprom ? tr("EEPROM Files (*.eep);;All Files (*.*)") : tr("HEX Files (*.hex);;All Files (*.*)"));
+    if(!file.isEmpty())
+        settings.setValue("readBackDir", QFileInfo(file).absolutePath());
+    return file;
+}
+
 // The buttons run one operation each and leave a Do Everything chain alone; the Start*
 // functions return false when the operation could not start.
-bool Bootloader::StartReadEE() {
+bool Bootloader::StartReadEE(const QString &file) {
+    readBackFile = file;
     return RunDfu(QString("Reading EEPROM from ") + ui->lineTarget->text(),
                   QStringList() << ui->lineTarget->text() << "read" << "--eeprom");
 }
@@ -278,16 +301,23 @@ bool Bootloader::StartLaunch() {
 
 // A button pressed by hand is not a step of a Do Everything that stopped
 void Bootloader::on_pushReadFlash_clicked() {
-    if(doEverything)
+    if(doEverything || dfu->isRunning())
         return Log(tr("Busy, wait for the running operation to finish"));
+    const QString file = AskReadBackFile(false);
+    if(file.isEmpty())
+        return Log(tr("No file chosen, the flash was not read"));
+    readBackFile = file;
     RunDfu(QString("Reading Flash from ") + ui->lineTarget->text(),
            QStringList() << ui->lineTarget->text() << "read");
 }
 
 void Bootloader::on_pushReadEE_clicked() {
-    if(doEverything)
+    if(doEverything || dfu->isRunning())
         return Log(tr("Busy, wait for the running operation to finish"));
-    StartReadEE();
+    const QString file = AskReadBackFile(true);
+    if(file.isEmpty())
+        return Log(tr("No file chosen, the EEPROM was not read"));
+    StartReadEE(file);
 }
 
 void Bootloader::on_pushErase_clicked() {
@@ -323,11 +353,18 @@ void Bootloader::on_pushDoEverything_clicked() {
         return;
     if(!preserve && !CheckFile(ui->lineEEPROM->text(), true))
         return;
+    // The calibration is saved before anything is erased, so where it goes is asked first
+    QString readBack;
+    if(preserve) {
+        readBack = AskReadBackFile(true);
+        if(readBack.isEmpty())
+            return Log(tr("No file chosen for the EEPROM read-back, nothing was done"));
+    }
     Log("Performing Firmware Update...");
     if(preserve)
         ui->lineEEPROM->clear();    // only this device's read-back may be programmed back
     doEverything = true;
-    if(!(preserve ? StartReadEE() : StartErase()))
+    if(!(preserve ? StartReadEE(readBack) : StartErase()))
         StopEverything(tr("it could not start"));
 }
 
@@ -419,13 +456,18 @@ void Bootloader::applyDevice() {
     }
 }
 
-// The file fields, under the device they were picked for
+// The file fields, under the device they were picked for. A read-back fills a field for this
+// session only: one unit's calibration must not come back as the default for the next unit
+// of the same model.
 void Bootloader::storeFiles() {
     if(m_fileDevice < 0)
         return;
     QSettings settings;
-    settings.setValue(fileKey(m_fileDevice, "flash"), ui->lineFlash->text());
-    settings.setValue(fileKey(m_fileDevice, "eeprom"), ui->lineEEPROM->text());
+    const QString flash = ui->lineFlash->text(), eeprom = ui->lineEEPROM->text();
+    if(!m_readBacks.contains(flash))
+        settings.setValue(fileKey(m_fileDevice, "flash"), flash);
+    if(!m_readBacks.contains(eeprom))
+        settings.setValue(fileKey(m_fileDevice, "eeprom"), eeprom);
 }
 
 void Bootloader::on_checkPreserveEE_toggled(bool checked) {
@@ -451,10 +493,10 @@ void Bootloader::OperationDone(int result, const QByteArray &standardOutput) {
     bool isEeprom = arguments.contains("--eeprom");
     bool readSaved = false;
     if(isRead) {
-        // Each read-back gets its own name: a second Do Everything after one that stopped
-        // reads the erased EEPROM, and must not overwrite the calibration saved the first time
-        QFile file(workingDir + "/" + ui->lineTarget->text() + "-" +
-                   QDateTime::currentDateTime().toString("yyyy-MM-dd-hhmmss") + (isEeprom ? ".eep" : ".hex"));
+        // The file the user chose before the read. The suggested names carry the time, so a
+        // second Do Everything after one that stopped (it reads the erased EEPROM) does not
+        // overwrite the calibration saved the first time, unless the user says so.
+        QFile file(readBackFile);
         if(result != 0 || standardOutput.isEmpty()) {
             Log(tr("Read failed, no file was written"));
         } else if(!file.open(QFile::WriteOnly | QFile::Text) ||
@@ -463,6 +505,7 @@ void Bootloader::OperationDone(int result, const QByteArray &standardOutput) {
         } else {
             file.close();
             readSaved = true;
+            m_readBacks << file.fileName();
             if(isEeprom)
                 ui->lineEEPROM->setText(file.fileName());
             else

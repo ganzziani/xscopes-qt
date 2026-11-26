@@ -46,7 +46,8 @@ private:
     // Saves a read-back, reports the result, runs the Do-Everything chain
     void OperationDone(int result, const QByteArray &standardOutput);
     // The operations, false if one could not start
-    bool StartReadEE();
+    bool StartReadEE(const QString &file);
+    QString AskReadBackFile(bool eeprom);   // where a read-back goes, empty if cancelled
     bool StartErase();
     bool StartFlash();
     bool StartEEPROM();
@@ -61,9 +62,11 @@ private:
     static bool BlankEeprom(const QByteArray &intelHex);
     void storeFiles();              // remembers the file fields for m_fileDevice
     int m_fileDevice = -1;          // device code the file fields belong to
+    QString readBackFile;           // where the running read saves its result
+    QStringList m_readBacks;        // read-backs saved this session, never remembered as defaults
     bool doEverything;
     DfuProgrammer *dfu;
-    QString workingDir;             // Working Directory for HEX/EEP files and read-backs
+    QString workingDir;             // folder of the last file picked, where the file dialogs open
     QStringList arguments;
     FileDownloader *HEXDownloader;
     FileDownloader *EEPDownloader;
