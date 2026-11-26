@@ -54,9 +54,10 @@ private:
     bool StartLaunch();
     void StopEverything(const QString &reason);
     // An Intel HEX file that fits memorySize bytes (0: any size); the reason in error if not
-    bool CheckIntelHex(const QString &path, quint32 memorySize, QString *error);
+    // (end: one past the highest address with data)
+    bool CheckIntelHex(const QString &path, quint32 memorySize, QString *error, quint32 *end = nullptr);
     // CheckIntelHex() against the selected target's flash or EEPROM, logging the reason
-    bool CheckFile(const QString &path, bool eeprom);
+    bool CheckFile(const QString &path, bool eeprom, quint32 *end = nullptr);
     void SaveDownload(FileDownloader *downloader, QNetworkReply::NetworkError error,
                       const QString &errorString, bool eeprom);
     static bool BlankEeprom(const QByteArray &intelHex);

@@ -11,16 +11,17 @@
 #include <QVector>
 
 namespace {
-// The memory DFU can program on each target the dialog selects: the application flash (32 KB
-// on the XScopes, 256 KB on the Watch; the boot section above it holds the bootloader, which
-// dfu-programmer refuses to overwrite) and the EEPROM.
+// The memory of each target the dialog selects: the application flash (32 KB on the XScopes,
+// 256 KB on the Watch), the boot section above it, and the EEPROM. A flash file may cover the
+// boot section too (a full dump, or a build merged with the bootloader): that part is skipped
+// (--suppress-bootloader-mem), the bootloader never overwrites itself.
 struct TargetMemory {
     const char *name;
-    quint32 flash, eeprom;
+    quint32 application, boot, eeprom;
 };
 const TargetMemory kTargets[] = {
-    {"atxmega32a4u", 0x8000, 0x400},
-    {"atxmega256a3u", 0x40000, 0x1000},
+    {"atxmega32a4u", 0x8000, 0x1000, 0x400},
+    {"atxmega256a3u", 0x40000, 0x2000, 0x1000},
 };
 const TargetMemory *targetMemory(const QString &name) {
     for(const TargetMemory &t : kTargets)
@@ -130,7 +131,7 @@ bool Bootloader::RunDfu(const QString &what, const QStringList &args) {
 // an end-of-file record, at least one data byte, and nothing past the end of the memory.
 // dfu-programmer reads the file only after the chip was erased, so a download error page
 // or the other device's firmware has to be caught before Do Everything starts.
-bool Bootloader::CheckIntelHex(const QString &path, quint32 memorySize, QString *error) {
+bool Bootloader::CheckIntelHex(const QString &path, quint32 memorySize, QString *error, quint32 *end) {
     QFile file(path);
     if(!file.open(QFile::ReadOnly | QFile::Text)) {
         *error = file.errorString();
@@ -178,21 +179,22 @@ bool Bootloader::CheckIntelHex(const QString &path, quint32 memorySize, QString 
         return false;
     }
     if(memorySize && top > memorySize) {
-        *error = tr("it reaches 0x%1, past the %2 KB the %3 can program (a file for another device, "
-                    "or a dump that includes the bootloader?)")
+        *error = tr("it reaches 0x%1, past the %2 KB of the %3 (a file for another device?)")
                  .arg(top - 1, 0, 16).arg(memorySize / 1024).arg(ui->lineTarget->text());
         return false;
     }
+    if(end)
+        *end = top;
     return true;
 }
 
-bool Bootloader::CheckFile(const QString &path, bool eeprom) {
+bool Bootloader::CheckFile(const QString &path, bool eeprom, quint32 *end) {
     const TargetMemory *memory = targetMemory(ui->lineTarget->text());
-    const quint32 size = memory ? (eeprom ? memory->eeprom : memory->flash) : 0;
+    const quint32 size = memory ? (eeprom ? memory->eeprom : memory->application + memory->boot) : 0;
     QString error;
     if(path.isEmpty() || !QFileInfo::exists(path))
         error = tr("no file selected");
-    else if(!CheckIntelHex(path, size, &error))
+    else if(!CheckIntelHex(path, size, &error, end))
         error = QDir::toNativeSeparators(path) + ": " + error;
     else
         return true;
@@ -281,11 +283,16 @@ bool Bootloader::StartErase() {
 }
 
 bool Bootloader::StartFlash() {
-    if(!CheckFile(ui->lineFlash->text(), false))
+    quint32 end = 0;
+    if(!CheckFile(ui->lineFlash->text(), false, &end))
         return false;
+    const TargetMemory *memory = targetMemory(ui->lineTarget->text());
+    if(memory && end > memory->application)
+        Log(tr("The flash file also holds a bootloader: that part is skipped, the device keeps "
+               "its own bootloader."));
     return RunDfu(QString("Programming Flash to ") + ui->lineTarget->text(),
                   QStringList() << ui->lineTarget->text() << "flash" << ui->lineFlash->text()
-                                << "--ignore-outside");
+                                << "--ignore-outside" << "--suppress-bootloader-mem");
 }
 
 bool Bootloader::StartEEPROM() {
