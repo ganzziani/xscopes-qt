@@ -11,14 +11,16 @@
 #include <QVector>
 
 namespace {
-// Flash (application and boot sections) and EEPROM of each target the dialog selects
+// The memory DFU can program on each target the dialog selects: the application flash (32 KB
+// on the XScopes, 256 KB on the Watch; the boot section above it holds the bootloader, which
+// dfu-programmer refuses to overwrite) and the EEPROM.
 struct TargetMemory {
     const char *name;
     quint32 flash, eeprom;
 };
 const TargetMemory kTargets[] = {
-    {"atxmega32a4u", 0x9000, 0x400},
-    {"atxmega256a3u", 0x42000, 0x1000},
+    {"atxmega32a4u", 0x8000, 0x400},
+    {"atxmega256a3u", 0x40000, 0x1000},
 };
 const TargetMemory *targetMemory(const QString &name) {
     for(const TargetMemory &t : kTargets)
@@ -176,8 +178,9 @@ bool Bootloader::CheckIntelHex(const QString &path, quint32 memorySize, QString 
         return false;
     }
     if(memorySize && top > memorySize) {
-        *error = tr("it reaches 0x%1, past the %2 bytes of the %3 (a file for another device?)")
-                 .arg(top, 0, 16).arg(memorySize).arg(ui->lineTarget->text());
+        *error = tr("it reaches 0x%1, past the %2 KB the %3 can program (a file for another device, "
+                    "or a dump that includes the bootloader?)")
+                 .arg(top - 1, 0, 16).arg(memorySize / 1024).arg(ui->lineTarget->text());
         return false;
     }
     return true;
