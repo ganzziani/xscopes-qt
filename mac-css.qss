@@ -43,6 +43,8 @@ QPushButton {
     min-height: 30px;
     border-width: 0px;
     margin-left: 10px;
+    /* A border-image with no border leaves no margin: keep the text off the edges */
+    padding: 0px 8px;
 }
 
 QPushButton:pressed {

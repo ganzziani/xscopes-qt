@@ -38,6 +38,9 @@ QPushButton {
     min-width: 80px;
     min-height: 30px;
     border-width: 0px;
+    /* A border-image with no border leaves no margin: keep the text off the edges, and make a
+       layout give a long label ("Close connection") room for it */
+    padding: 0px 8px;
 }
 
 QPushButton:pressed {

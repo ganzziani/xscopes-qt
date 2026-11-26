@@ -4620,7 +4620,7 @@ Frequency</string>
                  </size>
                 </property>
                 <property name="text">
-                 <string>bitmap</string>
+                 <string/>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignmentFlag::AlignCenter</set>

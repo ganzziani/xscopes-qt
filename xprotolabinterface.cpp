@@ -55,6 +55,13 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
 #endif
     ui->labelAWGActualFrequencyUnit->setStyleSheet("QLabel{font-size: 32px};");
     ui->labelConnectionStatus->setStyleSheet("QLabel{font-size: 12px};");
+    // The Connect button reads "Close connection" while connected: keep it that wide, so the
+    // LED and the status next to it do not move on every connect
+    ui->pushButtonConnect->ensurePolished();
+    const QString connectText = ui->pushButtonConnect->text();
+    ui->pushButtonConnect->setText("Close connection");
+    ui->pushButtonConnect->setMinimumWidth(ui->pushButtonConnect->sizeHint().width());
+    ui->pushButtonConnect->setText(connectText);
     readAppSettings();
     checkForAvailableComPorts();
     xmax = 256;
