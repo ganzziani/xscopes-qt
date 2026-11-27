@@ -473,6 +473,7 @@ private:
     QCPItemText *textLabelParallel[8], *textLabelSerial[8];   // logic hex readouts, updateLogicHex()
     QCPItemText *textLabelVoltageA, *textLabelVoltageB, *textLabelFrequency, *textLabelMousePos;
     QString sniffBuffer;
+    QByteArray m_snifferCycle;          // the last whole sniffer cycle, laid out again by sniffProtocol()
     int triggerPost;
     // M 25 to 27 as the device has them (0..255, larger is lower on the plot), Window1 >= Window2
     int triggerLevel, triggerWin1Level, triggerWin2Level;

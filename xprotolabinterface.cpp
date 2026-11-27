@@ -66,6 +66,15 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     // they are collapsed, so the window can get as small as the plot (see eventFilter()).
     m_tabsPolicy = ui->tabWidgetMain->sizePolicy();
     ui->splitterMain->handle(1)->installEventFilter(this);
+    // The sniffer's views in the embedded monospace font, at the .ui's size: the hex columns line up.
+    // A resize lays their text out again, also when no new data comes (see eventFilter()).
+    for(QAbstractScrollArea *view : std::initializer_list<QAbstractScrollArea *>{ui->textEditUARTRX,
+            ui->plainTextEditUARTTX, ui->plainTextEditSPIMOSI, ui->plainTextEditSPIMISO, ui->textEditI2C}) {
+        QFont font = view->font();
+        font.setFamily(m_monospaceFamily);
+        view->setFont(font);
+        view->viewport()->installEventFilter(this);
+    }
 #if defined(Q_OS_MAC)
     setStyleSheet(readStyleSheet(":/Bitmaps/mac-css.qss"));
 #else
@@ -1706,30 +1715,62 @@ void XprotolabInterface::setFFTWindow(int type) {
     }
 }
 
+// Bytes per line of a sniffer hex view: as many groups of 8 bytes as fit the view's width, 8, 16 or 32.
+// A line of k groups is "xx " per byte with one more space between the groups and no space at the end.
+static int hexBytesPerLine(const QAbstractScrollArea *view, const QTextDocument *document) {
+    const QFontMetricsF metrics(document->defaultFont());
+    const qreal room = view->viewport()->width() - 2 * document->documentMargin() - 2;  // 2: the cursor
+    const int columns = int(room / metrics.horizontalAdvance(QLatin1Char('0')));
+    int groups = 4;
+    while(groups > 1 && 25 * groups - 2 > columns)
+        groups /= 2;
+    return 8 * groups;
+}
+
+// What follows byte number index (from 0) in a hex view of bytesPerLine bytes per line
+static QLatin1String hexSeparator(int index, int bytesPerLine) {
+    if((index + 1) % bytesPerLine == 0)
+        return QLatin1String("\n");
+    return QLatin1String((index + 1) % 8 == 0 ? "  " : " ");
+}
+
 void XprotolabInterface::sniffProtocol() {
     // The payload length is the geometry: the XScopes streams 1289 bytes per
     // cycle and the Watch 2569 (sniffer.h). Anything else is a scope frame or a
     // read that started mid-cycle, which the firmware marks with a short packet.
-    const SnifferLayout layout = snifferLayout(usbDevice.dataLength);
+    // The last whole cycle is kept, so the views can be laid out again (a resize, the ASCII or
+    // Circular box) when no new cycle comes, as when the sniffer is stopped.
+    const SnifferLayout received = snifferLayout(usbDevice.dataLength);
+    const int expected = usbDevice.snifferPayloadSize();
+    // Not a mid-cycle tail that only looks like another family's cycle
+    if(received.isValid() && (expected == 0 || received.payloadSize == expected))
+        m_snifferCycle = QByteArray(reinterpret_cast<const char *>(usbDevice.chData), usbDevice.dataLength);
+    const SnifferLayout layout = snifferLayout(m_snifferCycle.size());
     if(!layout.isValid())
         return;
-    const int expected = usbDevice.snifferPayloadSize();
-    if(expected != 0 && layout.payloadSize != expected)
-        return;     // a mid-cycle tail that only looks like another family's cycle
-    const uint8_t *chData = usbDevice.chData;
+    const uint8_t *chData = reinterpret_cast<const uint8_t *>(m_snifferCycle.constData());
     bool static toggleC = ui->checkBoxSnifferCircular->isChecked();
     bool static toggleA = ui->checkBoxSnifferASCII->isChecked();
+    const int protocol = ui->tabWidgetSniffer->currentIndex();
+    // The hex views' lines follow the views' widths, so a resize lays the text out again
+    QPlainTextEdit *const txView = protocol == SPI ? ui->plainTextEditSPIMISO : ui->plainTextEditUARTTX;
+    const int rxPerLine = protocol == SPI
+        ? hexBytesPerLine(ui->plainTextEditSPIMOSI, ui->plainTextEditSPIMOSI->document())
+        : hexBytesPerLine(ui->textEditUARTRX, ui->textEditUARTRX->document());
+    const int txPerLine = hexBytesPerLine(txView, txView->document());
+    static int lastRxPerLine = 0, lastTxPerLine = 0;
     QString tempBuffer;
-    tempBuffer.reserve(usbDevice.dataLength);
-    for(int s = 0; s < usbDevice.dataLength; s++)
+    tempBuffer.reserve(m_snifferCycle.size());
+    for(int s = 0; s < m_snifferCycle.size(); s++)
         tempBuffer.append(QChar(chData[s]));
-    if(sniffBuffer == tempBuffer && toggleC == ui->checkBoxSnifferCircular->isChecked() && toggleA == ui->checkBoxSnifferASCII->isChecked()) {
-        toggleC = ui->checkBoxSnifferCircular->isChecked();
-        toggleA = ui->checkBoxSnifferASCII->isChecked();
+    if(sniffBuffer == tempBuffer && toggleC == ui->checkBoxSnifferCircular->isChecked() && toggleA == ui->checkBoxSnifferASCII->isChecked()
+       && rxPerLine == lastRxPerLine && txPerLine == lastTxPerLine) {
         return;
     }
     toggleC = ui->checkBoxSnifferCircular->isChecked();
     toggleA = ui->checkBoxSnifferASCII->isChecked();
+    lastRxPerLine = rxPerLine;
+    lastTxPerLine = txPerLine;
     int j = 0;
     uint16_t i = 0, n = 0;
     ui->textEditUARTRX->clear();
@@ -1742,7 +1783,6 @@ void XprotolabInterface::sniffProtocol() {
     QString rxData, txData, i2cData;
     const int half = layout.serialHalf;
     const int i2cSize = layout.i2cSize;
-    int protocol = ui->tabWidgetSniffer->currentIndex();
     int max = half;
     uint16_t indexrx = 0, indextx = 0;
     indexrx = layout.indrx(chData);
@@ -1775,7 +1815,7 @@ void XprotolabInterface::sniffProtocol() {
             } else {
                 bdata.append(data);
                 rxData.append(bdata.toHex());
-                rxData.append(" ");
+                rxData.append(hexSeparator(j, rxPerLine));
                 bdata.clear();
             }
         }
@@ -1811,7 +1851,7 @@ void XprotolabInterface::sniffProtocol() {
             } else {
                 bdata.append(data);
                 txData.append(bdata.toHex());
-                txData.append(" ");
+                txData.append(hexSeparator(j, txPerLine));
                 bdata.clear();
             }
         }
@@ -2488,6 +2528,12 @@ bool XprotolabInterface::eventFilter(QObject *watched, QEvent *event) {
     // Queued, so it runs once the plot has handled the resize itself
     if(watched == ui->customPlot && event->type() == QEvent::Resize)
         QMetaObject::invokeMethod(this, &XprotolabInterface::on_sizeChanged, Qt::QueuedConnection);
+    // A sniffer view resized: its hex lines follow its width. Called here, as the sniffer may be
+    // stopped, and then plotData() does not call it.
+    if(event->type() == QEvent::Resize && watched->parent()
+       && (watched->parent() == ui->textEditUARTRX || watched->parent() == ui->plainTextEditUARTTX
+           || watched->parent() == ui->plainTextEditSPIMOSI || watched->parent() == ui->plainTextEditSPIMISO))
+        QMetaObject::invokeMethod(this, &XprotolabInterface::sniffProtocol, Qt::QueuedConnection);
     // The splitter handle: the tabs keep their minimum size during a drag, so the splitter opens
     // and collapses them as usual (switching while dragging makes them flicker). Pressing the handle
     // of collapsed tabs can widen the window, to make room for them. Released with the tabs
@@ -2740,6 +2786,7 @@ void XprotolabInterface::on_sliderCHDPull_valueChanged(int) {
 void XprotolabInterface::on_checkBoxSnifferASCII_clicked() {
     sendCHDControls();
     m_repaint = true;
+    sniffProtocol();        // also while the sniffer is stopped
 }
 
 /*********CHD Mask***************************/
@@ -2841,6 +2888,7 @@ void XprotolabInterface::on_comboBoxTriggerType_activated(int) {
 void XprotolabInterface::on_checkBoxSnifferCircular_clicked() {
     sendTriggerControls();
     m_repaint = true;
+    sniffProtocol();        // also while the sniffer is stopped
 }
 
 // GPIO6 Mcursors
@@ -3604,6 +3652,7 @@ void XprotolabInterface::setDecodeProtocol(int protocol) {
 }
 
 void XprotolabInterface::on_tabWidgetSniffer_currentChanged(int index) {
+    m_snifferCycle.clear();     // another protocol's data
     byte field = 0;
     mode = OSCILLOSCOPE;
     enableSnifferControls(true);
