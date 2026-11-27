@@ -73,6 +73,18 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     ui->pushButtonConnect->setText("Close connection");
     ui->pushButtonConnect->setMinimumWidth(ui->pushButtonConnect->sizeHint().width());
     ui->pushButtonConnect->setText(connectText);
+    // The window's minimum size, once it is on screen. The layouts cached the size hints of the
+    // tab pages that were not shown from before the window was created and styled (a hidden
+    // widget's size change does not reach its parent's layout), and kept them until each page was
+    // first opened: at the narrowest window the Protocol Sniffer's UART row did not fit, so the
+    // window jumped wider when that tab was first opened. Recompute every layout once instead.
+    QTimer::singleShot(0, this, [this]() {
+        for(QWidget *w : findChildren<QWidget *>()) {
+            w->updateGeometry();
+            if(w->layout())
+                w->layout()->invalidate();
+        }
+    });
     readAppSettings();
     checkForAvailableComPorts();
     xmax = 256;
