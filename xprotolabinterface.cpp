@@ -196,9 +196,10 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     connect(&usbDevice.serial, SIGNAL(connectionStatus(QString)), this, SLOT(setInfoText(QString)));
     // Queued: emitted from the libusb event thread
     connect(&usbDevice, SIGNAL(deviceDisconnected()), this, SLOT(onDeviceDisconnected()));
-    // Display screenshot: right clicking it opens the save dialog. A fixed size keeps the
-    // 128x64 and 128x128 pictures from being clipped or from resizing the Connection box.
-    ui->labelDeviceScreenshot->setFixedSize(160, 160);
+    // Display screenshot: right clicking it opens the save dialog. Its size: showDisplayBitmap().
+    showDisplayBitmap();
+    ui->labelDeviceScreenshot->installEventFilter(this);   // a screen with another scaling
+    ui->verticalLayout_95->setAlignment(ui->labelDeviceScreenshot, Qt::AlignHCenter);  // over its button
     ui->labelDeviceScreenshot->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->labelDeviceScreenshot->setToolTip(tr("Right click to save the screenshot"));
     connect(ui->labelDeviceScreenshot, SIGNAL(customContextMenuRequested(const QPoint &)),
@@ -2533,6 +2534,8 @@ bool XprotolabInterface::eventFilter(QObject *watched, QEvent *event) {
     // Queued, so it runs once the plot has handled the resize itself
     if(watched == ui->customPlot && event->type() == QEvent::Resize)
         QMetaObject::invokeMethod(this, &XprotolabInterface::on_sizeChanged, Qt::QueuedConnection);
+    if(watched == ui->labelDeviceScreenshot && event->type() == QEvent::DevicePixelRatioChange)
+        showDisplayBitmap();    // still 1:1
     // A sniffer view resized: its hex lines follow its width. Called here, as the sniffer may be
     // stopped, and then plotData() does not call it.
     if(event->type() == QEvent::Resize && watched->parent()
@@ -4026,14 +4029,38 @@ static QImage displayBmpToImage(const QByteArray &bmp) {
     return image;
 }
 
+// The device's display at 2x, each display pixel on 2x2 screen pixels at any display scaling. The
+// label is the size of the largest display, the Oscilloscope Watch's 128x128 (the XScopes' is 128x64),
+// in screen pixels, so neither one resizes the Connection box. Called again when the window moves to
+// a screen with another scaling.
 void XprotolabInterface::showDisplayBitmap() {
+    const int zoom = 2;
+    QLabel *const label = ui->labelDeviceScreenshot;
+    const qreal dpr = label->devicePixelRatioF();
+    // A side in whole screen pixels too (172 at 150 %: 258 px), or the label would draw the picture
+    // into a box rounded to its own pixels and blur it
+    int side = qCeil(128 * zoom / dpr);
+    for(int s = side; s < side + 8; s++) {
+        if(qAbs(s * dpr - qRound(s * dpr)) < 0.01) {
+            side = s;
+            break;
+        }
+    }
+    label->setFixedSize(side, side);
     if(displayBmpImage.isNull())
         return;
-    // Scale the 128x64 (XScopes) or 128x128 (Oscilloscope Watch) display to the label,
-    // unsmoothed so the pixels stay crisp
-    QPixmap pixmap = QPixmap::fromImage(displayBmpImage);
-    ui->labelDeviceScreenshot->setPixmap(pixmap.scaled(ui->labelDeviceScreenshot->width(), ui->labelDeviceScreenshot->height(),
-                                           Qt::KeepAspectRatio, Qt::FastTransformation));
+    // The display, its pixels repeated (no smoothing), in the middle of a transparent picture exactly
+    // the label's size, so the label copies it as it is
+    const QImage zoomed = displayBmpImage.scaled(displayBmpImage.size() * zoom, Qt::IgnoreAspectRatio,
+                                                 Qt::FastTransformation);
+    const int pixels = qRound(side * dpr);
+    QPixmap pixmap(pixels, pixels);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.drawImage((pixels - zoomed.width()) / 2, (pixels - zoomed.height()) / 2, zoomed);
+    painter.end();
+    pixmap.setDevicePixelRatio(dpr);
+    label->setPixmap(pixmap);
 }
 
 void XprotolabInterface::on_pushButtonDeviceScreenshot_clicked() {
