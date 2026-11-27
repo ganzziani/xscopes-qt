@@ -380,6 +380,9 @@ private slots:
     void updateTriggerPos();
     void updateCh1Label();
     void updateCh2Label();
+    void updateTimeLabel();
+    void setScaleLabel(int index, const QString &text, const QString &scale);
+    void applyScaleLabels();
     void on_pushButtonRescan_clicked();
     void setInfoText(QString text = "", bool mode = false);
     void on_pushButtonDeviceScreenshot_clicked();
@@ -513,6 +516,7 @@ private:
     bool recordingWaves;
     QFile m_recordFile;                 // Record appends each new frame to it
     int m_recordAdvance = 0;            // roll mode: new samples since the last recorded screen
+    QString m_scaleText[5], m_scaleValue[5];    // the scale labels under the plot, see setScaleLabel()
     WaveFrame m_loadedFrame;            // Load Wave, shown in place of the live traces
     QVector<WaveFrame> m_playFrames;    // Play
     int m_playIndex = -1;               // the frame shown, -1 when not playing

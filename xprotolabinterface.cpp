@@ -158,6 +158,9 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     connect(&m_mmTimer, SIGNAL(timeout()), this, SLOT(mm_request()));
     m_mainTimerDelay = 4;
     dataTimer.start(m_mainTimerDelay); // Interval 0 means to refresh as fast as possible
+    // One line each: the .ui wraps them, and a wrapped label shows only its first line ("1.28V/")
+    for(QLabel *label : {ui->labelCH1Scale, ui->labelCH2Scale, ui->labelCH3Scale, ui->labelCH4Scale, ui->labelTimeScale})
+        label->setWordWrap(false);
     updateCh1Label();
     updateCh2Label();
     ui->pushButtonRescan->setDisabled(!ui->radioButtonSerialPort->isChecked());
@@ -430,6 +433,7 @@ void XprotolabInterface::applyChannelColors() {
     setGroupBoxColor(ui->groupBoxCH3, m_palette.ch3);
     setGroupBoxColor(ui->groupBoxCH4, m_palette.ch4);
     setGroupBoxColor(ui->groupBoxCHD, m_palette.logic);
+    applyScaleLabels();     // the short labels are drawn on the channel colors
 }
 
 // A channel's group box framed in the channel's color, 2 px wide (fainter while disabled). A
@@ -2424,9 +2428,9 @@ void XprotolabInterface::readDeviceSettings() {
                   (1 * ((qint64)usbDevice.inBuffer[40]))) / 100;
     logToFile("40 Desired frequency: " + QString::number(freq));
     updateSweepCursors();
-    ui->labelCH1Scale->setText("CH1 = " + gains[ui->sliderCH1Gain->value()].display + "/div");
-    ui->labelCH2Scale->setText("CH2 = " + gains[ui->sliderCH2Gain->value()].display + "/div");
-    ui->labelTimeScale->setText("Time = " + (rateText[ui->sliderSampling->value()]));
+    updateCh1Label();
+    updateCh2Label();
+    updateTimeLabel();
     if(freq < 0.01)
         freq = 0.01;
     if(freq > 100000)
@@ -2489,7 +2493,7 @@ void XprotolabInterface::on_sliderSampling_valueChanged(int value) {
         return;
     usbDevice.controlWriteTransfer(0, (byte)value);
     usbDevice.serial.setSamplingValue(value);
-    ui->labelTimeScale->setText("Time = " + rateText[ui->sliderSampling->value()]);
+    updateTimeLabel();
     updateTriggerPos();
 }
 
@@ -3314,7 +3318,7 @@ void XprotolabInterface::on_sliderCH1Gain_valueChanged(int value) {
     if(!usbDevice.isDeviceConnected)
         return;
     usbDevice.controlWriteTransfer(12, (byte)(value));
-    ui->labelCH1Scale->setText("CH1 = " + gains[ui->sliderCH1Gain->value()].display + "/div");
+    updateCh1Label();
 }
 
 // M 13 Channel 2 gain
@@ -3322,7 +3326,7 @@ void XprotolabInterface::on_sliderCH2Gain_valueChanged(int value) {
     if(!usbDevice.isDeviceConnected)
         return;
     usbDevice.controlWriteTransfer(13, (byte)(value));
-    ui->labelCH2Scale->setText("CH2 = " + gains[ui->sliderCH2Gain->value()].display + "/div");
+    updateCh2Label();
 }
 
 // M 14 Horizontal Position: the first sample shown at the fast time bases, moved by dragging the plot
@@ -4546,8 +4550,8 @@ void XprotolabInterface::updateCh1Label() {
             tmp_text += " X " + tmp_label2;
         }
     }
-    tmp_text += " = " + gains[ui->sliderCH1Gain->value()].display + "/div";
-    ui->labelCH1Scale->setText(tmp_text);
+    const QString scale = gains[ui->sliderCH1Gain->value()].display + "/div";
+    setScaleLabel(0, tmp_text + " = " + scale, scale);
 }
 
 void XprotolabInterface::updateCh2Label() {
@@ -4569,8 +4573,68 @@ void XprotolabInterface::updateCh2Label() {
                 tmp_text += " X CH1";
         }
     }
-    tmp_text += " = " + gains[ui->sliderCH2Gain->value()].display + "/div";
-    ui->labelCH2Scale->setText(tmp_text);
+    const QString scale = gains[ui->sliderCH2Gain->value()].display + "/div";
+    setScaleLabel(1, tmp_text + " = " + scale, scale);
+}
+
+void XprotolabInterface::updateTimeLabel() {
+    const QString scale = rateText[ui->sliderSampling->value()];
+    setScaleLabel(4, "Time = " + scale, scale);
+}
+
+// The scale labels under the plot, 0..3 for CH1..CH4 and 4 for the time base: the full text
+// ("CH1 = 1.28V/div") and the scale alone ("1.28V/div") for when the row is short of room.
+void XprotolabInterface::setScaleLabel(int index, const QString &text, const QString &scale) {
+    m_scaleText[index] = text;
+    m_scaleValue[index] = scale;
+    applyScaleLabels();
+}
+
+// The full labels, each channel's next to its color square, when the row has room for them.
+// Otherwise (a narrow window gives the plot little width) the scales alone, each channel's
+// on its own color, and the time base without "Time =". A channel the device does not have
+// (its group box is disabled: CH3 and CH4 on today's devices) then has no label at all.
+void XprotolabInterface::applyScaleLabels() {
+    QLabel *const labels[] = {ui->labelCH1Scale, ui->labelCH2Scale, ui->labelCH3Scale, ui->labelCH4Scale,
+                              ui->labelTimeScale};
+    QLabel *const squares[] = {ui->labelCH1Color, ui->labelCH2Color, ui->labelCH3Color, ui->labelCH4Color, nullptr};
+    const QColor colors[] = {m_palette.ch1, m_palette.ch2, m_palette.ch3, m_palette.ch4, QColor()};
+    QBoxLayout *row = ui->horizontalLayout_111;
+    const QMargins rowMargins = row->contentsMargins();
+    int needed = rowMargins.left() + rowMargins.right() + 4 * row->spacing();
+    for(int i = 0; i < 5; i++) {
+        if(m_scaleText[i].isEmpty()) {      // CH3 and CH4 keep the text of the .ui
+            m_scaleText[i] = labels[i]->text();
+            m_scaleValue[i] = m_scaleText[i].section("= ", 1);
+        }
+        needed += labels[i]->fontMetrics().horizontalAdvance(m_scaleText[i]) + 2;
+        if(squares[i])
+            needed += squares[i]->maximumWidth() + row->spacing();
+    }
+    const QMargins plotMargins = ui->verticalLayout->contentsMargins();
+    const bool compact = needed > ui->widgetPlot->width() - plotMargins.left() - plotMargins.right();
+    QGroupBox *const boxes[] = {ui->groupBoxCH1, ui->groupBoxCH2, ui->groupBoxCH3, ui->groupBoxCH4, nullptr};
+    for(int i = 0; i < 5; i++) {
+        if(squares[i])
+            squares[i]->setVisible(!compact);
+        labels[i]->setVisible(!compact || !boxes[i] || boxes[i]->isEnabled());
+        labels[i]->setText(compact ? m_scaleValue[i] : m_scaleText[i]);
+        // The color through the palette: a style sheet box would move the text down
+        const bool colored = compact && colors[i].isValid();
+        QPalette palette;
+        if(colored) {
+            // Black or white text, whichever reads better on the channel's color
+            const int luma = (299 * colors[i].red() + 587 * colors[i].green() + 114 * colors[i].blue()) / 1000;
+            palette = labels[i]->palette();
+            palette.setColor(QPalette::Window, colors[i]);
+            palette.setColor(QPalette::WindowText, luma > 140 ? Qt::black : Qt::white);
+        }
+        labels[i]->setPalette(palette);
+        labels[i]->setAutoFillBackground(colored);
+        labels[i]->setContentsMargins(colored ? 3 : 0, 0, colored ? 3 : 0, 0);
+        // No wider than its text, so the color sits behind the text only
+        labels[i]->setMaximumWidth(colored ? labels[i]->sizeHint().width() : QWIDGETSIZE_MAX);
+    }
 }
 
 void XprotolabInterface::on_pushButtonRescan_clicked() {
@@ -4635,6 +4699,7 @@ void XprotolabInterface::on_sizeChanged() {
     clearPersistenceImage();
     setVerticalCursors();
     placeZeroMarkers();     // pixel positioned, and right before the first frame arrives
+    applyScaleLabels();     // the row under the plot is as wide as the plot
     ui->customPlot->replot(QCustomPlot::rpQueuedReplot);    // no frames come in while disconnected
 }
 
