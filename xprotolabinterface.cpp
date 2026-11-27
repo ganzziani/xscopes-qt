@@ -18,6 +18,17 @@ static const int kChdPositionMax = 7;
 static const int kChdPositionBase = 20;
 static const int kChdPositionStep = 50;
 
+// values with one point inserted at index at, between samples at - 1 and at: for the keys
+// (isKey) the key halfway between them, for the values a NaN, which breaks a graph's line
+// there. Unchanged when at is not inside.
+static QVector<double> withLineBreak(const QVector<double> &values, int at, bool isKey = false) {
+    if(at < 1 || at >= values.size())
+        return values;
+    QVector<double> out = values;
+    out.insert(at, isKey ? (values[at - 1] + values[at]) / 2 : qQNaN());
+    return out;
+}
+
 XprotolabInterface::XprotolabInterface(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::XprotolabInterface) {
@@ -879,13 +890,22 @@ void XprotolabInterface::plotData() {
     if(triggerBit >= 0 && triggerBit < 8 && ui->groupBoxCHD->isChecked())
         moveTrigger(QPointF(ui->customPlot->xAxis->coordToPixel((triggerPost - m_horizontalPosition) * 2),
                             ui->customPlot->yAxis->coordToPixel(logicHighLevel(triggerBit))));
+    // A slow sweep without roll overwrites the last one from the left: the samples before the
+    // write index are new, the ones from it on are the last sweep's. The traces break there, as
+    // the device's LCD leaves a gap ahead of the write point. Joined, the two sweeps made a
+    // vertical line at the write point, and every CRT trail copy kept one at its own place: a fan
+    // of fading lines behind the write point (and a band of them with Infinite Persistence).
+    const int sweepBreak = (ui->sliderSampling->value() >= 11 && !ui->checkBoxRollMode->isChecked() &&
+                            !ui->checkBoxXYMode->isChecked() && writeIndex > 0 && writeIndex < key.size())
+                           ? writeIndex : -1;
     // CRT persistence: write this frame once into a ring of ghost graphs. They age
     // by one slot per frame and get dimmer pens (see applyPersistenceStyle()).
     if(newSamples && !ui->checkBoxPersistence->isChecked() && !ui->checkBoxXYMode->isChecked() &&
             ui->sliderIntensity->value() > 0) {
         persistenceIndex = (persistenceIndex + 1) % TG;
-        ch1PGraphs[persistenceIndex]->setData(key, ch1Buffer);
-        ch2PGraphs[persistenceIndex]->setData(key, ch2Buffer);
+        const QVector<double> brokenKey = withLineBreak(key, sweepBreak, true);
+        ch1PGraphs[persistenceIndex]->setData(brokenKey, withLineBreak(ch1Buffer, sweepBreak), true);
+        ch2PGraphs[persistenceIndex]->setData(brokenKey, withLineBreak(ch2Buffer, sweepBreak), true);
     }
     if(captureRef) {
         captureRef = false;
@@ -917,6 +937,8 @@ void XprotolabInterface::plotData() {
         for(int k = 0; k < 8; k++)
             bit[k] = fileFrame->bit[k];
     }
+    const int liveBreak = fileFrame ? -1 : sweepBreak;     // a wave from a file has no write point
+    const QVector<double> liveKey = withLineBreak(key, liveBreak, true);
     if(saveWave) {
         saveWave = false;
         saveWavetoFile(ch1Buffer, ch2Buffer, bit);
@@ -950,7 +972,7 @@ void XprotolabInterface::plotData() {
     } else {
         ch1Graph->data()->clear();
         if(ui->groupBoxCH1->isChecked()) {
-            ch1Graph->setData(key, ch1Buffer);
+            ch1Graph->setData(liveKey, withLineBreak(ch1Buffer, liveBreak), true);
         }
         if(showCh1Ref)
             ch1RefGraph->setData(key, ch1RefBuff);
@@ -959,7 +981,7 @@ void XprotolabInterface::plotData() {
         }
         ch2Graph->data()->clear();
         if(ui->groupBoxCH2->isChecked() && ui->sliderSampling->value() > 0) {
-            ch2Graph->setData(key, ch2Buffer);
+            ch2Graph->setData(liveKey, withLineBreak(ch2Buffer, liveBreak), true);
         }
         if(showCh2Ref)
             ch2RefGraph->setData(key, ch2RefBuff);
@@ -971,7 +993,7 @@ void XprotolabInterface::plotData() {
             chdLowGraph[k]->data()->clear();
             textLabelBit[k]->setVisible(false);
             if(ui->groupBoxCHD->isChecked() && bitChecked[k]) {
-                chdGraph[k]->setData(key, bit[k]);
+                chdGraph[k]->setData(liveKey, withLineBreak(bit[k], liveBreak), true);
                 textLabelBit[k]->setVisible(true);
                 if(ui->checkBoxCHDThick0->isChecked()) {
                     // Two points per run and a NaN after it, which breaks the line
@@ -1074,7 +1096,7 @@ void XprotolabInterface::plotData() {
     const bool persistenceOn = ui->checkBoxPersistence->isChecked() && !ui->checkBoxXYMode->isChecked();
     if(persistenceOn) {
         if(newSamples)
-            drawPersistenceFrame(key, ch1Buffer, ch2Buffer, bit);
+            drawPersistenceFrame(key, ch1Buffer, ch2Buffer, bit, liveBreak);
         persistenceItem->setVisible(true);
     } else {
         persistenceItem->setVisible(false);
@@ -1164,12 +1186,15 @@ void XprotolabInterface::plotData() {
                 phaseTracerAB->updatePosition();
                 aTrack = phaseTracerAA->position->value();
                 bTrack = phaseTracerAB->position->value();
-                hCursorAPosCh1 = aTrack;
-                hCursorBPosCh1 = bTrack;
-                hCursorAHead->topLeft->setCoords(-3, clampCursorY(hCursorAPosCh1));
-                hCursorBHead->topLeft->setCoords(-3, clampCursorY(hCursorBPosCh1));
-                hCursorAPosCh1 += - ch1ZeroPos + 256;
-                hCursorBPosCh1 += - ch1ZeroPos + 256;
+                // A tracer on the break of a slow sweep (a NaN point) has no value: keep the cursors
+                if(!qIsNaN(aTrack) && !qIsNaN(bTrack)) {
+                    hCursorAPosCh1 = aTrack;
+                    hCursorBPosCh1 = bTrack;
+                    hCursorAHead->topLeft->setCoords(-3, clampCursorY(hCursorAPosCh1));
+                    hCursorBHead->topLeft->setCoords(-3, clampCursorY(hCursorBPosCh1));
+                    hCursorAPosCh1 += - ch1ZeroPos + 256;
+                    hCursorBPosCh1 += - ch1ZeroPos + 256;
+                }
             } else if(isCursorOnCh2()) {
                 phaseTracerBA->setGraphKey(ui->customPlot->xAxis->pixelToCoord(vCursorAHead->bottom->pixelPosition().rx()));
                 phaseTracerBB->setGraphKey(ui->customPlot->xAxis->pixelToCoord(vCursorBHead->bottom->pixelPosition().rx()));
@@ -1181,12 +1206,14 @@ void XprotolabInterface::plotData() {
                 phaseTracerBB->updatePosition();
                 aTrack = phaseTracerBA->position->value();
                 bTrack = phaseTracerBB->position->value();
-                hCursorAPosCh2 = aTrack;
-                hCursorBPosCh2 = bTrack;
-                hCursorAHead->topLeft->setCoords(-3, clampCursorY(hCursorAPosCh2));
-                hCursorBHead->topLeft->setCoords(-3, clampCursorY(hCursorBPosCh2));
-                hCursorAPosCh2 += - ch2ZeroPos + 256;
-                hCursorBPosCh2 += - ch2ZeroPos + 256;
+                if(!qIsNaN(aTrack) && !qIsNaN(bTrack)) {
+                    hCursorAPosCh2 = aTrack;
+                    hCursorBPosCh2 = bTrack;
+                    hCursorAHead->topLeft->setCoords(-3, clampCursorY(hCursorAPosCh2));
+                    hCursorBHead->topLeft->setCoords(-3, clampCursorY(hCursorBPosCh2));
+                    hCursorAPosCh2 += - ch2ZeroPos + 256;
+                    hCursorBPosCh2 += - ch2ZeroPos + 256;
+                }
             }
         }
     }
@@ -4131,9 +4158,11 @@ void XprotolabInterface::clearPersistenceImage() {
     persistenceItem->setVisible(false);
 }
 
+// sweepBreak: the write index of a slow sweep, where the traces are not joined (see
+// plotData()), or -1.
 void XprotolabInterface::drawPersistenceFrame(const QVector<double> &key,
         const QVector<double> &ch1Buffer, const QVector<double> &ch2Buffer,
-        const QVector<double> *bit) {
+        const QVector<double> *bit, int sweepBreak) {
     ensurePersistenceImage();
     if(!persistenceItem || persistenceItem->image.isNull())
         return;
@@ -4150,10 +4179,14 @@ void XprotolabInterface::drawPersistenceFrame(const QVector<double> &key,
     // per sample (see setupScatterStyles()). Logic bits are always steps.
     const bool vectors = ui->checkBoxVectors->isChecked();
     auto drawSamples = [&](const QPolygonF &poly) {
-        if(vectors)
-            painter.drawPolyline(poly);
-        else
+        if(!vectors) {
             painter.drawPoints(poly);
+        } else if(sweepBreak > 0 && sweepBreak < poly.size()) {
+            painter.drawPolyline(poly.constData(), sweepBreak);
+            painter.drawPolyline(poly.constData() + sweepBreak, poly.size() - sweepBreak);
+        } else {
+            painter.drawPolyline(poly);
+        }
     };
     const int count = qMin(key.size(), ch1Buffer.size());
     if(ui->groupBoxCH1->isChecked() && count > 1) {
@@ -4194,6 +4227,13 @@ void XprotolabInterface::drawPersistenceFrame(const QVector<double> &key,
             poly.append(prev);
             for(int i = 1; i < n; i++) {
                 const QPointF cur = toPixel(i, bit[k]);
+                if(i == sweepBreak) {       // the write point: the last sweep's samples start over
+                    painter.drawPolyline(poly);
+                    poly.clear();
+                    poly.append(cur);
+                    prev = cur;
+                    continue;
+                }
                 const double midX = (prev.x() + cur.x()) / 2.0;
                 poly.append(QPointF(midX, prev.y()));
                 poly.append(QPointF(midX, cur.y()));

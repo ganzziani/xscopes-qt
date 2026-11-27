@@ -206,7 +206,8 @@ private:
     void ensurePersistenceImage();
     void clearPersistenceImage();
     void drawPersistenceFrame(const QVector<double> &key, const QVector<double> &ch1Buffer,
-                              const QVector<double> &ch2Buffer, const QVector<double> *bit);
+                              const QVector<double> &ch2Buffer, const QVector<double> *bit,
+                              int sweepBreak = -1);
     void setupValues();
     void setFFTWindow(int);
     void setDecodeProtocol(int);
