@@ -67,13 +67,18 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     m_tabsPolicy = ui->tabWidgetMain->sizePolicy();
     ui->splitterMain->handle(1)->installEventFilter(this);
     // The sniffer's views in the embedded monospace font, at the .ui's size: the hex columns line up.
-    // A resize lays their text out again, also when no new data comes (see eventFilter()).
+    // A resize lays their text out again, also when no new data comes (see eventFilter()). They only
+    // show what was captured: read only, so their menus offer Copy and Select All but no Paste.
     for(QAbstractScrollArea *view : std::initializer_list<QAbstractScrollArea *>{ui->textEditUARTRX,
             ui->plainTextEditUARTTX, ui->plainTextEditSPIMOSI, ui->plainTextEditSPIMISO, ui->textEditI2C}) {
         QFont font = view->font();
         font.setFamily(m_monospaceFamily);
         view->setFont(font);
         view->viewport()->installEventFilter(this);
+        if(auto *edit = qobject_cast<QTextEdit *>(view))
+            edit->setReadOnly(true);
+        else if(auto *plain = qobject_cast<QPlainTextEdit *>(view))
+            plain->setReadOnly(true);
     }
 #if defined(Q_OS_MAC)
     setStyleSheet(readStyleSheet(":/Bitmaps/mac-css.qss"));
