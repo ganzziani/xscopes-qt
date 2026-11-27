@@ -3805,8 +3805,8 @@ void XprotolabInterface::captureReference() {
 // HEXSerial() in logic.c):
 // - Parallel: the 8-bit logic byte every 16 LCD pixels (32 plot units), in a row below the
 //   traces when it fits (the device also drops it when the traces reach its bottom row).
-// - Serial: each shown bit read as one 8-bit number, MSB first, across the screen, or between
-//   the vertical cursors when they are on. The span is cut into 32 steps, 4 per bit; a bit is 1
+// - Serial: each shown bit read as one 8-bit number, MSB first, across the screen, or from
+//   vertical cursor A to B when they are on. The span is cut into 32 steps, 4 per bit; a bit is 1
 //   when any of the 3 samples before its 4th step is high. Drawn left of the bit's label.
 // key and chd run in parallel: the plot position and the logic byte of each sample shown.
 void XprotolabInterface::updateLogicHex(const QVector<double> &key, const QVector<byte> &chd) {
@@ -3830,10 +3830,15 @@ void XprotolabInterface::updateLogicHex(const QVector<double> &key, const QVecto
         label->position->setCoords(x, parallelY);
         label->setText(hex(sampleAt(x)));
     }
-    double start = 0, end = 255;
+    // As the firmware reads it: in the device's LCD columns (the cursors as sendVerticalCursorA/B()
+    // send them, 2 plot units a column), 0..127 without the cursors, and from cursor A to
+    // cursor B, which is right to left when A is right of B (the readout then comes out
+    // bit-reversed, intentionally).
+    const double unitsPerColumn = xmax / 128.0;
+    double start = 0, end = 127 * unitsPerColumn;
     if(m_cursorVertical) {
-        start = qMin(vCursorAPos, vCursorBPos);
-        end = qMax(vCursorAPos, vCursorBPos);
+        start = (128 * vCursorAPos / xmax) * unitsPerColumn;
+        end = (128 * vCursorBPos / xmax) * unitsPerColumn;
     }
     const double increment = (end - start) / 32;
     for(int m = 0; m < 8; m++) {
