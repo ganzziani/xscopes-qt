@@ -73,6 +73,11 @@ Bootloader::Bootloader(QWidget *parent) :
     ui(new Ui::bootloader) {
     ui->setupUi(this);
     ui->textEdit->clear();
+    // The device photo fills the room the layout gives the label (showDevicePhoto()): its
+    // minimum width (the .ui's), and the height of the rows beside it. The photo's own size
+    // must not count, or a photo scaled up to the label would make it bigger still.
+    ui->labelDevice->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Ignored);
+    ui->labelDevice->installEventFilter(this);
     doEverything = false;
     dfu = new DfuProgrammer(this);
     connect(dfu, SIGNAL(log(QString)), this, SLOT(Log(QString)));
@@ -98,6 +103,24 @@ Bootloader::Bootloader(QWidget *parent) :
     applyDevice();
     // The EEPROM fields start disabled; make sure the button text matches the checkbox
     on_checkPreserveEE_toggled(ui->checkPreserveEE->isChecked());
+}
+
+// The device photo as large as the label allows, its proportions kept, at the screen's
+// pixel density (the photos are small: they are scaled up, smoothly)
+void Bootloader::showDevicePhoto() {
+    const QSize room = ui->labelDevice->contentsRect().size();
+    if(m_devicePhoto.isNull() || room.isEmpty())
+        return;
+    const qreal dpr = ui->labelDevice->devicePixelRatioF();
+    QPixmap photo = m_devicePhoto.scaled(room * dpr, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    photo.setDevicePixelRatio(dpr);
+    ui->labelDevice->setPixmap(photo);
+}
+
+bool Bootloader::eventFilter(QObject *watched, QEvent *event) {
+    if(watched == ui->labelDevice && event->type() == QEvent::Resize)
+        showDevicePhoto();
+    return QDialog::eventFilter(watched, event);
 }
 
 Bootloader::~Bootloader() {
@@ -549,7 +572,8 @@ void Bootloader::applyDevice() {
         const QString url = QString("https://www.gabotronics.com/download/firmware/%1.%2");
         HEXFileUrl = QUrl(url.arg(QLatin1String(row.firmware), QLatin1String("hex")));
         EEPFileUrl = QUrl(url.arg(QLatin1String(row.firmware), QLatin1String("eep")));
-        ui->labelDevice->setPixmap(QPixmap(row.photo));
+        m_devicePhoto = QPixmap(row.photo);
+        showDevicePhoto();
         // The 2.4 and 1.11 revisions share a photo, the tooltip tells them apart
         ui->labelDevice->setToolTip(row.button->text());
         QSettings settings;

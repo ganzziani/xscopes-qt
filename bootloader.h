@@ -29,6 +29,7 @@ protected:
     // Closing the window: refused while an operation runs; otherwise the application is
     // started when the bootloader is on USB and the flash holds a complete program.
     void done(int r) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;     // rescales the device photo
 private slots:
     void applyDevice();             // everything that follows the Device Select group
     void on_pushSelectFlashFile_clicked();
@@ -73,6 +74,8 @@ private:
                       const QString &errorString, bool eeprom);
     static bool BlankEeprom(const QByteArray &intelHex);
     void storeFiles();              // remembers the file fields for m_fileDevice
+    void showDevicePhoto();         // m_devicePhoto, scaled to labelDevice
+    QPixmap m_devicePhoto;          // the selected device's photo, as in the resources
     int m_fileDevice = -1;          // device code the file fields belong to
     // An erase or a flash programming started and no flash programming has succeeded since:
     // the application may be missing or partly written, so closing does not start it
