@@ -510,6 +510,7 @@ private:
 
     bool recordingWaves;
     QFile m_recordFile;                 // Record appends each new frame to it
+    int m_recordAdvance = 0;            // roll mode: new samples since the last recorded screen
     WaveFrame m_loadedFrame;            // Load Wave, shown in place of the live traces
     QVector<WaveFrame> m_playFrames;    // Play
     int m_playIndex = -1;               // the frame shown, -1 when not playing

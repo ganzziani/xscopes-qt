@@ -771,6 +771,7 @@ void XprotolabInterface::plotData() {
     // Repaints caused by mouse movement or UI changes reuse the last one and must not.
     const bool newFrame = frame != m_shownFrame;        // a whole new frame
     const bool newSamples = newFrame || writeIndex != m_shownIndex;
+    const int indexAdvance = (writeIndex - m_shownIndex) & 0xFF;   // new samples, as far as the index tells
     if(usbDevice.wayOfConnecting && !m_repaint) {
         if(!newSamples) {
             usbDevice.dataAvailable = false;    // identical payload, nothing to draw
@@ -890,9 +891,21 @@ void XprotolabInterface::plotData() {
         captureRef = false;
         captureReference();
     }
-    // Record takes the live frame, before a loaded or played wave replaces it on screen
-    if(newFrame && recordingWaves)
-        appendRecordedFrame(ch1Buffer, ch2Buffer, bit);
+    // Record takes the live frame, before a loaded or played wave replaces it on screen. In roll
+    // mode the firmware never moves the frame counter (only the write index), so a screen is
+    // recorded each time 256 new samples have come in: one screen after the other.
+    if(recordingWaves) {
+        if(ui->sliderSampling->value() >= 11 && ui->checkBoxRollMode->isChecked()) {
+            m_recordAdvance += indexAdvance;
+            if(m_recordAdvance >= 256) {
+                // Behind by more than a screen (the UI stalled): those samples are gone
+                m_recordAdvance = m_recordAdvance >= 512 ? 0 : m_recordAdvance - 256;
+                appendRecordedFrame(ch1Buffer, ch2Buffer, bit);
+            }
+        } else if(newFrame) {
+            appendRecordedFrame(ch1Buffer, ch2Buffer, bit);
+        }
+    }
     const WaveFrame *fileFrame = nullptr;
     if(m_playIndex >= 0 && m_playIndex < m_playFrames.size())
         fileFrame = &m_playFrames[m_playIndex];
@@ -4399,6 +4412,8 @@ void XprotolabInterface::on_pushButtonRecord_clicked() {
         return;
     }
     recordingWaves = true;
+    m_recordAdvance = 256;      // in roll mode the screen on display is the first one recorded
+    m_repaint = true;
     ui->pushButtonRecord->setText("Stop");
     ui->pushButtonRecord->setIcon(QIcon(":/Bitmaps/Bitmaps/ico-record-active.png"));
     ui->labelRecordStatus->setText(tr("Recording wave."));
