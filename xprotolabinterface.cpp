@@ -53,7 +53,7 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     m_shownIndex = -1;
     ui->setupUi(this);
     m_prevTabIndex = 0;
-    ui->tabWidgetMain->setCurrentIndex(0);
+    ui->tabWidgetMain->setCurrentWidget(ui->tabOscilloscope);
     // The splitter handle moves the border between the plot and the tabs. A wider window goes to
     // the plot. Dragging the handle to the right edge past the tabs' minimum width collapses the
     // tabs and the plot fills the window; dragging the handle back brings them back. The plot
@@ -787,7 +787,7 @@ void XprotolabInterface::plotData() {
         return;
     // Meter mode pauses the stream and grays the plot out (enterMeterMode()). The
     // frame that was in flight when it paused, or a UI repaint request, is dropped.
-    if(ui->tabWidgetMain->currentIndex() == 1) {
+    if(ui->tabWidgetMain->currentWidget() == ui->tabMeter) {
         usbDevice.dataAvailable = false;
         m_repaint = false;
         return;
@@ -2030,7 +2030,7 @@ void XprotolabInterface::on_pushButtonConnect_clicked() {
             ui->pushButtonRescan->setDisabled(true);
             ui->labelConnectionIcon->setPixmap(QPixmap(":/Bitmaps/Bitmaps/led-on.png"));
             setInfoText();
-            if(ui->tabWidgetMain->currentIndex() == 1)
+            if(ui->tabWidgetMain->currentWidget() == ui->tabMeter)
                 enterMeterMode();   // connected with the Meter tab already shown
         } else {
             // Nothing to talk to: release the libusb context and re-enable the UI
@@ -2274,12 +2274,12 @@ void XprotolabInterface::readDeviceSettings() {
     setScopeRunning((data & (byte)(1 << 4)) == 0);
     if(ui->tabWidgetMain->currentWidget() == ui->tabMeter) {
         if((data & (byte)(1 << 6)) == 0 && (data & (byte)(1 << 7)) == 0) {
-            ui->tabWidgetMeter->setCurrentIndex(2);
+            ui->tabWidgetMeter->setCurrentWidget(ui->tabMeterFrequency);
         } else {
             if((data & (byte)(1 << 6)) != 0)
-                ui->tabWidgetMeter->setCurrentIndex(0);
+                ui->tabWidgetMeter->setCurrentWidget(ui->tabMeterVPP);
             else if((data & (byte)(1 << 7)) != 0)
-                ui->tabWidgetMeter->setCurrentIndex(1);
+                ui->tabWidgetMeter->setCurrentWidget(ui->tabMeterVDC);
         }
     }
     // M 12 Gain CH1
@@ -3328,9 +3328,9 @@ void XprotolabInterface::sendMStatusControlsForMM() {
     byte field = 1; // Set the update bit
     // MStatus.vp_p and MStatus.vdc were swapped here: the VPP tab asked for VDC
     // and the VDC tab for VPP, so each showed the other quantity.
-    if(ui->tabWidgetMeter->currentIndex() == 0)
+    if(ui->tabWidgetMeter->currentWidget() == ui->tabMeterVPP)
         field += (1 << 7);       // VPP
-    else if(ui->tabWidgetMeter->currentIndex() == 1)
+    else if(ui->tabWidgetMeter->currentWidget() == ui->tabMeterVDC)
         field += (1 << 6);       // VDC
     else if(ui->radioButtonCounterPulses->isChecked())
         field += (1 << 6) + (1 << 7);
@@ -4783,11 +4783,12 @@ void XprotolabInterface::placeZeroMarkers() {
 }
 
 void XprotolabInterface::on_tabWidgetMain_currentChanged(int index) {
-    const bool wasMeter = (m_prevTabIndex == 1);
+    const int meter = ui->tabWidgetMain->indexOf(ui->tabMeter);
+    const bool wasMeter = (m_prevTabIndex == meter);
     m_prevTabIndex = index;
-    if(!wasMeter && index == 1)
+    if(!wasMeter && index == meter)
         enterMeterMode();
-    else if(wasMeter && index != 1)
+    else if(wasMeter && index != meter)
         leaveMeterMode();
 }
 
@@ -4801,7 +4802,7 @@ void XprotolabInterface::enterMeterMode() {
     checkFCRadioButtons(ui->comboBoxTriggerSource->currentIndex());
     prepareMFFTControlsForMM();
     sendMStatusControlsForMM();
-    if(ui->tabWidgetMeter->currentIndex() == 2)
+    if(ui->tabWidgetMeter->currentWidget() == ui->tabMeterFrequency)
         sendTSource();
     clearMMLabels();
     m_meterContextClock.invalidate();
@@ -4828,7 +4829,7 @@ void XprotolabInterface::leaveMeterMode() {
 // bytes back for 16 ms), so it polls a little slower there.
 void XprotolabInterface::startMeterTimer() {
     m_mmFailures = 0;
-    if(ui->tabWidgetMeter->currentIndex() == 2) {
+    if(ui->tabWidgetMeter->currentWidget() == ui->tabMeterFrequency) {
         m_mmTimer.start(usbDevice.wayOfConnecting ? 20 : 50);
     } else {
         m_mmTimer.start(250);   // VPP and VDC
@@ -4854,7 +4855,7 @@ void XprotolabInterface::restoreUiSettings() {
     on_sliderCH1Gain_valueChanged(ui->sliderCH1Gain->value());
     on_sliderCH2Gain_valueChanged(ui->sliderCH2Gain->value());
     on_sliderSampling_valueChanged(ui->sliderSampling->value());
-    if(ui->tabWidgetMeter->currentIndex() != 1)
+    if(ui->tabWidgetMeter->currentWidget() != ui->tabMeterVDC)
         usbDevice.turnOnAutoMode();
 }
 
@@ -4919,7 +4920,7 @@ QString XprotolabInterface::channelFrequencyText(int bin, int srate) {
 void XprotolabInterface::mm_request() {
     if(!usbDevice.isDeviceConnected)
         return;
-    const int tab = ui->tabWidgetMeter->currentIndex();
+    const QWidget *tab = ui->tabWidgetMeter->currentWidget();
     unsigned char tmp_buff[METER_REPLY_SIZE] = {0};
     int size = usbDevice.requestMM(tmp_buff);
     if(size < 0 && usbDevice.wayOfConnecting) {
@@ -4966,7 +4967,7 @@ void XprotolabInterface::mm_request() {
             settled = (tmp_buff[15] == 0);
         }
     }
-    if(tab == 0) {
+    if(tab == ui->tabMeterVPP) {
         // VPP: the meter value is T.SCOPE.CH1.vpp * 128. printV() in the firmware
         // scales it with the channel gain; the same here (counts * V/div / 4096,
         // because 128 meter units are one 8-bit count and 8 divisions span 256).
@@ -4992,7 +4993,7 @@ void XprotolabInterface::mm_request() {
         double vpp2 = meterWord(tmp_buff + 2) * gains[g2].value / 4096.0;
         ui->labelVPPCH1->setText(get4Digits(vpp1) + "V");
         ui->labelVPPCH2->setText(get4Digits(vpp2) + "V");
-    } else if(tab == 1) {
+    } else if(tab == ui->tabMeterVDC) {
         // VDC: the meter value is the 12-bit pair; 1 LSB is 1.25 mV (printV()).
         double vdc1 = meterWord(tmp_buff) * 0.00125;
         double vdc2 = meterWord(tmp_buff + 2) * 0.00125;
@@ -5066,10 +5067,10 @@ void XprotolabInterface::on_tabWidgetMeter_currentChanged(int) {
     // Default to Frequency measurement
     ui->radioButtonCounterFrequency->setChecked(true);
     ui->radioButtonCounterPulses->setChecked(false);
-    if(ui->tabWidgetMain->currentIndex() != 1 || !usbDevice.isDeviceConnected)
+    if(ui->tabWidgetMain->currentWidget() != ui->tabMeter || !usbDevice.isDeviceConnected)
         return;
     sendMStatusControlsForMM();
-    if(ui->tabWidgetMeter->currentIndex() == 2)
+    if(ui->tabWidgetMeter->currentWidget() == ui->tabMeterFrequency)
         sendTSource();
     startMeterTimer();
 }
