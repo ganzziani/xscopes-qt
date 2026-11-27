@@ -212,7 +212,9 @@ bool XprotolabInterface::checkIfCorrectPort(QString name) {
 #ifdef Q_OS_WIN
     return name.toLower().startsWith("com");
 #elif defined(Q_OS_MAC)
-    return name.toLower().startsWith("bluetooth");
+    // macOS lists every port twice: cu.* (call-out) and tty.* (dial-in, which waits for carrier).
+    // The call-out device is the one to open; QextSerialPort puts /dev/ in front of the name.
+    return name.startsWith("cu.");
 #else
     return name.toLower().startsWith("tty");
 #endif
