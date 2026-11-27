@@ -537,6 +537,7 @@ private:
     QElapsedTimer m_repaintClock;
 
     int m_prevTabIndex;
+    QSizePolicy m_tabsPolicy;           // tabWidgetMain's own size policy, while it is not collapsed
     int m_appliedTheme = 0;     // the theme on the plot (the combo shows Custom while its dialog is open)
     QTimer m_mmTimer;
     // Consecutive failed 'm' requests. Meter mode pauses the bulk stream, which is

@@ -62,20 +62,10 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     ui->splitterMain->setStretchFactor(1, 0);
     ui->splitterMain->setChildrenCollapsible(false);
     ui->splitterMain->setCollapsible(1, true);
-    // Collapsed tabs still count their minimum size in the window's minimum: ignore it while they
-    // are collapsed, so the window can get as small as the plot. The first move of the handle out
-    // of the edge restores it, and the tabs open at their minimum width.
-    connect(ui->splitterMain, &QSplitter::splitterMoved, this,
-            [this, tabsPolicy = ui->tabWidgetMain->sizePolicy()] {
-        const bool collapsed = ui->splitterMain->sizes().value(1) == 0;
-        QSizePolicy policy = tabsPolicy;
-        if(collapsed) {
-            policy.setHorizontalPolicy(QSizePolicy::Ignored);
-            policy.setVerticalPolicy(QSizePolicy::Ignored);
-        }
-        if(ui->tabWidgetMain->sizePolicy() != policy)
-            ui->tabWidgetMain->setSizePolicy(policy);
-    });
+    // Collapsed tabs still count their minimum size in the window's minimum: it is ignored while
+    // they are collapsed, so the window can get as small as the plot (see eventFilter()).
+    m_tabsPolicy = ui->tabWidgetMain->sizePolicy();
+    ui->splitterMain->handle(1)->installEventFilter(this);
 #if defined(Q_OS_MAC)
     setStyleSheet(readStyleSheet(":/Bitmaps/mac-css.qss"));
 #else
@@ -2496,6 +2486,18 @@ bool XprotolabInterface::eventFilter(QObject *watched, QEvent *event) {
     // Queued, so it runs once the plot has handled the resize itself
     if(watched == ui->customPlot && event->type() == QEvent::Resize)
         QMetaObject::invokeMethod(this, &XprotolabInterface::on_sizeChanged, Qt::QueuedConnection);
+    // The splitter handle: the tabs keep their minimum size during a drag, so the splitter opens
+    // and collapses them as usual (switching while dragging makes them flicker). Pressing the handle
+    // of collapsed tabs can widen the window, to make room for them. Released with the tabs
+    // collapsed, their minimum is ignored.
+    if(watched == ui->splitterMain->handle(1)) {
+        if(event->type() == QEvent::MouseButtonPress) {
+            ui->tabWidgetMain->setSizePolicy(m_tabsPolicy);
+        } else if(event->type() == QEvent::MouseButtonRelease
+                  && ui->splitterMain->sizes().value(1) == 0) {
+            ui->tabWidgetMain->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+        }
+    }
     return QMainWindow::eventFilter(watched, event);
 }
 
