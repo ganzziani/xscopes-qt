@@ -12,11 +12,11 @@
 struct ChannelPalette {
     QColor ch1, ch2, ch3, ch4, logic, cursor;
     static ChannelPalette dark() {
-        return {QColor(255, 0, 0), QColor(0, 255, 0), QColor(0, 0, 255), QColor(255, 255, 0),
+        return {QColor(0, 255, 0), QColor(255, 0, 0), QColor(0, 0, 255), QColor(255, 255, 0),
                 QColor(255, 0, 255), QColor(0, 255, 255)};
     }
     static ChannelPalette light() {
-        return {QColor(210, 0, 0), QColor(0, 150, 0), QColor(0, 0, 230), QColor(170, 140, 0),
+        return {QColor(0, 150, 0), QColor(210, 0, 0), QColor(0, 0, 230), QColor(170, 140, 0),
                 QColor(180, 0, 180), QColor(0, 140, 160)};
     }
 };
