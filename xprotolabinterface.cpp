@@ -409,11 +409,11 @@ void XprotolabInterface::applyChannelColors() {
     setGroupBoxColor(ui->groupBoxCHD, m_palette.logic);
 }
 
-// A channel's group box framed in the channel's color (fainter while disabled). A style
-// sheet border replaces the native frame, so the title is placed on it the same way.
+// A channel's group box framed in the channel's color, 2 px wide (fainter while disabled). A
+// style sheet border replaces the native frame, so the title is placed on it the same way.
 void XprotolabInterface::setGroupBoxColor(QGroupBox *box, const QColor &color) {
     box->setStyleSheet(QString(
-        "QGroupBox#%1 { border: 1px solid %2; border-radius: 4px; margin-top: 7px; padding-top: 4px; }"
+        "QGroupBox#%1 { border: 2px solid %2; border-radius: 4px; margin-top: 7px; padding-top: 4px; }"
         "QGroupBox#%1:disabled { border-color: rgba(%3, %4, %5, 90); }"
         "QGroupBox#%1::title { subcontrol-origin: margin; subcontrol-position: top left;"
         " left: 7px; padding: 0 3px; }")
