@@ -55,10 +55,27 @@ XprotolabInterface::XprotolabInterface(QWidget *parent) :
     m_prevTabIndex = 0;
     ui->tabWidgetMain->setCurrentIndex(0);
     // The splitter handle moves the border between the plot and the tabs. A wider window goes to
-    // the plot, and neither side can be collapsed below its minimum size by dragging.
+    // the plot. Dragging the handle to the right edge past the tabs' minimum width collapses the
+    // tabs and the plot fills the window; dragging the handle back brings them back. The plot
+    // never collapses.
     ui->splitterMain->setStretchFactor(0, 1);
     ui->splitterMain->setStretchFactor(1, 0);
     ui->splitterMain->setChildrenCollapsible(false);
+    ui->splitterMain->setCollapsible(1, true);
+    // Collapsed tabs still count their minimum size in the window's minimum: ignore it while they
+    // are collapsed, so the window can get as small as the plot. The first move of the handle out
+    // of the edge restores it, and the tabs open at their minimum width.
+    connect(ui->splitterMain, &QSplitter::splitterMoved, this,
+            [this, tabsPolicy = ui->tabWidgetMain->sizePolicy()] {
+        const bool collapsed = ui->splitterMain->sizes().value(1) == 0;
+        QSizePolicy policy = tabsPolicy;
+        if(collapsed) {
+            policy.setHorizontalPolicy(QSizePolicy::Ignored);
+            policy.setVerticalPolicy(QSizePolicy::Ignored);
+        }
+        if(ui->tabWidgetMain->sizePolicy() != policy)
+            ui->tabWidgetMain->setSizePolicy(policy);
+    });
 #if defined(Q_OS_MAC)
     setStyleSheet(readStyleSheet(":/Bitmaps/mac-css.qss"));
 #else
