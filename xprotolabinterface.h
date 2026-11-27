@@ -393,6 +393,7 @@ private slots:
     void setCh1Position(int value);
     void setCh2Position(int value);
     void setChdPosition(int value);
+    byte chdDevicePosition(int value) const;
     bool checkIfCorrectPort(QString name);
     void on_sizeChanged();
     void on_tabWidgetMain_currentChanged(int index);

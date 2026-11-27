@@ -2299,11 +2299,19 @@ void XprotolabInterface::readDeviceSettings() {
     // The cursor positions above are read before the channel positions, so the
     // heads are placed once both are known.
     updateCursorVisibility();
-    // M 31 Channel D position
+    // M 31 Channel D position. The app's own position, from the settings, when the device holds
+    // what that position sends (the device clamps it, see chdDevicePosition()); the device's
+    // when it differs: it was moved on the device, or the settings belong to another device.
     data = (byte)(kChdPositionMax - (usbDevice.inBuffer[31] / 8));
     logToFile("M 31 Channel D position: " + QString::number(data));
-    if((char)data >= kChdPositionMin && (char)data <= kChdPositionMax)
-        setChdPosition((char)data);
+    {
+        QSettings settings;
+        const int kept = settings.value("chdPosition", -1).toInt();
+        if(kept >= kChdPositionMin && kept <= kChdPositionMax && chdDevicePosition(kept) == usbDevice.inBuffer[31])
+            setChdPosition(kept);
+        else if((char)data >= kChdPositionMin && (char)data <= kChdPositionMax)
+            setChdPosition((char)data);
+    }
     // M 32 Decode Protocol
     data = usbDevice.inBuffer[32]; // decode
     logToFile("M 32 Decode Protocol: " + QString::number(data));
@@ -3424,8 +3432,20 @@ void XprotolabInterface::setCh2Position(int value) {
     m_repaint = true;
 }
 
+// The M 31 byte for the app's logic position (0..7): the device's own LCD row, 8 pixels a
+// step from the top, which it keeps the shown bits on: at most (8 - bits shown) x 8. With all
+// eight bits on, every position is 0.
+byte XprotolabInterface::chdDevicePosition(int value) const {
+    int count = 0;
+    for(QCheckBox *bit : {ui->checkBoxCHD0, ui->checkBoxCHD1, ui->checkBoxCHD2, ui->checkBoxCHD3,
+                          ui->checkBoxCHD4, ui->checkBoxCHD5, ui->checkBoxCHD6, ui->checkBoxCHD7})
+        count += bit->isChecked();
+    return (byte)qMin((kChdPositionMax - value) * 8, (8 - count) * 8);
+}
+
 // M 31 Channel position. The CHD zero marker in the plot calls this; 0..7 are the
-// eight vertical steps of the logic group.
+// eight vertical steps of the logic group. The device cannot hold every step the plot
+// has room for (chdDevicePosition()), so the app keeps its own in the settings.
 void XprotolabInterface::setChdPosition(int value) {
     if(value < kChdPositionMin)
         value = kChdPositionMin;
@@ -3434,30 +3454,9 @@ void XprotolabInterface::setChdPosition(int value) {
     if(value == m_chdPosition)
         return;
     m_chdPosition = value;
-    byte count, temp, chPos;
-    count = 0; // CHD Mask
-    if(ui->checkBoxCHD0->isChecked())
-        count++;
-    if(ui->checkBoxCHD1->isChecked())
-        count++;
-    if(ui->checkBoxCHD2->isChecked())
-        count++;
-    if(ui->checkBoxCHD3->isChecked())
-        count++;
-    if(ui->checkBoxCHD4->isChecked())
-        count++;
-    if(ui->checkBoxCHD5->isChecked())
-        count++;
-    if(ui->checkBoxCHD6->isChecked())
-        count++;
-    if(ui->checkBoxCHD7->isChecked())
-        count++;
-    // Count CHD enabled pins
-    chPos = (byte)((kChdPositionMax - value) * 8);
-    temp = (byte)((8 - count) * 8);    // Max position
-    if(chPos > temp)
-        chPos = temp;
-    usbDevice.controlWriteTransfer(31, chPos);
+    QSettings settings;
+    settings.setValue("chdPosition", value);
+    usbDevice.controlWriteTransfer(31, chdDevicePosition(value));
     chdZeroPos = kChdPositionBase + m_chdPosition * kChdPositionStep;
     chdZeroHead->topLeft->setPixelPosition(QPointF(2, ui->customPlot->yAxis->coordToPixel(chdZeroPos)));
     m_repaint = true;
