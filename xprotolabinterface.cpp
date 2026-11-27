@@ -1468,11 +1468,13 @@ Selected XprotolabInterface::markerAt(const QPointF &pos) const {
         return distance >= 0 && distance < 8.0;
     };
     // The three zero markers form a column on the left edge and can overlap, so take
-    // the nearest one within the hit radius instead of the first one in a list.
+    // the nearest one within the hit radius instead of the first one in a list. On a tie
+    // the one drawn on top wins, the one the user sees: items created later are drawn
+    // over earlier ones, and setupCursors() creates CH1's, CH2's, then the logic's.
     Selected zeroId = isNone;
     double nearestZero = 8.0;
-    const MarkerPixmap *zeroHeads[] = { ch1ZeroHead, ch2ZeroHead, chdZeroHead };
-    const Selected zeroIds[] = { isCH1Zero, isCH2Zero, isCHDZero };
+    const MarkerPixmap *zeroHeads[] = { chdZeroHead, ch2ZeroHead, ch1ZeroHead };
+    const Selected zeroIds[] = { isCHDZero, isCH2Zero, isCH1Zero };
     for(int k = 0; k < 3; k++) {
         if(!zeroHeads[k]->visible())
             continue;
@@ -1508,7 +1510,7 @@ bool XprotolabInterface::canPanHorizontally() const {
 }
 
 // What a left-button press at pos grabs: a marker first, then a channel's 0 V line
-// (the nearest one, CH1 on a tie), then the plot area itself for panning.
+// (the nearest one, CH2 on a tie: it is drawn on top), then the plot area itself for panning.
 Selected XprotolabInterface::dragTargetAt(const QPointF &pos) const {
     const Selected marker = markerAt(pos);
     if(marker != isNone)
@@ -1529,8 +1531,8 @@ Selected XprotolabInterface::dragTargetAt(const QPointF &pos) const {
                 level = id;
             }
         };
+        check(ch2ZeroHead, isCH2Level);     // drawn over CH1's line, so it wins a tie
         check(ch1ZeroHead, isCH1Level);
-        check(ch2ZeroHead, isCH2Level);
         if(level != isNone)
             return level;
     }
@@ -1612,6 +1614,7 @@ void XprotolabInterface::selectItem(QMouseEvent *event) {
     }
     m_dragStart = event->position();
     updatePlotCursor(event->position());
+    m_repaint = true;   // show the highlight now, also when no frames come in (stopped, waiting)
 }
 
 void XprotolabInterface::deselectItem(QMouseEvent *event) {
@@ -1627,6 +1630,7 @@ void XprotolabInterface::deselectItem(QMouseEvent *event) {
     ch2ZeroHead->setPen(QPen(Qt::NoPen));
     chdZeroHead->setPen(QPen(Qt::NoPen));
     updatePlotCursor(event->position());
+    m_repaint = true;   // or the highlight stays until the next frame, which may never come
 }
 
 void XprotolabInterface::setFFTWindow(int type) {
