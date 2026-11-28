@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>568</height>
+    <width>708</width>
+    <height>534</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -398,6 +398,9 @@
          <string>Oscilloscope</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_56">
+         <property name="spacing">
+          <number>4</number>
+         </property>
          <property name="leftMargin">
           <number>0</number>
          </property>
@@ -420,9 +423,12 @@
              <number>2</number>
             </property>
             <property name="leftMargin">
-             <number>6</number>
+             <number>2</number>
             </property>
             <property name="topMargin">
+             <number>2</number>
+            </property>
+            <property name="rightMargin">
              <number>2</number>
             </property>
             <property name="bottomMargin">
@@ -430,6 +436,12 @@
             </property>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <property name="leftMargin">
+               <number>2</number>
+              </property>
+              <property name="rightMargin">
+               <number>2</number>
+              </property>
               <item>
                <widget class="QLabel" name="labelIconWaveBig">
                 <property name="text">
@@ -545,10 +557,10 @@
           <widget class="QFrame" name="frameChannels">
            <layout class="QHBoxLayout" name="horizontalLayout_34">
             <property name="spacing">
-             <number>2</number>
+             <number>0</number>
             </property>
             <property name="leftMargin">
-             <number>4</number>
+             <number>2</number>
             </property>
             <property name="topMargin">
              <number>0</number>
@@ -674,13 +686,13 @@
                      <number>2</number>
                     </property>
                     <property name="topMargin">
-                     <number>2</number>
+                     <number>0</number>
                     </property>
                     <property name="rightMargin">
-                     <number>2</number>
+                     <number>0</number>
                     </property>
                     <property name="bottomMargin">
-                     <number>2</number>
+                     <number>0</number>
                     </property>
                     <item>
                      <widget class="QRadioButton" name="radioButtonCH1Multiply">
@@ -835,13 +847,13 @@
                      <number>2</number>
                     </property>
                     <property name="topMargin">
-                     <number>2</number>
+                     <number>0</number>
                     </property>
                     <property name="rightMargin">
-                     <number>2</number>
+                     <number>0</number>
                     </property>
                     <property name="bottomMargin">
-                     <number>2</number>
+                     <number>0</number>
                     </property>
                     <item>
                      <widget class="QRadioButton" name="radioButtonCH2Multiply">
@@ -1002,13 +1014,13 @@
                      <number>2</number>
                     </property>
                     <property name="topMargin">
-                     <number>2</number>
+                     <number>0</number>
                     </property>
                     <property name="rightMargin">
-                     <number>2</number>
+                     <number>0</number>
                     </property>
                     <property name="bottomMargin">
-                     <number>2</number>
+                     <number>0</number>
                     </property>
                     <item>
                      <widget class="QRadioButton" name="radioButtonCH3Multiply">
@@ -1169,13 +1181,13 @@
                      <number>2</number>
                     </property>
                     <property name="topMargin">
-                     <number>2</number>
+                     <number>0</number>
                     </property>
                     <property name="rightMargin">
-                     <number>2</number>
+                     <number>0</number>
                     </property>
                     <property name="bottomMargin">
-                     <number>2</number>
+                     <number>0</number>
                     </property>
                     <item>
                      <widget class="QRadioButton" name="radioButtonCH4Multiply">
@@ -1228,7 +1240,7 @@
              <number>2</number>
             </property>
             <property name="leftMargin">
-             <number>4</number>
+             <number>2</number>
             </property>
             <property name="topMargin">
              <number>2</number>
@@ -1297,7 +1309,7 @@
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_78">
                  <property name="spacing">
-                  <number>2</number>
+                  <number>0</number>
                  </property>
                  <item>
                   <widget class="QCheckBox" name="checkBoxCHD0">
@@ -1359,6 +1371,9 @@
                </item>
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_23">
+                 <property name="spacing">
+                  <number>2</number>
+                 </property>
                  <item>
                   <widget class="QCheckBox" name="checkBoxCHDInvert">
                    <property name="toolTip">
@@ -1448,11 +1463,17 @@
                <property name="spacing">
                 <number>2</number>
                </property>
+               <property name="leftMargin">
+                <number>4</number>
+               </property>
                <property name="topMargin">
                 <number>2</number>
                </property>
+               <property name="rightMargin">
+                <number>2</number>
+               </property>
                <property name="bottomMargin">
-                <number>4</number>
+                <number>2</number>
                </property>
                <item>
                 <widget class="QCheckBox" name="checkBoxFFTCH1">
@@ -1497,7 +1518,13 @@
                   <property name="spacing">
                    <number>2</number>
                   </property>
+                  <property name="leftMargin">
+                   <number>2</number>
+                  </property>
                   <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
                    <number>0</number>
                   </property>
                   <property name="bottomMargin">
@@ -1542,14 +1569,17 @@
                <property name="sizeConstraint">
                 <enum>QLayout::SizeConstraint::SetMinimumSize</enum>
                </property>
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
                <property name="topMargin">
-                <number>1</number>
+                <number>0</number>
                </property>
                <property name="rightMargin">
-                <number>1</number>
+                <number>0</number>
                </property>
                <property name="bottomMargin">
-                <number>1</number>
+                <number>0</number>
                </property>
                <item>
                 <widget class="QFrame" name="frameTriggerSource">
@@ -1708,7 +1738,7 @@ Single: show one trace when the trigger event occurs</string>
                   <item>
                    <widget class="QLabel" name="label_3">
                     <property name="text">
-                     <string>Mode</string>
+                     <string>Mode:</string>
                     </property>
                    </widget>
                   </item>
@@ -2213,6 +2243,18 @@ Window: the signal leaves a voltage range</string>
                 <string/>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_108">
+                <property name="leftMargin">
+                 <number>2</number>
+                </property>
+                <property name="topMargin">
+                 <number>2</number>
+                </property>
+                <property name="rightMargin">
+                 <number>2</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>4</number>
+                </property>
                 <item>
                  <widget class="QGroupBox" name="groupBoxCounterSource">
                   <property name="minimumSize">
@@ -2539,7 +2581,7 @@ Window: the signal leaves a voltage range</string>
        </widget>
        <widget class="QWidget" name="tabAWG">
         <attribute name="title">
-         <string>Waveform Generator</string>
+         <string>AWG</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_71">
          <item>
@@ -2728,11 +2770,20 @@ Window: the signal leaves a voltage range</string>
             <string>Frequency Range</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3">
+            <property name="spacing">
+             <number>2</number>
+            </property>
             <property name="leftMargin">
-             <number>4</number>
+             <number>2</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
             </property>
             <property name="rightMargin">
-             <number>4</number>
+             <number>2</number>
+            </property>
+            <property name="bottomMargin">
+             <number>2</number>
             </property>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_45">
@@ -2911,10 +2962,10 @@ Frequency</string>
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_61">
            <property name="spacing">
-            <number>6</number>
+            <number>2</number>
            </property>
            <property name="leftMargin">
-            <number>5</number>
+            <number>0</number>
            </property>
            <property name="rightMargin">
             <number>0</number>
@@ -2930,7 +2981,7 @@ Frequency</string>
                 </size>
                </property>
                <property name="text">
-                <string>Amplitude</string>
+                <string>Amplitude:</string>
                </property>
                <property name="scaledContents">
                 <bool>true</bool>
@@ -3003,7 +3054,7 @@ Frequency</string>
                 </size>
                </property>
                <property name="text">
-                <string>Duty Cycle</string>
+                <string>Duty Cycle:</string>
                </property>
                <property name="scaledContents">
                 <bool>true</bool>
@@ -3015,6 +3066,12 @@ Frequency</string>
              </item>
              <item>
               <widget class="QDoubleSpinBox" name="doubleSpinBoxAWGDutyCycle">
+               <property name="minimumSize">
+                <size>
+                 <width>55</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="decimals">
                 <number>3</number>
                </property>
@@ -3073,7 +3130,7 @@ Frequency</string>
                 </size>
                </property>
                <property name="text">
-                <string>Offset</string>
+                <string>Offset:</string>
                </property>
                <property name="scaledContents">
                 <bool>true</bool>
@@ -3137,6 +3194,18 @@ Frequency</string>
             <string>AWG Sweep</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_47">
+            <property name="leftMargin">
+             <number>2</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>2</number>
+            </property>
+            <property name="bottomMargin">
+             <number>2</number>
+            </property>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_52">
               <item>
@@ -3390,11 +3459,11 @@ Frequency</string>
        </widget>
        <widget class="QWidget" name="tabSniffer">
         <attribute name="title">
-         <string>Protocol Sniffer</string>
+         <string>Sniffer</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_72">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_62">
+          <layout class="QHBoxLayout" name="horizontalLayout_62" stretch="0,0,1,1">
            <property name="spacing">
             <number>6</number>
            </property>
@@ -3405,10 +3474,10 @@ Frequency</string>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_51">
               <property name="topMargin">
-               <number>2</number>
+               <number>0</number>
               </property>
               <property name="bottomMargin">
-               <number>2</number>
+               <number>0</number>
               </property>
               <item>
                <widget class="QRadioButton" name="radioButtonSnifferNormal">
@@ -3495,68 +3564,80 @@ Frequency</string>
              <string>SPI</string>
             </attribute>
             <layout class="QVBoxLayout" name="verticalLayout_60">
+             <property name="spacing">
+              <number>2</number>
+             </property>
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>4</number>
+             </property>
+             <property name="rightMargin">
+              <number>4</number>
+             </property>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_76">
+              <layout class="QHBoxLayout" name="horizontalLayout_71">
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_71">
+                <layout class="QHBoxLayout" name="horizontalLayout_65">
                  <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_65">
-                   <item>
-                    <widget class="QLabel" name="labelSPISS">
-                     <property name="font">
-                      <font>
-                       <pointsize>10</pointsize>
-                       <bold>true</bold>
-                      </font>
-                     </property>
-                     <property name="text">
-                      <string>BIT 4:SS</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="labelSPIMOSI">
-                     <property name="font">
-                      <font>
-                       <pointsize>10</pointsize>
-                       <bold>true</bold>
-                      </font>
-                     </property>
-                     <property name="text">
-                      <string>BIT 5:MOSI</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="labelSPIMISO">
-                     <property name="font">
-                      <font>
-                       <pointsize>10</pointsize>
-                       <bold>true</bold>
-                      </font>
-                     </property>
-                     <property name="text">
-                      <string>BIT 6:MISO</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="labelSPISCK">
-                     <property name="font">
-                      <font>
-                       <pointsize>10</pointsize>
-                       <bold>true</bold>
-                      </font>
-                     </property>
-                     <property name="text">
-                      <string>BIT 7:SCK</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
+                  <widget class="QLabel" name="labelSPISS">
+                   <property name="font">
+                    <font>
+                     <pointsize>10</pointsize>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>BIT 4:SS</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="labelSPIMOSI">
+                   <property name="font">
+                    <font>
+                     <pointsize>10</pointsize>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>BIT 5:MOSI</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="labelSPIMISO">
+                   <property name="font">
+                    <font>
+                     <pointsize>10</pointsize>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>BIT 6:MISO</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="labelSPISCK">
+                   <property name="font">
+                    <font>
+                     <pointsize>10</pointsize>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>BIT 7:SCK</string>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_76">
                <item>
                 <widget class="QCheckBox" name="checkBoxSPIInvertSS">
                  <property name="layoutDirection">
@@ -3662,6 +3743,18 @@ Frequency</string>
              <string>I2C</string>
             </attribute>
             <layout class="QVBoxLayout" name="verticalLayout_63">
+             <property name="spacing">
+              <number>2</number>
+             </property>
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>4</number>
+             </property>
+             <property name="rightMargin">
+              <number>4</number>
+             </property>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_64">
                <item>
@@ -3750,47 +3843,68 @@ Frequency</string>
              <string>UART</string>
             </attribute>
             <layout class="QVBoxLayout" name="verticalLayout_70">
+             <property name="spacing">
+              <number>2</number>
+             </property>
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>4</number>
+             </property>
+             <property name="rightMargin">
+              <number>4</number>
+             </property>
+             <property name="bottomMargin">
+              <number>6</number>
+             </property>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_69">
+              <layout class="QHBoxLayout" name="horizontalLayout_60">
                <property name="spacing">
                 <number>4</number>
                </property>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_60">
-                 <item>
-                  <widget class="QLabel" name="labelUARTRX">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>BIT 2:RX</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="labelUARTTX">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>BIT 3:TX</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
+                <widget class="QLabel" name="labelUARTRX">
+                 <property name="font">
+                  <font>
+                   <pointsize>10</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>BIT 2: RX</string>
+                 </property>
+                </widget>
                </item>
                <item>
+                <widget class="QLabel" name="labelUARTTX">
+                 <property name="font">
+                  <font>
+                   <pointsize>10</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>BIT 3: TX</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_69">
+               <property name="spacing">
+                <number>2</number>
+               </property>
+               <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_66">
+                 <property name="spacing">
+                  <number>2</number>
+                 </property>
                  <item>
                   <widget class="QLabel" name="labelUARTBaud">
                    <property name="text">
-                    <string>Baud Rate</string>
+                    <string>Baud Rate:</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
@@ -3845,6 +3959,9 @@ Frequency</string>
                </item>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_22">
+                 <property name="spacing">
+                  <number>2</number>
+                 </property>
                  <item>
                   <widget class="QLabel" name="labelUARTDataBits">
                    <property name="text">
@@ -3872,10 +3989,13 @@ Frequency</string>
                </item>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_67">
+                 <property name="spacing">
+                  <number>2</number>
+                 </property>
                  <item>
                   <widget class="QLabel" name="labelUARTParity">
                    <property name="text">
-                    <string>Parity</string>
+                    <string>Parity:</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
@@ -3905,6 +4025,9 @@ Frequency</string>
                </item>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_68">
+                 <property name="spacing">
+                  <number>2</number>
+                 </property>
                  <item>
                   <widget class="QLabel" name="labelUARTStopBits">
                    <property name="text">
@@ -3983,7 +4106,13 @@ Frequency</string>
             <property name="spacing">
              <number>4</number>
             </property>
+            <property name="leftMargin">
+             <number>2</number>
+            </property>
             <property name="topMargin">
+             <number>2</number>
+            </property>
+            <property name="rightMargin">
              <number>2</number>
             </property>
             <property name="bottomMargin">
@@ -4136,6 +4265,21 @@ Frequency</string>
             <string>Display</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_73">
+            <property name="spacing">
+             <number>4</number>
+            </property>
+            <property name="leftMargin">
+             <number>4</number>
+            </property>
+            <property name="topMargin">
+             <number>2</number>
+            </property>
+            <property name="rightMargin">
+             <number>4</number>
+            </property>
+            <property name="bottomMargin">
+             <number>2</number>
+            </property>
             <item>
              <layout class="QVBoxLayout" name="verticalLayout_84">
               <item>
@@ -4455,6 +4599,21 @@ Frequency</string>
             <string>Connection</string>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_57" stretch="0,1,1">
+            <property name="spacing">
+             <number>4</number>
+            </property>
+            <property name="leftMargin">
+             <number>4</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>4</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
             <item>
              <layout class="QVBoxLayout" name="verticalLayout_89">
               <property name="spacing">
@@ -4645,6 +4804,21 @@ Frequency</string>
             <string>Device Firmware</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_75">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>2</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>2</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_93">
               <property name="spacing">
@@ -4716,7 +4890,7 @@ Frequency</string>
                    </size>
                   </property>
                   <property name="text">
-                   <string>2.97</string>
+                   <string>2.98</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
@@ -4792,6 +4966,18 @@ Frequency</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_119">
          <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="leftMargin">
+          <number>4</number>
+         </property>
+         <property name="topMargin">
+          <number>4</number>
+         </property>
+         <property name="rightMargin">
+          <number>4</number>
+         </property>
+         <property name="bottomMargin">
           <number>4</number>
          </property>
          <item>

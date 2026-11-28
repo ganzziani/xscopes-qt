@@ -3597,7 +3597,7 @@ void XprotolabInterface::setupAboutTab() {
     ui->labelAboutCopyright->setText(
         tr("<p align=\"center\">Copyright &copy; 2013-2026 Gabotronics.<br>"
            "Free software under the GNU General Public License v3 or later, with ABSOLUTELY NO "
-           "WARRANTY. Source code: <a href=\"https://github.com/ganzziani/xscopes-qt\">"
+           "WARRANTY. <br>Source code: <a href=\"https://github.com/ganzziani/xscopes-qt\">"
            "github.com/ganzziani/xscopes-qt</a>.<br>"
            "Third-party components and their licences: gpl.txt and the licenses folder next to "
            "the program.</p>"));
